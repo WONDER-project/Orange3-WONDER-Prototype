@@ -4,7 +4,9 @@ from Orange.widgets import gui
 
 from PyQt5.QtGui import QIntValidator
 
-class OWInsetnum(widget.OWWidget):
+from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
+
+class OWInsertnum(OWGenericWidget):
     name = "Integer Number"
 
     description = "Let's the user input a number"
@@ -20,13 +22,9 @@ class OWInsetnum(widget.OWWidget):
         super().__init__()
 
         gui.lineEdit(self.controlArea, self, "number", "Enter a number",
-                     box ="Number", callback=self.number_changed,
-                     valueType= int, validator= QIntValidator())
+                     box="Number", callback=self.number_changed,
+                     valueType=int, validator=QIntValidator() )
         self.number_changed()
-
     def number_changed(self):
         #send entered number on "Number" output
         self.Outputs.number.send(self.number)
-
-
-
