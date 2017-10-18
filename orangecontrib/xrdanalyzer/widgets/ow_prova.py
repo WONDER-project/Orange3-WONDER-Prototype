@@ -1,17 +1,18 @@
 import numpy
 
-from Orange.widgets import widget
-
-from Orange.widgets import gui
+from Orange.widgets import gui as orange_gui
 from Orange.widgets.settings import Setting
 from Orange.data import Table
 
-from PyQt5.QtWidgets import QApplication, QTextEdit, QMessageBox
+from PyQt5.QtWidgets import QApplication, QTextEdit, QMessageBox, QAction
 from PyQt5.QtCore import QRect, Qt
 
 from silx.gui.plot.PlotWindow import PlotWindow
 
-class OWProva(widget.OWWidget):
+from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
+from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui
+
+class OWProva(OWGenericWidget):
     name = "Prova"
     description = "Fazo na prova"
     icon = "icons/prova.png"
@@ -24,33 +25,12 @@ class OWProva(widget.OWWidget):
 
     want_main_area = True
 
-    MAX_WIDTH = 1320
-    MAX_HEIGHT = 700
-    CONTROL_AREA_WIDTH = 405
-
-    is_automatic_load = Setting(1)
-
     def __init__(self):
-        super().__init__()
+        super().__init__(show_automatic_box=True)
 
-        geom = QApplication.desktop().availableGeometry()
-        self.setGeometry(QRect(round(geom.width()*0.05),
-                               round(geom.height()*0.05),
-                               round(min(geom.width()*0.98, self.MAX_WIDTH)),
-                               round(min(geom.height()*0.95, self.MAX_HEIGHT))))
+        main_box = gui.widgetBox(self.controlArea, "Prova Settings", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5, height=600)
 
-        self.setMaximumHeight(self.geometry().height())
-        self.setMaximumWidth(self.geometry().width())
-
-        self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
-
-        self.general_options_box = gui.widgetBox(self.controlArea, "General Options", addSpace=False, orientation="vertical")
-
-        gui.checkBox(self.general_options_box, self, "is_automatic_load", "Automatic Load")
-
-        button = gui.button(self.general_options_box, self, "Show Data", width=200, height=50, callback=self.show_data)
-        button.setStyleSheet("color: black;")
-
+        button = gui.button(main_box, self, "Show Data", width=200, height=50, callback=self.show_data)
 
         self.tabs = gui.tabWidget(self.mainArea)
 
@@ -72,7 +52,7 @@ class OWProva(widget.OWWidget):
     def set_data(self, data):
         self.input_data = data
 
-        if self.is_automatic_load: self.show_data()
+        if self.is_automatic_run: self.show_data()
 
     def show_data(self):
         if self.input_data is None:
