@@ -9,3 +9,5 @@ DESCRIPTION = "Management and Analysis of XRPD data."
 
 ICON = "icons/xrdanalyzer.png"
 PRIORITY = 5000
+
+BACKGROUND = "#b8bcdb"
