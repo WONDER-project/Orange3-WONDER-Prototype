@@ -1,4 +1,5 @@
 recursive-include orangecontrib/xrdanalyzer *.svg *.png *.jpg
+recursive-include orangecontrib/widgetsTests *.svg *.png *.jpg
 
 include requirements.txt
 include README.md

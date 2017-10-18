@@ -40,6 +40,7 @@ PACKAGES = find_packages()
 
 PACKAGE_DATA = {
     'orangecontrib.xrdanalyzer.widgets': ['icons/*.*'],
+    'orangecontrib.widgetTests.widgets': ['icons/*.*'],
 }
 
 INSTALL_REQUIRES = sorted(set(
@@ -49,9 +50,12 @@ INSTALL_REQUIRES = sorted(set(
 
 ENTRY_POINTS = {
     'orange.widgets':
-        ('XRD Analyzer = orangecontrib.xrdanalyzer.widgets',),
+        ('XRD Analyzer = orangecontrib.xrdanalyzer.widgets','Widget Tests = orangecontrib.widgetsTests.widgets',),
     'orange3.addon':
-        ('Orange3-Flor = orangecontrib.xrdanalyzer',)
+        ('Orange3-Flor = orangecontrib.xrdanalyzer', 'Orange3-Flor1 = orangecontrib.widgetsTests',)
+
+
+
 }
 
 if __name__ == '__main__':
