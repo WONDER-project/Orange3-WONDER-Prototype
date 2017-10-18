@@ -13,6 +13,8 @@ class OWInsertnum(OWGenericWidget):
 
     icon = "icons/number.png"
 
+    priority = 1
+
     number = Setting(42)
 
     class Outputs:

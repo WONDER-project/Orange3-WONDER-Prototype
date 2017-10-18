@@ -9,6 +9,7 @@ class OWAddnums(OWGenericWidget):
     name = "Add Numbers"
     description = "Sums two integers"
     icon = "icons/addnums.png"
+    priority = 2
 
     class Inputs:
         a = widget.Input("A", int)

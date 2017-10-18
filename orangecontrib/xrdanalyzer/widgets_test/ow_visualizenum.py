@@ -9,6 +9,7 @@ class OWVisualizenum (OWGenericWidget):
     name = "Visualize Number"
     description = "Print out a number"
     icon = "icons/visualizenum.png"
+    priority = 3
 
     class Inputs:
         number = widget.Input("Number", int)
