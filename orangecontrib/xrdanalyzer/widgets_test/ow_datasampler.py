@@ -19,7 +19,7 @@ class OWDataSamplerA(OWGenericWidget):
         sample = Output("Sample Data", Orange.data.Table)
 
     def __init__(self):
-        super().__init__(show_automatic_box=True)
+        super().__init__(show_automatic_box=False)
 
         box = gui.widgetBox(self.controlArea, "Info")
         self.infoa = gui.widgetLabel(box, "No ata on input yet, waiting to "
