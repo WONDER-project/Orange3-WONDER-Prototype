@@ -2,7 +2,8 @@
 from orangecontrib.xrdanalyzer.model.atom import AtomListFactory
 
 
-list = AtomListFactory.create_atom_list_from_file("/Users/admin/Documents/workspace/Alberto_Flor/Orange3-Flor/Examples/xyzFileTests.np")
+#list = AtomListFactory.create_atom_list_from_file("/Users/admin/Documents/workspace/Alberto_Flor/Orange3-Flor/Examples/xyzFileTests.np")
+list = AtomListFactory.create_atom_list_from_file("C:\\Users\\alber\\Documents\\Workspace\\Orange\\Orange3-Flor\\Examples\\xyzFileTests.xyz")
 
 print (list.atoms_count())
 
