@@ -1,21 +1,18 @@
+import os
+
+from PyQt5.QtWidgets import QMessageBox, QTextEdit
+
 from Orange.widgets import widget
 from Orange.widgets.settings import Setting
 import Orange.widgets.gui as orangegui
 from Orange import data
 from Orange.widgets.utils import filedialogs
-import os
 from Orange.data.io import FileFormat
-import numpy as np
-
-from PyQt5.QtWidgets import QMessageBox, QTextEdit
-
-
-
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui
-from orangecontrib.xrdanalyzer.util.dlmethods.iomethods import loadxyz_multiple_arrays, loadxyz_numpy
-import orangecontrib.xrdanalyzer.util.gui.congruence as congruence
+from orangecontrib.xrdanalyzer.model.atom import AtomListFactory
+from orangecontrib.xrdanalyzer.util import congruence
 
 class OWLoadxyz(OWGenericWidget):
 
@@ -27,7 +24,7 @@ class OWLoadxyz(OWGenericWidget):
     want_main_area = True
 
     filename = Setting("<input file>")
-    xyzdata = None
+    atom_list = None
 
     outputs = [("Data", data.Table)]
 
@@ -73,8 +70,8 @@ class OWLoadxyz(OWGenericWidget):
         try:
             congruence.checkFile(self.filename)
 
-            element, x, y, z = loadxyz_multiple_arrays(self.filename)
-            self.xyzdata = np.column_stack((element, x, y, z))
+            self.atom_list = AtomListFactory.create_atom_list_from_file(self.filename)
+
         except Exception as e:
             QMessageBox.critical(self, "Input Error",
                                  str(e),
@@ -83,10 +80,14 @@ class OWLoadxyz(OWGenericWidget):
 
     def show_data(self):
         text = ""
-        for row in self.xyzdata:
-            text += "{}\t{}\t{}\t{}\n".format(str(row[0]), str(row[1]),#
-                                              str(row[2]), str(row[3]) )
-        #text = np.array_str(self.xyzdata)
+
+        for index in range(0, self.atom_list.atoms_count()):
+            atom = self.atom_list.get_atom(index)
+
+            text += "{}\t{}\t{}\t{}\n".format(str(atom.z_element),
+                                              str(atom.coordinates.x),
+                                              str(atom.coordinates.y),
+                                              str(atom.coordinates.z) )
         self.text_area.setText(text)
 
     def textArea(self, height=None, width=None, readOnly=True):
@@ -98,7 +99,6 @@ class OWLoadxyz(OWGenericWidget):
         if not width is None: area.setFixedWidth(width)
 
         return area
-
 
 import sys
 from PyQt5.QtWidgets import QApplication

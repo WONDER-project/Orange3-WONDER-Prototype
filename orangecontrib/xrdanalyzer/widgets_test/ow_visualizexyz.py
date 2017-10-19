@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import  QTextEdit
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui
 from orangecontrib.xrdanalyzer.util.dlmethods.iomethods import loadxyz2
-import orangecontrib.xrdanalyzer.util.gui.congruence as congruence
+import orangecontrib.xrdanalyzer.util.congruence as congruence
 
 class OWVisualizexyz(OWGenericWidget):
 
