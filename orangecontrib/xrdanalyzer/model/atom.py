@@ -121,31 +121,31 @@ def get_element_from_z(z = 10):
 # ----------------------------------------------------
 
 class AtomicCoordinate:
-    x = 0
-    y = 0
-    z = 0
+    x = 0.0
+    y = 0.0
+    z = 0.0
 
-    def __init__(self, x=0, y=0, z=0):
+    def __init__(self, x=0.0, y=0.0, z=0.0):
         self.x = x
         self.y = y
         self.z = z
 
     def tuple(self):
-        return numpy.array([x, y, z])
+        return numpy.array([self.x, self.y, self.z])
 
 
 class AtomVelocity:
-    v_x = 0
-    v_y = 0
-    v_z = 0
+    v_x = 0.0
+    v_y = 0.0
+    v_z = 0.0
 
-    def __init__(self, v_x=0, v_y=0, v_z=0):
+    def __init__(self, v_x=0.0, v_y=0.0, v_z=0.0):
         self.v_x = v_x
         self.v_y = v_y
         self.v_z = v_z
 
     def tuple(self):
-        return numpy.array([v_x, v_y, v_z])
+        return numpy.array([self.v_x, self.v_y, self.v_z])
 
 class Atom:
     z_element = 0
@@ -193,7 +193,7 @@ class Atom:
 
         return self.nearest_neighbours[index]
 
-    def tupla(self):
+    def tuple(self):
         return numpy.array([self.z_element,
                             self.coordinates.x,
                             self.coordinates.y,
@@ -235,7 +235,7 @@ class AtomList:
 
     def __init__(self, n_atoms=0):
         if n_atoms > 0:
-            self.atom_list = numpy.full(n_atoms, None)
+            self.atom_list = numpy.array([None] * n_atoms)
         else:
             self.atom_list = None
 
@@ -253,7 +253,7 @@ class AtomList:
 
         self.atom_list[index] = atom
 
-    def set_atoms(self, atom_list=numpy.full(0, None)):
+    def set_atoms(self, atom_list=numpy.array([None] * 0)):
         self.atom_list = atom_list
 
     def atoms_count(self):
@@ -264,10 +264,10 @@ class AtomList:
         return self.atom_list[index]
 
     def matrix(self):
-        matrix = numpy.full(self.atoms_count(), None)
+        matrix = numpy.array([None] * self.atoms_count())
 
         for index in range(0, self.atoms_count()):
-            matrix[index] = self.get_atom(index).tupla()
+            matrix[index] = self.get_atom(index).tuple()
 
         return matrix
 
@@ -293,7 +293,7 @@ class AtomListFileMultipleArrays(AtomList):
         n_atoms = int(lines[0])
 
         if n_atoms > 0:
-            self.atom_list = numpy.full(n_atoms, None)
+            self.atom_list = numpy.array([None]*n_atoms)
 
             for i in numpy.arange(2, n_atoms+2):
                 line = lines[i].split()
@@ -322,7 +322,7 @@ class AtomListFileNumpy(AtomList):
         n_atoms = len(element)
 
         if n_atoms > 0:
-            self.atom_list = numpy.full(n_atoms, None)
+            self.atom_list = numpy.array([None] * n_atoms)
 
             for index in range(0, n_atoms):
                 atom = Atom(z_element=get_z_from_element(element[index][2:-1]),
