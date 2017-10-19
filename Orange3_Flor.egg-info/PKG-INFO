@@ -1,0 +1,20 @@
+Metadata-Version: 1.1
+Name: Orange3-Flor
+Version: 0.0.1
+Summary: Orange3 add-on for image data mining.
+Home-page: https://github.com/AlbertKurtz/Orange3-Flor
+Author: Alberto Flor, Luca Rebuffi
+Author-email: albrto.flor@unitn.it
+License: GPL3+
+Description-Content-Type: UNKNOWN
+Description: XRD Analyzer
+        ---------------
+        
+        Brao Toso
+Keywords: orange3 add-on,orange3-flor
+Platform: UNKNOWN
+Classifier: Development Status :: 1 - Planning
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
+Classifier: Programming Language :: Python :: 3 :: Only

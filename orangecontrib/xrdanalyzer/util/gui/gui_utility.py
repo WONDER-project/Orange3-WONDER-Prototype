@@ -55,12 +55,24 @@ class gui:
 
     @classmethod
     def lineEdit(cls, widget, master, value, label=None, labelWidth=None,
-             orientation='vertical', box=None, callback=None,
+             orientation='horizontal', box=None, callback=None,
              valueType=str, validator=None, controlWidth=None,
-             callbackOnType=False, focusInCallback=None,
-             enterPlaceholder=False, **misc):
+             callbackOnType=False, focusInCallback=None, **misc):
 
-        ledit = orange_gui.lineEdit(widget, master, value, label, labelWidth, orientation, box, callback, valueType, validator, controlWidth, callbackOnType, focusInCallback, enterPlaceholder, **misc)
+        ledit = orange_gui.lineEdit(widget=widget,
+                                    master=master,
+                                    value=value,
+                                    label=label,
+                                    labelWidth=labelWidth,
+                                    orientation=orientation,
+                                    box=box,
+                                    callback=callback,
+                                    valueType=valueType,
+                                    validator=validator,
+                                    controlWidth=controlWidth,
+                                    callbackOnType=callbackOnType,
+                                    focusInCallback=focusInCallback,
+                                    **misc)
 
         if value:
             if (valueType != str):
