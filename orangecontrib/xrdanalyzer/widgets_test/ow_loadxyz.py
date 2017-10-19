@@ -77,6 +77,8 @@ class OWLoadxyz(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
+            #raise e
+
 
     def show_data(self):
         text = ""
