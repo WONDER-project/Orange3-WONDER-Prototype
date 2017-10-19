@@ -11,7 +11,19 @@ class OWVisualizenum (OWGenericWidget):
     icon = "icons/visualizenum.png"
     priority = 3
 
+    class Inputs:
+        number = widget.Input("Number", int)
 
     def __init__(self):
         super().__init__(show_automatic_box=True)
 
+        self.number = None
+        self.label = gui.widgetLabel(self.controlArea, "The number is: ??")
+
+    @Inputs.number
+    def set_number(self, number):
+        self.number = number
+        if self.number is None:
+            self.label.setText("The number is: ??")
+        else:
+            self.label.setText("The number is: {}".format(self.number))
