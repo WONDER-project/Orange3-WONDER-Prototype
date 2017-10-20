@@ -11,7 +11,7 @@ from Orange.data.io import FileFormat
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui
-from orangecontrib.xrdanalyzer.model.atom import AtomListFactory
+from orangecontrib.xrdanalyzer.model.atom import AtomListFactory, AtomList
 from orangecontrib.xrdanalyzer.util import congruence
 
 class OWLoadxyz(OWGenericWidget):
@@ -26,7 +26,7 @@ class OWLoadxyz(OWGenericWidget):
     filename = Setting("<input file>")
     atom_list = None
 
-    outputs = [("Data", data.Table)]
+    outputs = [("Atomlist", AtomList )]
 
     def __init__(self):
         super().__init__(show_automatic_box=True)
@@ -72,12 +72,16 @@ class OWLoadxyz(OWGenericWidget):
 
             self.atom_list = AtomListFactory.create_atom_list_from_file(self.filename)
 
+            self.send("Atomlist", self.atom_list)
+
         except Exception as e:
             QMessageBox.critical(self, "Input Error",
                                  str(e),
                                  QMessageBox.Ok)
 
             #raise e
+
+
 
 
     def show_data(self):
