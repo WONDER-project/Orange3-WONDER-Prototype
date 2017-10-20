@@ -294,65 +294,7 @@ class AtomListFactory:
         '''
 
 
-# ----------------------------------------------------
-# PERSISTENCY MANAGAMENT
-#
-#  "PRIVATE" CLASSES (python de i sa morti cani)
-# ----------------------------------------------------
-
-class AtomListFileMultipleArrays(AtomList):
-
-    def __init__(self, file_name=""):
-        super(AtomListFileMultipleArrays, self).__init__(n_atoms=0)
-
-        self.__initialize_from_file(file_name)
-
-    def __initialize_from_file(self, file_name):
-        with open(file_name, 'r') as xyzfile: lines = xyzfile.readlines()
-        n_atoms = int(lines[0])
-
-        if n_atoms > 0:
-            self.atom_list = numpy.array([None]*n_atoms)
-
-            for i in numpy.arange(2, n_atoms+2):
-                line = lines[i].split()
-
-                atom = Atom(z_element=get_z_from_element(line[0]),
-                            coordinates=AtomicCoordinate(x=float(line[1]),
-                                                         y=float(line[2]),
-                                                         z=float(line[3])))
-
-                self.set_atom(index=i-2, atom=atom)
-
-class AtomListFileNumpy(AtomList):
-
-    def __init__(self, file_name=""):
-        super(AtomListFileNumpy, self).__init__(n_atoms=0)
-
-        self.__initialize_from_file(file_name)
-
-    def __initialize_from_file(self, file_name):
-        dt = numpy.dtype([('element', numpy.unicode, 32),
-                          ('x', numpy.float32),
-                          ('y', numpy.float32),
-                          ('z', numpy.float32)])
-
-        element, x, y, z = numpy.loadtxt(file_name, dtype=dt, unpack=True, skiprows=2)
-        n_atoms = len(element)
-
-        if n_atoms > 0:
-            self.atom_list = numpy.array([None] * n_atoms)
-
-            for index in range(0, n_atoms):
-                atom = Atom(z_element=get_z_from_element(element[index][2:-1]),
-                            coordinates=AtomicCoordinate(x=x[index],
-                                                         y=y[index],
-                                                         z=z[index]))
-
-                self.set_atom(index=index, atom=atom)
-
 import os
-
 
 # ----------------------------------------------
 # CHAIN OF RESPONSIBILITY
@@ -450,3 +392,60 @@ class AtomListMultipleArrays2FactoryHandler(AtomListFactoryHandler):
 
     def _create_atom_list_from_file(self, file_name):
         return AtomListFileMultipleArrays(file_name=file_name)
+
+# ----------------------------------------------------
+# PERSISTENCY MANAGAMENT
+#
+#  "PRIVATE" CLASSES (python de i sa morti cani)
+# ----------------------------------------------------
+
+class AtomListFileMultipleArrays(AtomList):
+
+    def __init__(self, file_name=""):
+        super(AtomListFileMultipleArrays, self).__init__(n_atoms=0)
+
+        self.__initialize_from_file(file_name)
+
+    def __initialize_from_file(self, file_name):
+        with open(file_name, 'r') as xyzfile: lines = xyzfile.readlines()
+        n_atoms = int(lines[0])
+
+        if n_atoms > 0:
+            self.atom_list = numpy.array([None]*n_atoms)
+
+            for i in numpy.arange(2, n_atoms+2):
+                line = lines[i].split()
+
+                atom = Atom(z_element=get_z_from_element(line[0]),
+                            coordinates=AtomicCoordinate(x=float(line[1]),
+                                                         y=float(line[2]),
+                                                         z=float(line[3])))
+
+                self.set_atom(index=i-2, atom=atom)
+
+class AtomListFileNumpy(AtomList):
+
+    def __init__(self, file_name=""):
+        super(AtomListFileNumpy, self).__init__(n_atoms=0)
+
+        self.__initialize_from_file(file_name)
+
+    def __initialize_from_file(self, file_name):
+        dt = numpy.dtype([('element', numpy.unicode, 32),
+                          ('x', numpy.float32),
+                          ('y', numpy.float32),
+                          ('z', numpy.float32)])
+
+        element, x, y, z = numpy.loadtxt(file_name, dtype=dt, unpack=True, skiprows=2)
+        n_atoms = len(element)
+
+        if n_atoms > 0:
+            self.atom_list = numpy.array([None] * n_atoms)
+
+            for index in range(0, n_atoms):
+                atom = Atom(z_element=get_z_from_element(element[index][2:-1]),
+                            coordinates=AtomicCoordinate(x=x[index],
+                                                         y=y[index],
+                                                         z=z[index]))
+
+                self.set_atom(index=index, atom=atom)
