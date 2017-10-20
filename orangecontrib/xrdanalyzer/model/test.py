@@ -2,14 +2,17 @@
 from orangecontrib.xrdanalyzer.model.atom import AtomListFactory
 
 
-#list = AtomListFactory.create_atom_list_from_file("/Users/admin/Documents/workspace/Alberto_Flor/Orange3-Flor/Examples/xyzFileTests.np")
-list = AtomListFactory.create_atom_list_from_file("C:\\Users\\alber\\Documents\\Workspace\\Orange\\Orange3-Flor\\Examples\\xyzFileTests.xyz")
+list = AtomListFactory.create_atom_list_from_file("/Users/admin/Documents/workspace/Alberto_Flor/Orange3-Flor/Examples/xyzFileTests.xyz2")
 
-print (list.atoms_count())
+#list = AtomListFactory.create_atom_list_from_file("C:\\Users\\alber\\Documents\\Workspace\\Orange\\Orange3-Flor\\Examples\\xyzFileTests.xyz")
 
-for index in range(0, list.atoms_count()):
-    atom = list.get_atom(index)
+if True:
 
-    print(atom.z_element, atom.coordinates.x, atom.coordinates.y, atom.coordinates.z )
+    print (list.atoms_count())
 
-print(list.matrix()[20][1])
+    for index in range(0, list.atoms_count()):
+        atom = list.get_atom(index)
+
+        print(atom.z_element, atom.coordinates.x, atom.coordinates.y, atom.coordinates.z )
+
+    print(list.matrix()[20][1])

@@ -117,7 +117,7 @@ def get_element_from_z(z = 10):
 
 
 # ----------------------------------------------------
-# DATA STRUCTURES
+# DATA STRUCTURES (FACADE)
 # ----------------------------------------------------
 
 class AtomicCoordinate:
@@ -224,11 +224,6 @@ class Atom:
                                      ") is incosistent with Coordination Number (" +
                                      str(self.coordination_number) + ")")
 
-# ----------------------------------------------------
-# PERSISTENCY MANAGAMENT
-# ----------------------------------------------------
-
-
 class AtomList:
 
     atom_list = None
@@ -277,9 +272,33 @@ class AtomList:
 
 
 # ----------------------------------------------------
-# "PRIVATE" CLASSES (python de i sa morti cani)
+# FACTORY METHOD (FACADE)
 # ----------------------------------------------------
 
+class AtomListFactory:
+
+    @classmethod
+    def create_atom_list_from_file(cls, file_name):
+        return AtomListFactoryChain.Instance()._create_atom_list_from_file(file_name)
+
+
+        '''
+        file_extension = cls.get_extension(file_name)
+
+        if file_extension == ".xyz":
+            return AtomListFileMultipleArrays(file_name=file_name)
+        elif file_extension == ".np":
+            return AtomListFileNumpy(file_name=file_name)
+        else:
+            raise ValueError("File Extension not recognized")
+        '''
+
+
+# ----------------------------------------------------
+# PERSISTENCY MANAGAMENT
+#
+#  "PRIVATE" CLASSES (python de i sa morti cani)
+# ----------------------------------------------------
 
 class AtomListFileMultipleArrays(AtomList):
 
@@ -334,15 +353,100 @@ class AtomListFileNumpy(AtomList):
 
 import os
 
-class AtomListFactory:
 
-    @classmethod
-    def create_atom_list_from_file(cls, file_name):
+# ----------------------------------------------
+# CHAIN OF RESPONSIBILITY
+# ----------------------------------------------
+
+class AtomListFactoryInterface():
+    def _get_extension(self, file_name):
         filename, file_extension = os.path.splitext(file_name)
 
-        if file_extension == ".xyz":
-            return AtomListFileMultipleArrays(file_name=file_name)
-        elif file_extension == ".np":
-            return AtomListFileNumpy(file_name=file_name)
-        else:
-            raise ValueError("File Extension not recognized")
+        return file_extension
+
+    def _create_atom_list_from_file(self, file_name):
+        raise NotImplementedError("Method is Abstract")
+
+
+from orangecontrib.xrdanalyzer import Singleton
+import sys, inspect
+
+def predicate(class_name):
+    return inspect.isclass(class_name) and issubclass(class_name, AtomListFactoryHandler)
+
+@Singleton
+class AtomListFactoryChain(AtomListFactoryInterface):
+
+    _chain_of_handlers = []
+
+    def __init__(self):
+        self.initialize_chain()
+
+    def initialize_chain(self):
+        self._chain_of_handlers = []
+
+        for handler in self._get_handlers_list():
+            self._chain_of_handlers.append((globals()[handler])())
+
+    def append_handler(self, handler=None):
+        if self._chain_of_handlers is None: self.initialize_chain()
+
+        if handler is None:
+            raise ValueError("Handler is None")
+
+        if not isinstance(handler, AtomListFactoryHandler):
+            raise ValueError("Handler Type not correct")
+
+        self._chain_of_handlers.append(handler)
+
+    def _create_atom_list_from_file(self, file_name):
+        file_extension = self._get_extension(file_name)
+
+        for handler in self._chain_of_handlers:
+            if handler.is_handler(file_extension):
+                return handler._create_atom_list_from_file(file_name)
+
+        raise ValueError("File Extension not recognized")
+
+    def _get_handlers_list(self):
+        classes = numpy.array([m[0] for m in inspect.getmembers(sys.modules[__name__], predicate)])
+
+        return numpy.asarray(classes[numpy.where(classes != "AtomListFactoryHandler")])
+
+
+# INTERFACCIA HANDLERS
+
+class AtomListFactoryHandler(AtomListFactoryInterface):
+
+    def _get_handled_extension(self):
+        raise NotImplementedError()
+
+    def is_handler(self, file_extension):
+        return file_extension == self._get_handled_extension()
+
+# HANDLERS
+
+class AtomListMultipleArraysFactoryHandler(AtomListFactoryHandler):
+
+    def _get_handled_extension(self):
+        return ".xyz"
+
+    def _create_atom_list_from_file(self, file_name):
+        return AtomListFileMultipleArrays(file_name=file_name)
+
+class AtomListNumpyFactoryHandler(AtomListFactoryHandler):
+
+    def _get_handled_extension(self):
+        return ".np"
+
+    def _create_atom_list_from_file(self, file_name):
+        return AtomListFileNumpy(file_name=file_name)
+
+
+class AtomListMultipleArrays2FactoryHandler(AtomListFactoryHandler):
+
+    def _get_handled_extension(self):
+        return ".xyz2"
+
+    def _create_atom_list_from_file(self, file_name):
+        return AtomListFileMultipleArrays(file_name=file_name)
