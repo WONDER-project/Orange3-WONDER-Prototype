@@ -279,7 +279,7 @@ class AtomListFactory:
 
     @classmethod
     def create_atom_list_from_file(cls, file_name):
-        return AtomListFactoryChain.Instance()._create_atom_list_from_file(file_name)
+        return AtomListFactoryChain.Instance().create_atom_list_from_file(file_name)
 
 
         '''
@@ -301,14 +301,13 @@ import os
 # ----------------------------------------------
 
 class AtomListFactoryInterface():
+    def create_atom_list_from_file(self, file_name):
+        raise NotImplementedError("Method is Abstract")
+
     def _get_extension(self, file_name):
         filename, file_extension = os.path.splitext(file_name)
 
         return file_extension
-
-    def _create_atom_list_from_file(self, file_name):
-        raise NotImplementedError("Method is Abstract")
-
 
 from orangecontrib.xrdanalyzer import Singleton
 import sys, inspect
@@ -341,12 +340,12 @@ class AtomListFactoryChain(AtomListFactoryInterface):
 
         self._chain_of_handlers.append(handler)
 
-    def _create_atom_list_from_file(self, file_name):
+    def create_atom_list_from_file(self, file_name):
         file_extension = self._get_extension(file_name)
 
         for handler in self._chain_of_handlers:
             if handler.is_handler(file_extension):
-                return handler._create_atom_list_from_file(file_name)
+                return handler.create_atom_list_from_file(file_name)
 
         raise ValueError("File Extension not recognized")
 
@@ -373,7 +372,7 @@ class AtomListMultipleArraysFactoryHandler(AtomListFactoryHandler):
     def _get_handled_extension(self):
         return ".xyz"
 
-    def _create_atom_list_from_file(self, file_name):
+    def create_atom_list_from_file(self, file_name):
         return AtomListFileMultipleArrays(file_name=file_name)
 
 class AtomListNumpyFactoryHandler(AtomListFactoryHandler):
@@ -381,17 +380,10 @@ class AtomListNumpyFactoryHandler(AtomListFactoryHandler):
     def _get_handled_extension(self):
         return ".np"
 
-    def _create_atom_list_from_file(self, file_name):
+    def create_atom_list_from_file(self, file_name):
         return AtomListFileNumpy(file_name=file_name)
 
 
-class AtomListMultipleArrays2FactoryHandler(AtomListFactoryHandler):
-
-    def _get_handled_extension(self):
-        return ".xyz2"
-
-    def _create_atom_list_from_file(self, file_name):
-        return AtomListFileMultipleArrays(file_name=file_name)
 
 # ----------------------------------------------------
 # PERSISTENCY MANAGAMENT
@@ -408,13 +400,18 @@ class AtomListFileMultipleArrays(AtomList):
 
     def __initialize_from_file(self, file_name):
         with open(file_name, 'r') as xyzfile: lines = xyzfile.readlines()
+
         n_atoms = int(lines[0])
 
         if n_atoms > 0:
+            if len(lines) < 3: raise Exception("Number of lines in file < 3: wrong file format")
+
             self.atom_list = numpy.array([None]*n_atoms)
 
             for i in numpy.arange(2, n_atoms+2):
                 line = lines[i].split()
+
+                if len(line) < 4:  raise Exception("Number of columns in line " + str(i) + " < 4: wrong file format")
 
                 atom = Atom(z_element=get_z_from_element(line[0]),
                             coordinates=AtomicCoordinate(x=float(line[1]),
@@ -436,16 +433,19 @@ class AtomListFileNumpy(AtomList):
                           ('y', numpy.float32),
                           ('z', numpy.float32)])
 
-        element, x, y, z = numpy.loadtxt(file_name, dtype=dt, unpack=True, skiprows=2)
-        n_atoms = len(element)
+        try:
+            element, x, y, z = numpy.loadtxt(file_name, dtype=dt, unpack=True, skiprows=2)
+            n_atoms = len(element)
 
-        if n_atoms > 0:
-            self.atom_list = numpy.array([None] * n_atoms)
+            if n_atoms > 0:
+                self.atom_list = numpy.array([None] * n_atoms)
 
-            for index in range(0, n_atoms):
-                atom = Atom(z_element=get_z_from_element(element[index][2:-1]),
-                            coordinates=AtomicCoordinate(x=x[index],
-                                                         y=y[index],
-                                                         z=z[index]))
+                for index in range(0, n_atoms):
+                    atom = Atom(z_element=get_z_from_element(element[index][2:-1]),
+                                coordinates=AtomicCoordinate(x=x[index],
+                                                             y=y[index],
+                                                             z=z[index]))
 
-                self.set_atom(index=index, atom=atom)
+                    self.set_atom(index=index, atom=atom)
+        except:
+            raise Exception("Exception occurred during load: wrong file format")
