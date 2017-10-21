@@ -6,6 +6,9 @@ from orangecontrib.xrdanalyzer.model.atom import AtomListFactory
 
 list = AtomListFactory.create_atom_list_from_file("C:\\Users\\alber\\Documents\\Workspace\\Orange\\Orange3-Flor\\Examples\\xyzFileTests.xyz")
 
+
+
+'''
 if True:
 
     print (list.atoms_count())
@@ -16,3 +19,4 @@ if True:
         print(atom.z_element, atom.coordinates.x, atom.coordinates.y, atom.coordinates.z )
 
     print(list.matrix()[20][1])
+'''

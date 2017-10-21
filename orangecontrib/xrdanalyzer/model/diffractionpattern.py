@@ -31,7 +31,7 @@ class DiffractionPoint:
 
     def get_array (self):
 
-        return numpy.array(attributes_of_a_class(self))
+        return numpy.array(attributes_of_a_point(self))
 
     @classmethod
     def _get_s_from_twotheta(cls, twotheta, wavelength):
@@ -118,7 +118,7 @@ class DiffractionPattern:
                                   "is not initialized")
 
 
-def attributes_of_a_class (myClass):
+def attributes_of_a_point (myClass):
     # HERE, I WANT TO return a list of all attributes of
     #a class (even those that are initialized to None)
     # using "test2.py" it seems to work
@@ -128,7 +128,8 @@ def attributes_of_a_class (myClass):
                               lambda a: not (inspect.isroutine(a)))
     attr = [a for a in attr if not (a[0].startswith('__')
                                     and a[0].endswith('__'))]
-    return [getattr(myClass, attr[i][0]) for i in range(0, len(attr))]
+    attr = [getattr(myClass, attr[i][0]) for i in range(0, len(attr))]
+    return [attr[3], attr[1], attr[0], attr[2]]
 
 
 
@@ -252,9 +253,14 @@ class LoadDiffractionPattern_xye(DiffractionPattern):
 
                 if len(lines) < 2 : raise  Exception("Number of columns in line " + str(i) + " < 2: wrong file format")
 
-                point = DiffractionPoint(twotheta= float(line[0]),
-                                         intensity= float(line[1]))
-                print(point.twotheta)
+                # NOTE: doesnt work doinf
+                #     point = DiffractionPoint(twotheta = ...., intensity = ....)
+                #     it gives the default twotheta = None
+
+                point = DiffractionPoint()
+                point.twotheta = float(line[0])
+                point.intensity = float(line[1])
+
                 self.set_diffraction_point(index=i-2,diffraction_point= point)
 
 
@@ -278,8 +284,14 @@ class LoadDiffractionPattern_raw(DiffractionPattern):
         for i in numpy.arange(2, n_points+2):
             index = i-2
             line = lines[i]
-            point = DiffractionPoint(twotheta= float(line),
-                                     intensity= starting_theta + step*index,
-                                     wavelength= wavelength)
+            point = DiffractionPoint()
+
+            #NOTE: doesnt work doinf
+            #     point = DiffractionPoint(twotheta = ...., intensity = ....)
+            #     it gives the default twotheta = None
+
+            point.twotheta = starting_theta + step*index
+            point.intensity = float(line)
+            point.wavelength = wavelength
 
             self.set_diffraction_point(index,diffraction_point= point)
