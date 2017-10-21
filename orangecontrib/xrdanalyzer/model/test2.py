@@ -9,12 +9,12 @@ pattern = DiffractionPatternFactory.creat_diffraction_pattern_from_file("C:\\Use
 
 if True:
 
-    print (pattern.points_count())
+    print (pattern.diffraction_points_count())
 
-    #for index in range(0, list.atoms_count()):
-    #    atom = list.get_atom(index)
+    #for index in range(0, pattern.diffraction_points_count()):
+    #    point = pattern.get_diffraction_point(index)
 
-    #    print(atom.z_element, atom.coordinates.x, atom.coordinates.y, atom.coordinates.z )
+    #    print(point.twotheta, point.intensity)
 
     #print(list.matrix()[20][1])
 

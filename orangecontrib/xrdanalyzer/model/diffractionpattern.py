@@ -47,7 +47,7 @@ class DiffractionPoint:
 
     def _check_attributes_congruence(self):
         if self.s is None:
-            congruence.checkPositiveNumber(self.twotheta, "2theta")
+            congruence.checkPositiveNumber(self.twotheta, "twotheta")
         if self.twotheta is None:
             congruence.checkPositiveNumber(self.s, "s")
         congruence.checkPositiveNumber(self.intensity, "Intensity")
@@ -249,11 +249,12 @@ class LoadDiffractionPattern_xye(DiffractionPattern):
 
             for i in numpy.arange(2, n_points+2):
                 line = lines[i].split()
+
                 if len(lines) < 2 : raise  Exception("Number of columns in line " + str(i) + " < 2: wrong file format")
 
                 point = DiffractionPoint(twotheta= float(line[0]),
                                          intensity= float(line[1]))
-
+                print(point.twotheta)
                 self.set_diffraction_point(index=i-2,diffraction_point= point)
 
 
@@ -267,7 +268,7 @@ class LoadDiffractionPattern_raw(DiffractionPattern):
         #method supposes only 1 rows of header is present
         #can be changed.
         with open(file_name, 'r') as rawfile : lines = rawfile.readlines()
-        splitted_row = lines[0].split(sep=',')
+        splitted_row = lines[1].split(sep=',')
         n_points = int(splitted_row[0])
         step = float(splitted_row[1])
         starting_theta = float(splitted_row[2])
