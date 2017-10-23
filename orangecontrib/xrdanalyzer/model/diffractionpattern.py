@@ -7,14 +7,14 @@ from orangecontrib.xrdanalyzer.util import congruence
 # DATA STRUCTURES
 #---------------------------------------
 class DiffractionPoint:
-    twotheta = 0.
-    intensity = 0.
-    error = 0.
+    twotheta = None
+    intensity = None
+    error = None
     s = None
 
     def __init__ (self,
                   twotheta = None,
-                  intensity = 0.,
+                  intensity = None,
                   error = None,
                   s = None,
                   wavelength = None):
@@ -23,15 +23,19 @@ class DiffractionPoint:
 
         if not wavelength is None:
             if twotheta is None:
+                self.s = s
                 self.twotheta = self._get_twotheta_from_s(s, wavelength)
             elif s is None:
+                self.twotheta = twotheta
                 self.s = self._get_s_from_twotheta(twotheta, wavelength)
+        else:
+            self.twotheta = twotheta
+            self.s = s
 
         self._check_attributes_congruence()
 
     def get_array (self):
-
-        return numpy.array(attributes_of_a_point(self))
+        return numpy.array([self.twotheta, self.intensity, self.error, self.s])
 
     @classmethod
     def _get_s_from_twotheta(cls, twotheta, wavelength):
@@ -67,7 +71,7 @@ class DiffractionPattern:
         else:
             self.wavelength = None
 
-    def add_diffraction_point (self, diffraction_point = DiffractionPoint()):
+    def add_diffraction_point (self, diffraction_point = DiffractionPoint(twotheta=0.0, intensity=0.0)):
         if diffraction_point is None: raise ValueError ("Diffraction Point is None")
         if not isinstance(diffraction_point, DiffractionPoint): raise ValueError ("diffraction point should be of type Diffraction Point")
 
@@ -76,7 +80,7 @@ class DiffractionPattern:
         else:
             self.diffraction_pattern.append(diffraction_point)
 
-    def set_diffraction_point(self, index = 0, diffraction_point = DiffractionPoint()):
+    def set_diffraction_point(self, index = 0, diffraction_point = DiffractionPoint(twotheta=0.0, intensity=0.0)):
         self._check_diffraction_pattern()
         self.diffraction_pattern[index] = diffraction_point
 
@@ -92,9 +96,6 @@ class DiffractionPattern:
 
     def set_wavelength(self, wavelength):
         self._check_wavelength()
-        #DUBBIO: esegurire "_chech_wavelength" in caso di
-        # wavelength = None mi da errore, pero' non impedisce
-        #di proseguire, oppure vale come un break?
         self.wavelength = wavelength
 
     def get_wavelength(self):
@@ -118,19 +119,6 @@ class DiffractionPattern:
                                   "is not initialized")
 
 
-def attributes_of_a_point (myClass):
-    # HERE, I WANT TO return a list of all attributes of
-    #a class (even those that are initialized to None)
-    # using "test2.py" it seems to work
-    # this should be put in some utility file, together
-    # with the other method used below (def predicate)
-    attr = inspect.getmembers(myClass,
-                              lambda a: not (inspect.isroutine(a)))
-    attr = [a for a in attr if not (a[0].startswith('__')
-                                    and a[0].endswith('__'))]
-    attr = [getattr(myClass, attr[i][0]) for i in range(0, len(attr))]
-    return [attr[3], attr[1], attr[0], attr[2]]
-
 
 
 # ----------------------------------------------------
@@ -139,7 +127,7 @@ def attributes_of_a_point (myClass):
 
 class DiffractionPatternFactory:
     @classmethod
-    def creat_diffraction_pattern_from_file(clscls, file_name):
+    def create_diffraction_pattern_from_file(clscls, file_name):
         return DiffractionPatternFactoryChain.Instance().create_diffraction_pattern_from_file(file_name)
 
 import os
@@ -217,26 +205,31 @@ class DiffractionPatternFactoryHandler (DiffractionPatternFactoryInterface):
 # HANDLERS
 # ---------------------------------------------------
 
-class DiffractionPattern_xye_FactoryHandler(DiffractionPatternFactoryHandler):
+class DiffractionPatternXyeFactoryHandler(DiffractionPatternFactoryHandler):
+
     def _get_handled_extension(self):
         return ".xye"
-    def create_diffraction_pattern_from_file(self, file_name):
-        return LoadDiffractionPattern_xye(file_name = file_name)
 
-class DiffractionPattern_raw_FactoryHandler(DiffractionPatternFactoryHandler):
+    def create_diffraction_pattern_from_file(self, file_name):
+        return DiffractionPatternXye(file_name = file_name)
+
+class DiffractionPatternRawFactoryHandler(DiffractionPatternFactoryHandler):
+
     def _get_handled_extension(self):
         return ".raw"
+
     def create_diffraction_pattern_from_file(self, file_name):
-        return LoadDiffractionPattern_raw(file_name= file_name)
+        return DiffractionPatternRaw(file_name= file_name)
 
 
 # ----------------------------------------------------
 # PERSISTENCY MANAGAMENT
 # ----------------------------------------------------
 
-class LoadDiffractionPattern_xye(DiffractionPattern):
+class DiffractionPatternXye(DiffractionPattern):
     def __init__(self, file_name= ""):
-        super(LoadDiffractionPattern_xye, self).__init__(n_points = 0)
+        super(DiffractionPatternXye, self).__init__(n_points = 0)
+
         self.__initialize_from_file(file_name)
 
     def __initialize_from_file(self, file_name):
@@ -253,45 +246,37 @@ class LoadDiffractionPattern_xye(DiffractionPattern):
 
                 if len(lines) < 2 : raise  Exception("Number of columns in line " + str(i) + " < 2: wrong file format")
 
-                # NOTE: doesnt work doinf
-                #     point = DiffractionPoint(twotheta = ...., intensity = ....)
-                #     it gives the default twotheta = None
-
-                point = DiffractionPoint()
-                point.twotheta = float(line[0])
-                point.intensity = float(line[1])
+                point = DiffractionPoint(twotheta=float(line[0]), intensity=float(line[1]))
 
                 self.set_diffraction_point(index=i-2,diffraction_point= point)
 
 
 
-class LoadDiffractionPattern_raw(DiffractionPattern):
+class DiffractionPatternRaw(DiffractionPattern):
     def __init__(self, file_name= ""):
-        super(LoadDiffractionPattern_raw, self).__init__(n_points = 0)
+        super(DiffractionPatternRaw, self).__init__(n_points = 0)
+
         self.__initialize_from_file(file_name)
 
     def __initialize_from_file(self, file_name):
         #method supposes only 1 rows of header is present
         #can be changed.
         with open(file_name, 'r') as rawfile : lines = rawfile.readlines()
+
         splitted_row = lines[1].split(sep=',')
         n_points = int(splitted_row[0])
         step = float(splitted_row[1])
         starting_theta = float(splitted_row[2])
-        wavelength = float(splitted_row[3])
+
+        self.wavelength = float(splitted_row[3])
         self.diffraction_pattern = numpy.array([None] *n_points)
 
         for i in numpy.arange(2, n_points+2):
             index = i-2
             line = lines[i]
-            point = DiffractionPoint()
 
-            #NOTE: doesnt work doinf
-            #     point = DiffractionPoint(twotheta = ...., intensity = ....)
-            #     it gives the default twotheta = None
+            point = DiffractionPoint(twotheta=starting_theta + step*index,
+                                     intensity=float(line),
+                                     wavelength=self.wavelength)
 
-            point.twotheta = starting_theta + step*index
-            point.intensity = float(line)
-            point.wavelength = wavelength
-
-            self.set_diffraction_point(index,diffraction_point= point)
+            self.set_diffraction_point(index, diffraction_point= point)

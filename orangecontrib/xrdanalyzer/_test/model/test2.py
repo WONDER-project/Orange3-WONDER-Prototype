@@ -5,7 +5,7 @@ from orangecontrib.xrdanalyzer.model.diffractionpattern import DiffractionPoint,
 
 #print(diffclass.get_array())
 #pattern = DiffractionPatternFactory.creat_diffraction_pattern_from_file("/Users/admin/Documents/workspace/Alberto_Flor/Orange3-Flor/Examples/CaF2P464h.xye")
-pattern = DiffractionPatternFactory.creat_diffraction_pattern_from_file("C:\\Users\\alber\\Documents\\Workspace\\Orange\\Orange3-Flor\\Examples\\CaF2P464h.raw")
+pattern = DiffractionPatternFactory.create_diffraction_pattern_from_file("C:\\Users\\alber\\Documents\\Workspace\\Orange\\Orange3-Flor\\Examples\\CaF2P464h.raw")
 
 
 point1 = DiffractionPoint(twotheta=1)

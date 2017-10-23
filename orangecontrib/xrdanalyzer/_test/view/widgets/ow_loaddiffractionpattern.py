@@ -73,7 +73,7 @@ class OWLoaddiffractionpattern(OWGenericWidget):
         try:
             congruence.checkFile(self.filename)
 
-            self.diffraction_pattern = DiffractionPatternFactory.creat_diffraction_pattern_from_file(self.filename)
+            self.diffraction_pattern = DiffractionPatternFactory.create_diffraction_pattern_from_file(self.filename)
 
             self.send("Diffractionpattern", self.diffraction_pattern)
 
