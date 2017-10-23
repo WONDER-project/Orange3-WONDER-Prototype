@@ -1,12 +1,10 @@
 
 
-from PyQt5.QtWidgets import QMessageBox, QTextEdit
-
-from Orange.widgets import widget
+from PyQt5.QtWidgets import QTextEdit
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui
-from orangecontrib.xrdanalyzer.model.atom import AtomListFactory, AtomList
+from orangecontrib.xrdanalyzer.model.atom import  AtomList
 
 class OWVisualizexyz(OWGenericWidget):
 

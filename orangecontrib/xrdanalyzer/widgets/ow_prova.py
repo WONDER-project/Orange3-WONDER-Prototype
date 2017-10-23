@@ -28,9 +28,14 @@ class OWProva(OWGenericWidget):
     def __init__(self):
         super().__init__(show_automatic_box=True)
 
-        main_box = gui.widgetBox(self.controlArea, "Prova Settings", orientation="vertical", width=self.CONTROL_AREA_WIDTH-5, height=600)
+        main_box = gui.widgetBox(self.controlArea, "Prova Settings",
+                                 orientation="vertical",
+                                 width=self.CONTROL_AREA_WIDTH-5,
+                                 height=600)
 
-        button = gui.button(main_box, self, "Show Data", width=200, height=50, callback=self.show_data)
+        button = gui.button(main_box, self, "Show Data",
+                            width=200, height=50,
+                            callback=self.show_data)
 
         self.tabs = gui.tabWidget(self.mainArea)
 
