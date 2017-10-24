@@ -1,4 +1,4 @@
-from orangecontrib.xrdanalyzer.model.diffractionpattern import DiffractionPoint, DiffractionPatternFactory
+from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPoint, DiffractionPatternFactory
 
 
 #diffclass = DiffractionPoint(2,3.3,0.5)
