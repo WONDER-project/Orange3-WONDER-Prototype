@@ -1,6 +1,6 @@
 import numpy
 import orangecontrib.xrdanalyzer.util.congruence as congruence
-from orangecontrib.xrdanalyzer.controller.fit_parameter import FitParameter, Boundary, PM2KParametersList, PM2KParameter
+from orangecontrib.xrdanalyzer.controller.fit_parameter import FitParametersList, FitParameter, Boundary, PM2KParametersList, PM2KParameter
 
 class Simmetry:
 
@@ -17,6 +17,8 @@ class Reflection(PM2KParameter):
     k = 0
     l = 0
 
+    d_spacing = 0.0
+
     intensity = None
 
     def __init__(self, h = 1, k = 0, l = 0, intensity = FitParameter(value=100)):
@@ -28,11 +30,21 @@ class Reflection(PM2KParameter):
 
         self.intensity = intensity
 
+
+
     def to_PM2K(self):
         return "addPeak(" + str(self.h) + "," + str(self.k) + "," + str(self.l) + ","  + self.intensity.to_PM2K(type=PM2KParameter.FUNCTION_PARAMETER) + ")"
 
+    def get_theta_hkl(self, wavelength):
+        return numpy.degrees(numpy.asin(2*self.d_spacing/wavelength))
 
-class CrystalStructure(PM2KParametersList):
+    def get_q_hkl(self, wavelength):
+        return 8*numpy.pi*self.d_spacing/(wavelength**2)
+
+    def get_s_hkl(self, wavelength):
+        return self.get_q_hkl(wavelength)/(2*numpy.pi)
+
+class CrystalStructure(FitParametersList, PM2KParametersList):
 
     a = None
     b = None
@@ -54,6 +66,8 @@ class CrystalStructure(PM2KParametersList):
                  beta=FitParameter(),
                  gamma=FitParameter(),
                  simmetry=Simmetry.NONE):
+        super(FitParametersList, self).__init()
+
         self.a = a
         self.b = b
         self.c = c
@@ -62,6 +76,13 @@ class CrystalStructure(PM2KParametersList):
         self.gamma = gamma
         self.simmetry = simmetry
         self.reflections = []
+
+        self.add_parameter(self.a)
+        self.add_parameter(self.b)
+        self.add_parameter(self.c)
+        self.add_parameter(self.alpha)
+        self.add_parameter(self.beta)
+        self.add_parameter(self.gamma)
 
     @classmethod
     def is_cube(cls, simmetry):
@@ -82,6 +103,7 @@ class CrystalStructure(PM2KParametersList):
                                 simmetry)
 
     def add_reflection(self, reflection=Reflection()):
+        reflection.d_spacing = self.get_d_spacing(reflection.h, reflection.k, reflection.l)
         self.reflections.append(reflection)
 
     def set_reflection(self, index, reflection=Reflection()):
@@ -96,6 +118,20 @@ class CrystalStructure(PM2KParametersList):
     def get_reflections(self):
         return numpy.array(self.reflections)
 
+    def update_reflection(self, index):
+        reflection[index].d_spacing = self.get_d_spacing(reflection[index].h, reflection[index].k, reflection[index].l)
+
+    def update_reflections(self):
+        for reflection in self.reflections:
+            reflection.d_spacing = self.get_d_spacing(reflection.h, reflection.k, reflection.l)
+
+    def get_d_spacing(self, h, k, l):
+        if self.is_cube(self.simmetry):
+            return numpy.sqrt(self.a.value**2/(h**2 + k**2 + l**2))
+        elif self.simmetry == Simmetry.HCP:
+            return 1/numpy.sqrt((4/3)*((h**2 + h*k + k**2)/ self.a.value**2  + (l/self.c.value)**2))
+        else:
+            NotImplementedError("Only Cubic and Hexagonal supported: TODO!!!!!!")
 
     def to_PM2K(self):
 

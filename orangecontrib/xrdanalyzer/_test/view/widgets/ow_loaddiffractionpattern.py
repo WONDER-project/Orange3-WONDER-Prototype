@@ -6,7 +6,7 @@ from silx.gui.plot.PlotWindow import PlotWindow
 from Orange.widgets.settings import Setting
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
-from orangecontrib.xrdanalyzer.model.diffractionpattern import DiffractionPattern, DiffractionPatternFactory
+from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPatternFactory
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui
 from orangecontrib.xrdanalyzer.util import congruence
 
