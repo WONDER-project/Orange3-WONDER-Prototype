@@ -1,7 +1,7 @@
 import numpy
 import orangecontrib.xrdanalyzer.util.congruence as congruence
 
-class Boundary():
+class Boundary:
 
     _min_value = -numpy.inf
     _max_value = numpy.inf
