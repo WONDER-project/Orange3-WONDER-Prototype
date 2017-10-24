@@ -1,6 +1,6 @@
 from orangecontrib.xrdanalyzer.util import congruence
 
-from orangecontrib.xrdanalyzer.controller.fit_parameter import PM2KParametersList
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PM2KParametersList
 
 class FFTInitParameters(PM2KParametersList):
 

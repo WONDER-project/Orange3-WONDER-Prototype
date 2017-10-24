@@ -1,15 +1,13 @@
 import numpy
 import orangecontrib.xrdanalyzer.util.congruence as congruence
-from orangecontrib.xrdanalyzer.controller.fit_parameter import FitParametersList, FitParameter, Boundary, PM2KParametersList, PM2KParameter
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PM2KParametersList, PM2KParameter
 
 class Simmetry:
-
     NONE = "none"
     FCC = "fcc"
     BCC = "bcc"
     HCP = "hcp"
     CUBIC = "cubic"
-
 
 class Reflection(PM2KParameter):
 
@@ -29,8 +27,6 @@ class Reflection(PM2KParameter):
         self.l = l
 
         self.intensity = intensity
-
-
 
     def to_PM2K(self):
         return "addPeak(" + str(self.h) + "," + str(self.k) + "," + str(self.l) + ","  + self.intensity.to_PM2K(type=PM2KParameter.FUNCTION_PARAMETER) + ")"
@@ -103,11 +99,14 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
                                 simmetry)
 
     def add_reflection(self, reflection=Reflection()):
-        reflection.d_spacing = self.get_d_spacing(reflection.h, reflection.k, reflection.l)
         self.reflections.append(reflection)
+
+        self.update_reflection(-1)
 
     def set_reflection(self, index, reflection=Reflection()):
         self.reflections[index] = reflection
+
+        self.update_reflection(index)
 
     def get_reflections_count(self):
         return len(self.reflections)
@@ -122,8 +121,7 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
         reflection[index].d_spacing = self.get_d_spacing(reflection[index].h, reflection[index].k, reflection[index].l)
 
     def update_reflections(self):
-        for reflection in self.reflections:
-            reflection.d_spacing = self.get_d_spacing(reflection.h, reflection.k, reflection.l)
+        for index in range(self.get_reflections_count()): self.update_reflection(index)
 
     def get_d_spacing(self, h, k, l):
         if self.is_cube(self.simmetry):
