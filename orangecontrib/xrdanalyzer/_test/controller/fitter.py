@@ -1,6 +1,9 @@
 import numpy
 from scipy.optimize import curve_fit
 from scipy.special import erfc
+import itertools
+import operator
+
 
 
 # ==================================
@@ -126,6 +129,99 @@ def s_hkl(a, h, k, l):
     return numpy.sqrt(h * h + k * k + l * l) / a
 
 
+
+# -------------------------------------------
+#   SOME UTILITY FUNCTIONS
+#   (to be moved somewhere else later)
+# -------------------------------------------
+def isolate_peak(s, I, smin, smax):
+    data = []
+    N = numpy.size(s)
+    for i in numpy.arange(0, N):
+        if s[i] > smin and s[i] < smax:
+            data.append([s[i], I[i]])
+    output = numpy.asarray(data)
+    return output[:, 0], output[:, 1]
+
+
+def is_even(a):
+    if (a & 1 ) == 0:
+        return True
+    else: return False
+
+def is_odd(a):
+    return not is_even(a)
+
+def satisfyselectionrule_fcc(a,b,c):
+    if (is_even(a) and is_even(b) and is_even(c)):
+        return True
+    elif (is_odd(a) and is_odd(b) and is_odd(c)):
+        return True
+    else: return False
+
+
+def satisfyselectionrule_bcc(a,b,c):
+    if is_even(a + b + c):
+        return True
+    else: return  False
+
+
+def simplify(a, b, c, cube):
+    maxdivisor = numpy.max([a, b, c])
+    divisor = maxdivisor
+
+    if cube == "fcc":
+        satisfyselectionrule = satisfyselectionrule_fcc
+    elif cube == "bcc":
+        satisfyselectionrule = satisfyselectionrule_bcc
+    else:
+        raise ValueError("mona")
+
+    while (divisor > 1):
+        if (a / divisor == int(a / divisor) and b / divisor == int(b / divisor) and c / divisor == int(c / divisor)):
+            a = a / divisor
+            b = b / divisor
+            c = c / divisor
+
+            simplify(a, b, c, cube)
+
+        else:
+            divisor -= 1
+
+    if (satisfyselectionrule(int(a), int(b), int(c))):
+        return (int(a), int(b), int(c))
+    else:
+        return (int(2 * a), int(2 * b), int(2 * c))
+
+def first3(latticepar, cube):
+    dist_and_hkl = dict()
+    listofhkl = set()
+    if cube == "fcc":
+        satisfyselectionrule = satisfyselectionrule_fcc
+    elif cube == "bcc":
+        satisfyselectionrule = satisfyselectionrule_bcc
+    else:
+        raise ValueError("mona")
+
+    for h in range(1, 6):
+        for k in range(0, 6):
+            for l in range(0, 6):
+                if satisfyselectionrule(h, k, l):
+                    for perma in list(itertools.permutations([h, k, l])):
+                        perma = sorted(perma)
+                        perma = tuple(perma)
+                        if (perma not in listofhkl):
+                            #listofhkl.add(simplify(h, k, l, cube))
+                            dist_and_hkl['{}'.format(perma)] = s_hkl(latticepar, h, k, l)
+
+
+    distances = []
+    for key, value in dist_and_hkl.items():
+        distances.append([key, value])
+
+    distances = sorted(distances, key=operator.itemgetter(1))
+
+    return distances
 
 # --------------------------------
 # FUNCTIONS FOR THE TEST

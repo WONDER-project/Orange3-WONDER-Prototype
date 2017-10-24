@@ -76,26 +76,23 @@ class DiffractionPattern:
         if not isinstance(diffraction_point, DiffractionPoint): raise ValueError ("diffraction point should be of type Diffraction Point")
 
         if self.diffraction_pattern is None:
-            self.diffraction_pattern = numpy.array([diffraction_point])
+            self.diffraction_pattern = numpy.array([self._check_diffraction_point(diffraction_point)])
         else:
-            self.diffraction_pattern.append(diffraction_point)
+            self.diffraction_pattern.append(self._check_diffraction_point(diffraction_point))
 
     def set_diffraction_point(self, index = 0, diffraction_point = DiffractionPoint(twotheta=0.0, intensity=0.0)):
         self._check_diffraction_pattern()
-        self.diffraction_pattern[index] = diffraction_point
-
-    def set_diffraction_points (self, diffraction_pattern = numpy.array([None] *0)):
-        self.diffraction_pattern = diffraction_pattern
+        self.diffraction_pattern[index] = self._check_diffraction_point(diffraction_point)
 
     def diffraction_points_count(self):
         return 0 if self.diffraction_pattern is None else len(self.diffraction_pattern)
 
     def get_diffraction_point(self, index):#
         self._check_diffraction_pattern()
+
         return self.diffraction_pattern[index]
 
     def set_wavelength(self, wavelength):
-        self._check_wavelength()
         self.wavelength = wavelength
 
     def get_wavelength(self):
@@ -118,7 +115,15 @@ class DiffractionPattern:
             raise AttributeError ("Wavelength (lambda) "
                                   "is not initialized")
 
-
+    def _check_diffraction_point(self, diffraction_point):
+        if not self.wavelength is None:
+            if diffraction_point.s is None or diffraction_point.twotheta is None:
+                diffraction_point = DiffractionPoint(twotheta=diffraction_point.twotheta,
+                                                     intensity=diffraction_point.intensity,
+                                                     error=diffraction_point.error,
+                                                     s=diffraction_point.s,
+                                                     wavelength=self.wavelength)
+        return diffraction_point
 
 
 # ----------------------------------------------------
@@ -127,8 +132,8 @@ class DiffractionPattern:
 
 class DiffractionPatternFactory:
     @classmethod
-    def create_diffraction_pattern_from_file(clscls, file_name):
-        return DiffractionPatternFactoryChain.Instance().create_diffraction_pattern_from_file(file_name)
+    def create_diffraction_pattern_from_file(clscls, file_name, wavelength=None):
+        return DiffractionPatternFactoryChain.Instance().create_diffraction_pattern_from_file(file_name, wavelength)
 
 import os
 
@@ -137,7 +142,7 @@ import os
 # ----------------------------------------------------
 
 class DiffractionPatternFactoryInterface():
-    def create_diffraction_pattern_from_file(self, file_name):
+    def create_diffraction_pattern_from_file(self, file_name, wavelength=None):
         raise NotImplementedError ("Method is Abstract")
 
     def _get_extension(self, file_name):
@@ -174,12 +179,12 @@ class DiffractionPatternFactoryChain(DiffractionPatternFactoryInterface):
 
         self._chain_of_handlers.append(handler)
 
-    def create_diffraction_pattern_from_file(self, file_name):
+    def create_diffraction_pattern_from_file(self, file_name, wavelength=None):
         file_extension = self._get_extension(file_name)
 
         for handler in self._chain_of_handlers:
             if handler.is_handler(file_extension):
-                return handler.create_diffraction_pattern_from_file(file_name)
+                return handler.create_diffraction_pattern_from_file(file_name, wavelength)
 
         raise ValueError ("File Extension not recognized")
 
@@ -210,15 +215,15 @@ class DiffractionPatternXyeFactoryHandler(DiffractionPatternFactoryHandler):
     def _get_handled_extension(self):
         return ".xye"
 
-    def create_diffraction_pattern_from_file(self, file_name):
-        return DiffractionPatternXye(file_name = file_name)
+    def create_diffraction_pattern_from_file(self, file_name, wavelength=None):
+        return DiffractionPatternXye(file_name = file_name, wavelength=wavelength)
 
 class DiffractionPatternRawFactoryHandler(DiffractionPatternFactoryHandler):
 
     def _get_handled_extension(self):
         return ".raw"
 
-    def create_diffraction_pattern_from_file(self, file_name):
+    def create_diffraction_pattern_from_file(self, file_name, wavelength=None):
         return DiffractionPatternRaw(file_name= file_name)
 
 
@@ -227,8 +232,8 @@ class DiffractionPatternRawFactoryHandler(DiffractionPatternFactoryHandler):
 # ----------------------------------------------------
 
 class DiffractionPatternXye(DiffractionPattern):
-    def __init__(self, file_name= ""):
-        super(DiffractionPatternXye, self).__init__(n_points = 0)
+    def __init__(self, file_name= "", wavelength=None):
+        super(DiffractionPatternXye, self).__init__(n_points = 0, wavelength=wavelength)
 
         self.__initialize_from_file(file_name)
 
