@@ -1,6 +1,6 @@
 import numpy
 import orangecontrib.xrdanalyzer.util.congruence as congruence
-from orangecontrib.xrdanalyzer.controller.boundary import Boundary
+from orangecontrib.xrdanalyzer.controller.fit_parameter import Boundary
 
 class Simmetry:
 
