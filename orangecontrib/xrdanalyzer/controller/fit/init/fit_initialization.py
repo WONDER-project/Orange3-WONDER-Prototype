@@ -1,5 +1,5 @@
 
-class FitInitializationParameters:
+class FitInitialization:
 
     diffraction_pattern = None
     crystal_structure = None
