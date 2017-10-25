@@ -104,11 +104,13 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
 
     def add_reflection(self, reflection=Reflection()):
         self.reflections.append(reflection)
+        self.add_parameter(reflection.intensity)
 
         self.update_reflection(-1)
 
     def set_reflection(self, index, reflection=Reflection()):
         self.reflections[index] = reflection
+        self.fit_parameters_list[6 + index] = reflection
 
         self.update_reflection(index)
 
@@ -161,6 +163,9 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
 
         reflections = []
 
+        if len(self.fit_parameters_list) > 6:
+            self.fit_parameters_list = self.fit_parameters_list[:6]
+
         for i in range(len(lines)):
             congruence.checkEmptyString(text, "Reflections: line " + str(i+1))
 
@@ -195,10 +200,14 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
 
                 if min_value != -numpy.inf or max_value != numpy.inf:
                     boundary = Boundary(min_value=min_value, max_value=max_value)
+                else:
+                    boundary = Boundary()
 
-            reflections.append(Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
-                                                                          value=intensity_value,
-                                                                          boundary=boundary)))
+            reflection = Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
+                                                                    value=intensity_value,
+                                                                    boundary=boundary))
+            reflections.append(reflection)
+            self.add_parameter(reflection.intensity)
 
         self.reflections = reflections
         self.update_reflections()

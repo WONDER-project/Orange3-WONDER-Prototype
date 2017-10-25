@@ -115,6 +115,9 @@ class OWStrain(OWGenericWidget):
 
                 ShowTextDialog.show_text("Output", self.fit_global_parameters.strain_parameters.to_PM2K(), parent=self)
 
+                ShowTextDialog.show_text("FIT PARAMETERS", str(self.fit_global_parameters.to_scipy_tuple()[0]) + "\n\n" + str(self.fit_global_parameters.to_scipy_tuple()[1]), parent=self)
+
+
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
         except Exception as e:

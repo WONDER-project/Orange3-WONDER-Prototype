@@ -84,7 +84,6 @@ class FitParametersList:
     def add_parameter(self, parameter = FitParameter()):
         self.fit_parameters_list.append(parameter)
 
-
     def to_scipy_tuple(self):
         parameters = []
         boundaries_min = []
@@ -92,8 +91,13 @@ class FitParametersList:
 
         for fit_parameter in self.fit_parameters_list:
             parameters.append(fit_parameter.value)
-            boundaries_min.append(fit_parameter.boundary.min_value)
-            boundaries_max.append(fit_parameter.boundary.max_value)
+
+            if fit_parameter.boundary is None:
+                boundaries_min.append(-numpy.inf)
+                boundaries_max.append(numpy.inf)
+            else:
+                boundaries_min.append(fit_parameter.boundary.min_value)
+                boundaries_max.append(fit_parameter.boundary.max_value)
 
         boundaries = [boundaries_min, boundaries_max]
 
@@ -102,5 +106,8 @@ class FitParametersList:
     def append_to_scipy_tuple(self, parameters, boundaries):
         my_parameters, my_boundaries = self.to_scipy_tuple()
 
-        parameters.append(my_parameters)
-        boundaries.append(my_parameters)
+        parameters    = list(numpy.append(parameters, my_parameters))
+        boundaries[0] = list(numpy.append(boundaries[0], my_boundaries[0]))
+        boundaries[1] = list(numpy.append(boundaries[1], my_boundaries[1]))
+
+        return parameters, boundaries
