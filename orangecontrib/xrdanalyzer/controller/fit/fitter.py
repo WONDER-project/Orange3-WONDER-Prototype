@@ -37,6 +37,7 @@ class FitterPrototype(FitterInterface):
 
     def do_specific_fit(self, fit_global_parameters):
         parameters, boundaries = fit_global_parameters.to_scipy_tuple()
+
         twotheta_experimental, intensity_experimental, error_experimental,  s_experimental = fit_global_parameters.fit_initialization.diffraction_pattern.tuples()
 
         fitted_parameters, covariance = self.call_scipy_curve_fit(s_experimental, intensity_experimental, parameters, boundaries)
