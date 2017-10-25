@@ -100,11 +100,29 @@ class DiffractionPattern:
         return self.wavelength
 
     def matrix(self):
-        Npoints = self.diffraction_points_count()
-        matrix = numpy.array([None] * Npoints )
-        for index in range(0, Npoints):
+        n_points = self.diffraction_points_count()
+        matrix = numpy.array([None] * n_points )
+        for index in range(0, n_points):
             matrix[index] = \
                         self.get_diffraction_point(index).get_array()
+
+    def tuples(self):
+        n_points = self.diffraction_points_count()
+
+        twotheta = numpy.zeros(n_points)
+        intensity = numpy.zeros(n_points)
+        error = numpy.zeros(n_points)
+        s = numpy.zeros(n_points)
+
+        for index in range(n_points):
+            diffraction_point = self.get_diffraction_point(index)
+            twotheta[index] = diffraction_point.twotheta
+            intensity[index] = diffraction_point.intensity
+            error[index] = diffraction_point.error
+            s[index] = diffraction_point.s
+
+        return twotheta, intensity, error, s
+
     # "PRIVATE METHODS"
     def _check_diffraction_pattern(self):
         if self.diffraction_pattern is None:
