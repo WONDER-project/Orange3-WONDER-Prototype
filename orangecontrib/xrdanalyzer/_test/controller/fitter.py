@@ -18,6 +18,8 @@ def fitterScipyCurveFit(function_to_fit,
 
     parameters, boundaries = listparameters.to_scipy_tuple()
 
+    print(parameters)
+
     popt, pcov = curve_fit(f=function_to_fit,
                            xdata=s_experimental,
                            ydata=intensity_experimental,
@@ -128,6 +130,37 @@ def functionOfManyPeaks(s, *params):
         sanalitycal += distances[i][1]
 
         separated_peaks_functions.append([sanalitycal, Ianalitycal])
+
+    s_large, I_large = utilities.mergefunctions(separated_peaks_functions)
+
+    return numpy.interp(s, s_large, bkg + I_large)
+
+
+
+def functionNPeaks(s, *params):
+    params_for_each_peak = []
+    n_peaks = Global.n_peaks
+    latticeparam = params[0]
+    for index in range(n_peaks):
+        params_for_each_peak.append(
+            [params[0], params[index+1],
+             params[n_peaks + 1], params[n_peaks + 2],
+             params[n_peaks + 3], params[n_peaks + 4],
+             params[n_peaks + 5], params[n_peaks + 6]]
+        )
+
+    bkg = params[Global.n_peaks + 7]
+
+    separated_peaks_functions = []
+
+    for index in range(n_peaks):
+        h, k, l = Global.hkl_list[index]
+
+        sanalitycal, Ianalitycal = createonepeak(params_for_each_peak[index], h, k, l)
+        sanalitycal += utilities.s_hkl(latticeparam, h, k, l)
+
+        separated_peaks_functions.append([sanalitycal, Ianalitycal])
+
 
     s_large, I_large = utilities.mergefunctions(separated_peaks_functions)
 
