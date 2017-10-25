@@ -21,8 +21,6 @@ from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import Crys
 from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
 from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterFactory
 
-
-
 class OWFitter(OWGenericWidget):
 
     name = "Fitter"
@@ -123,9 +121,6 @@ class OWFitter(OWGenericWidget):
         self.plot.addCurve(x, yf, color="red")
 
         self.text_area.setText(text)
-
-
-
 
 
 if __name__ == "__main__":
