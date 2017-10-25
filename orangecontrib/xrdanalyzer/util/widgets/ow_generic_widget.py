@@ -21,6 +21,7 @@ class OWGenericWidget(widget.OWWidget):
     info_id = 0
 
     MAX_WIDTH = 1320
+    MAX_WIDTH_NO_MAIN = 410
     MAX_HEIGHT = 700
 
     CONTROL_AREA_WIDTH = 405
@@ -30,9 +31,15 @@ class OWGenericWidget(widget.OWWidget):
         super().__init__()
 
         geom = QApplication.desktop().availableGeometry()
+
+        if self.want_main_area:
+            max_width = self.MAX_WIDTH
+        else:
+            max_width = self.MAX_WIDTH_NO_MAIN
+
         self.setGeometry(QRect(round(geom.width()*0.05),
                                round(geom.height()*0.05),
-                               round(min(geom.width()*0.98, self.MAX_WIDTH)),
+                               round(min(geom.width()*0.98, max_width)),
                                round(min(geom.height()*0.95, self.MAX_HEIGHT))))
 
         self.setMaximumHeight(self.geometry().height())

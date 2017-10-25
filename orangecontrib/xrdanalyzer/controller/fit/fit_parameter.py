@@ -27,7 +27,10 @@ class PM2KParameter:
             else:
                 return "@"
         else:
-            return self.parameter_name
+            if fixed:
+                return "!" + self.parameter_name
+            else:
+                return self.parameter_name
 
     @classmethod
     def get_type_name(cls, type):
@@ -61,19 +64,14 @@ class FitParameter(PM2KParameter):
             self.boundary = boundary
 
     def to_PM2K(self, type=PM2KParameter.GLOBAL_PARAMETER):
-        text = ""
+        text = self.get_type_name(type) + self.get_parameter_name(fixed=self.fixed) + " " + str(self.value)
 
-        if self.fixed:
-            text += self.get_type_name(type) + " !" + self.get_parameter_name(fixed=True) + " " + str(self.value)
-        else:
-            text += self.get_type_name(type) + " " + self.get_parameter_name(fixed=False) + " " + str(self.value)
-            
-            if not self.boundary is None:
-                if not self.boundary.min_value == -numpy.inf:
-                    text += " min " + str(self.boundary.min_value)
-                
-                if not self.boundary.max_value == numpy.inf:
-                    text += " max " + str(self.boundary.max_value)
+        if not self.fixed and not self.boundary is None:
+            if not self.boundary.min_value == -numpy.inf:
+                text += " min " + str(self.boundary.min_value)
+
+            if not self.boundary.max_value == numpy.inf:
+                text += " max " + str(self.boundary.max_value)
         
         return text
 
