@@ -1,6 +1,6 @@
-import os
+import os, sys
 
-from PyQt5.QtWidgets import QMessageBox, QScrollArea, QTableWidget
+from PyQt5.QtWidgets import QMessageBox, QScrollArea, QTableWidget, QApplication
 from PyQt5.QtCore import Qt
 
 from silx.gui.plot.PlotWindow import PlotWindow
@@ -34,7 +34,7 @@ class OWDiffractionPattern(OWGenericWidget):
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 
     def __init__(self):
-        super().__init__(show_automatic_box=True)
+        super().__init__(show_automatic_box=False)
 
         main_box = gui.widgetBox(self.controlArea,
                                  "Load Diffraction Pattern", orientation="vertical",
@@ -51,7 +51,7 @@ class OWDiffractionPattern(OWGenericWidget):
                                         label="File",
                                         labelWidth=50)
 
-        orangegui.button(file_box, self, "...", width=40, callback=self.open_folders)
+        orangegui.button(file_box, self, "...", callback=self.open_folders)
 
         gui.lineEdit(main_box, self, "wavelength", "Wavelength", labelWidth=250, valueType=float)
 
@@ -59,7 +59,7 @@ class OWDiffractionPattern(OWGenericWidget):
                                    "", orientation="horizontal",
                                    width=self.CONTROL_AREA_WIDTH-25)
 
-        gui.button(button_box,  self, "Load Data", width=185, height=50, callback=self.load_diffraction_pattern)
+        gui.button(button_box,  self, "Load Data", height=50, callback=self.load_diffraction_pattern)
 
 
         self.tabs = gui.tabWidget(self.mainArea)
@@ -76,9 +76,10 @@ class OWDiffractionPattern(OWGenericWidget):
         self.tab_plot.layout().addWidget(self.plot)
 
         self.scrollarea = QScrollArea(self.tab_data)
-        self.scrollarea.setMinimumWidth(self.CONTROL_AREA_WIDTH - 35)
+        self.scrollarea.setMinimumWidth(805)
+        self.scrollarea.setMinimumHeight(605)
 
-        self.text_area = gui.textArea(height=600, width=700, readOnly=True)
+        self.text_area = gui.textArea(height=600, width=800, readOnly=True)
 
         self.scrollarea.setWidget(self.text_area)
         self.scrollarea.setWidgetResizable(1)
@@ -128,3 +129,10 @@ class OWDiffractionPattern(OWGenericWidget):
         self.plot.addCurve(x, y)
         self.text_area.setText(text)
 
+
+if __name__ == "__main__":
+    a = QApplication(sys.argv)
+    ow = OWDiffractionPattern()
+    ow.show()
+    a.exec_()
+    ow.saveSettings()

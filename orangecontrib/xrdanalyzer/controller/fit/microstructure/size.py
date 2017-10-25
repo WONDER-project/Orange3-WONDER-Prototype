@@ -11,11 +11,21 @@ class Shape:
     OCTAHEDRON = "octahedron"
     CYLINDER = "cylinder"
 
+    @classmethod
+    def tuple(cls):
+        return [cls.NONE, cls.SPHERE, cls.CUBE, cls.TETRAHEDRON, cls.OCTAHEDRON, cls.CYLINDER]
+
+
 class Distribution:
     DELTA = "delta"
     LOGNORMAL = "lognormal"
     GAMMA = "gamma"
     YORK = "york"
+
+    @classmethod
+    def tuple(cls):
+        return [cls.DELTA, cls.LOGNORMAL, cls.GAMMA, cls.YORK]
+
 
 class SizeParameters(FitParametersList, PM2KParametersList):
 
