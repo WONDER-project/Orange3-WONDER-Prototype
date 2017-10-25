@@ -130,7 +130,7 @@ class OWInstrumentalProfile(OWGenericWidget):
                                                                               b=self.populate_parameter("b"),
                                                                               c=self.populate_parameter("c"))
 
-                ShowTextDialog.show_text("Output", self.fit_global_parameters.instrumental_parameters.to_PM2K(), parent=self)
+                #ShowTextDialog.show_text("Output", self.fit_global_parameters.instrumental_parameters.to_PM2K(), parent=self)
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -139,7 +139,7 @@ class OWInstrumentalProfile(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            raise e
+            #raise e
 
 
     def set_data(self, data):

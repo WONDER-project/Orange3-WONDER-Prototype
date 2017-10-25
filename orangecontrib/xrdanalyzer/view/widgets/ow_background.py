@@ -118,7 +118,7 @@ class OWBackground(OWGenericWidget):
                                                                                        a4=self.populate_parameter("a4"),
                                                                                        a5=self.populate_parameter("a5"))
 
-                ShowTextDialog.show_text("Output", self.fit_global_parameters.background_parameters.to_PM2K(), parent=self)
+                #ShowTextDialog.show_text("Output", self.fit_global_parameters.background_parameters.to_PM2K(), parent=self)
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -127,7 +127,7 @@ class OWBackground(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            raise e
+            #raise e
 
 
     def set_data(self, data):

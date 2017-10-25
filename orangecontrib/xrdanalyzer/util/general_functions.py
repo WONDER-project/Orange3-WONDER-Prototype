@@ -5,12 +5,6 @@ import inspect
 def distance(X, Y):
     return numpy.linalg.norm(X-Y)
 
-
-
-
-
-
-
 def attributes_of_a_point (myClass):
     # HERE, I WANT TO return a list of all attributes of
     #a class (even those that are initialized to None)
@@ -25,3 +19,19 @@ def attributes_of_a_point (myClass):
 
     return [attr[3], attr[1], attr[0], attr[2]]
 
+# -----------------------------------
+# FOURIER FUNCTIONS
+# -----------------------------------
+
+def Fourier(y):
+    return numpy.fft.fftshift(numpy.abs(numpy.real(numpy.fft.fft(y))))
+
+def fft(f, n_steps, dL):
+    y_fft = Fourier(f)
+
+    q = numpy.fft.fftfreq(n_steps, dL)
+    q = numpy.fft.fftshift(q)
+
+    integral = numpy.trapz(y_fft, q)
+
+    return q, y_fft / integral

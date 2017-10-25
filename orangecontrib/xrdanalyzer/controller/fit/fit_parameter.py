@@ -84,6 +84,9 @@ class FitParametersList:
     def add_parameter(self, parameter = FitParameter()):
         self.fit_parameters_list.append(parameter)
 
+    def get_parameters_count(self):
+        return len(self.fit_parameters_list)
+
     def to_scipy_tuple(self):
         parameters = []
         boundaries_min = []

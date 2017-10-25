@@ -18,6 +18,7 @@ class FitInitialization:
         # ADESSO WL e fissa, dovra diventare un parametro di fit
         #parameters, boundaries = self.diffraction_pattern.append_to_scipy_tuple(parameters, boundaries)
 
-        parameters, boundaries = self.crystal_structure.append_to_scipy_tuple(parameters, boundaries)
+        if not self.crystal_structure is None:
+            parameters, boundaries = self.crystal_structure.append_to_scipy_tuple(parameters, boundaries)
 
         return parameters, boundaries

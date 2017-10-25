@@ -104,7 +104,7 @@ class OWSize(OWGenericWidget):
                                                                             mu=self.populate_parameter("mu"),
                                                                             sigma=self.populate_parameter("sigma"))
 
-                ShowTextDialog.show_text("Output", self.fit_global_parameters.size_parameters.to_PM2K(), parent=self)
+                #ShowTextDialog.show_text("Output", self.fit_global_parameters.size_parameters.to_PM2K(), parent=self)
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -113,7 +113,7 @@ class OWSize(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            raise e
+            #raise e
 
 
 
