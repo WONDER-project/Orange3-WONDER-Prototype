@@ -1,11 +1,10 @@
-import numpy
 import matplotlib.pyplot as plt
-
-from orangecontrib.xrdanalyzer._test.controller.fitter import fitterScipyCurveFit, gaussianpeak_analytical, gaussianpeak_experimental
-
+import numpy
 from orangecontrib.xrdanalyzer.controller.fit_parameter import FitParametersList, FitParameter, Boundary
-from orangecontrib.xrdanalyzer._test.controller.fitter import Global, functionOfThePeak
 
+from orangecontrib.xrdanalyzer._test.controller.vecchi_test.fitterCESSO import fitterScipyCurveFit, \
+    gaussianpeak_experimental
+from orangecontrib.xrdanalyzer._test.controller.vecchi_test.fitterCESSO import functionOfThePeak
 
 s_experimental = numpy.sort(numpy.random.uniform(low=-5, high=5,
                                   size=500))
