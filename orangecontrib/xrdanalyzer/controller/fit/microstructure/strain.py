@@ -29,6 +29,11 @@ class LaueGroup:
             if int(value) == laue_id:
                 return key
 
+    @classmethod
+    def tuple(cls):
+        return ["-1", "2/m", "2/mmm", "4/m", "4/mmm", "-3R", "-31mR", "-3", "-3m1", "-31m", "6/m", "6/mmm", "m3", "m3m"]
+
+
 class InvariantPAH(FitParametersList, PM2KParametersList):
     aa = None
     bb = None
@@ -129,7 +134,7 @@ class InvariantPAH(FitParametersList, PM2KParametersList):
         return invariant
 
     def to_PM2K(self):
-        raise NotImplementedError("TODO!!!!!")
+        return "TODO!!!!!"
 
 
 class InvariantPAHLaueGroup1(InvariantPAH):

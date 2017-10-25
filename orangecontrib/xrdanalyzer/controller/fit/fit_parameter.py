@@ -35,7 +35,7 @@ class PM2KParameter:
     @classmethod
     def get_type_name(cls, type):
         if type == cls.GLOBAL_PARAMETER:
-            return "par"
+            return "par "
         else:
             return ""
 

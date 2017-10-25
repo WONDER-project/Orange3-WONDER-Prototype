@@ -1,14 +1,17 @@
-import sys
+import sys, numpy
 
 from Orange.widgets import gui as orange_gui
 from Orange.widgets import widget
 
 from Orange.widgets.settings import Setting
+from Orange.widgets import gui as orangegui
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QRect
 
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import ConfirmDialog, gui
+
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
 
 class OWGenericWidget(widget.OWWidget):
 
@@ -53,6 +56,36 @@ class OWGenericWidget(widget.OWWidget):
             orange_gui.checkBox(self.general_options_box, self, 'is_automatic_run', 'Automatic Execution')
 
         gui.button(self.general_options_box, self, "Reset Fields", callback=self.callResetSettings)
+
+
+    def create_box(self, parent_box, var):
+        box = gui.widgetBox(parent_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50)
+
+        gui.lineEdit(box, self, var, var, labelWidth=20, valueType=float)
+        orangegui.checkBox(box, self, var + "_fixed", "fix")
+        orangegui.checkBox(box, self, var + "_has_min", "min")
+        gui.lineEdit(box, self, var + "_min", "", labelWidth=5, valueType=float)
+        orangegui.checkBox(box, self, var + "_has_max", "max")
+        gui.lineEdit(box, self, var + "_max", "", labelWidth=5, valueType=float)
+
+
+    def populate_parameter(self, parameter_name):
+        if getattr(self, parameter_name + "_fixed") == 0:
+            boundary = None
+
+            min_value = -numpy.inf
+            max_value = numpy.inf
+
+            if getattr(self, parameter_name + "_has_min") == 1: min_value = getattr(self, parameter_name + "_min")
+            if getattr(self, parameter_name + "_has_max") == 1: max_value = getattr(self, parameter_name + "_max")
+
+            if min_value != -numpy.inf or max_value != numpy.inf:
+                boundary = Boundary(min_value=min_value, max_value=max_value)
+
+            return FitParameter(parameter_name=parameter_name, value=getattr(self, parameter_name), boundary=boundary)
+        else:
+            return FitParameter(parameter_name=parameter_name, value=getattr(self, parameter_name), fixed=True)
+
 
 
     def callResetSettings(self):

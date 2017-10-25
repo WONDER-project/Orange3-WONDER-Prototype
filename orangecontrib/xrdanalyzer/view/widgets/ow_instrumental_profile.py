@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, numpy
 
 from PyQt5.QtWidgets import QMessageBox, QScrollArea, QTableWidget, QApplication
 from PyQt5.QtCore import Qt
@@ -14,14 +14,14 @@ from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPatternFactory
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
 from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Caglioti
 
 class OWInstrumentalProfile(OWGenericWidget):
 
-    name = "Intstrumental Profile"
+    name = "Instrumental Profile"
     description = "Define Instrumental Profile Parameters"
     icon = "icons/instrumental_profile.png"
     priority = 3
@@ -102,7 +102,6 @@ class OWInstrumentalProfile(OWGenericWidget):
         self.create_box(caglioti_box_1, "U")
         self.create_box(caglioti_box_1, "V")
         self.create_box(caglioti_box_1, "W")
-
         self.create_box(caglioti_box_2, "a")
         self.create_box(caglioti_box_2, "b")
         self.create_box(caglioti_box_2, "c")
@@ -119,20 +118,19 @@ class OWInstrumentalProfile(OWGenericWidget):
 
         gui.button(button_box,  self, "Send Instrumental Profile", height=50, callback=self.send_intrumental_profile)
 
-    def create_box(self, parent_box, var):
-        box = gui.widgetBox(parent_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50)
-
-        gui.lineEdit(box, self, var, var, labelWidth=10, valueType=float)
-        orangegui.checkBox(box, self, var + "_fixed", "fix")
-        orangegui.checkBox(box, self, var + "_has_min", "min")
-        gui.lineEdit(box, self, var + "_min", "", labelWidth=5, valueType=float)
-        orangegui.checkBox(box, self, var + "_has_max", "max")
-        gui.lineEdit(box, self, var + "_max", "", labelWidth=5, valueType=float)
 
     def send_intrumental_profile(self):
         try:
             if not self.fit_global_parameters is None:
 
+                self.fit_global_parameters.instrumental_parameters = Caglioti(U=self.populate_parameter("U"),
+                                                                              V=self.populate_parameter("V"),
+                                                                              W=self.populate_parameter("W"),
+                                                                              a=self.populate_parameter("a"),
+                                                                              b=self.populate_parameter("b"),
+                                                                              c=self.populate_parameter("c"))
+
+                ShowTextDialog.show_text("Output", self.fit_global_parameters.instrumental_parameters.to_PM2K(), parent=self)
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -142,6 +140,7 @@ class OWInstrumentalProfile(OWGenericWidget):
                                  QMessageBox.Ok)
 
             raise e
+
 
     def set_data(self, data):
         self.fit_global_parameters = data
