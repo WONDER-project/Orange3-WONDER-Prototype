@@ -1,5 +1,4 @@
 [orange.widgets]
-Widget Tests = orangecontrib.xrdanalyzer._test.view.widgets
 XRD Analyzer = orangecontrib.xrdanalyzer.view.widgets
 
 [orange3.addon]

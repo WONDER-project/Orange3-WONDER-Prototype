@@ -40,26 +40,27 @@ PACKAGES = find_packages()
 
 PACKAGE_DATA = {
     'orangecontrib.xrdanalyzer.view.widgets': ['icons/*.*'],
-    'orangecontrib.xrdanalyzer._test.view.widgets_test': ['icons/*.*'],
+    #'orangecontrib.xrdanalyzer._test.view.widgets_test': ['icons/*.*'],
 }
 
 NAMESPACE_PACAKGES = ["orangecontrib",
                       "orangecontrib.xrdanalyzer",
                       "orangecontrib.xrdanalyzer.view",
                       "orangecontrib.xrdanalyzer.view.widgets",
-                      "orangecontrib.xrdanalyzer._test",
-                      "orangecontrib.xrdanalyzer._test.view",
-                      "orangecontrib.xrdanalyzer._test.view.widgets"]
+                      #"orangecontrib.xrdanalyzer._test",
+                      #"orangecontrib.xrdanalyzer._test.view",
+                      #"orangecontrib.xrdanalyzer._test.view.widgets"
+                      ]
 
 INSTALL_REQUIRES = sorted(set(
     line.partition('#')[0].strip()
-    for line in open(os.path.join(os.path.dirname(__file__), 'requirements.txt'))
-) - {''})
+    for line in open(os.path.join(os.path.dirname(__file__), 'requirements.txt'))) - {''})
 
 ENTRY_POINTS = {
     'orange.widgets':
         ('XRD Analyzer = orangecontrib.xrdanalyzer.view.widgets',
-         'Widget Tests = orangecontrib.xrdanalyzer._test.view.widgets',),
+         #'Widget Tests = orangecontrib.xrdanalyzer._test.view.widgets',
+         ),
     'orange3.addon':
         ('Orange3-Flor = orangecontrib.xrdanalyzer',)
 
