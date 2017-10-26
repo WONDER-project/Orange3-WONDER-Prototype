@@ -138,9 +138,23 @@ class CommonFittingData():
         last_index = crystal_structure.get_parameters_count() - 1
 
         if not fit_global_parameter.background_parameters is None:
+            self.a0 = parameters[last_index + 1]
+            self.a1 = parameters[last_index + 2]
+            self.a2 = parameters[last_index + 3]
+            self.a3 = parameters[last_index + 4]
+            self.a4 = parameters[last_index + 5]
+            self.a5 = parameters[last_index + 6]
+
             last_index += fit_global_parameter.background_parameters.get_parameters_count()
 
         if not fit_global_parameter.instrumental_parameters is None:
+            self.U = parameters[last_index + 1]
+            self.V = parameters[last_index + 2]
+            self.W = parameters[last_index + 3]
+            self.a = parameters[last_index + 4]
+            self.b = parameters[last_index + 5]
+            self.c = parameters[last_index + 6]
+
             last_index += fit_global_parameter.instrumental_parameters.get_parameters_count()
 
         if not fit_global_parameter.size_parameters is None:
@@ -150,8 +164,8 @@ class CommonFittingData():
             last_index += fit_global_parameter.size_parameters.get_parameters_count()
 
         if not fit_global_parameter.strain_parameters is None:
-            self.a = parameters[last_index + 1]
-            self.b = parameters[last_index + 2]
+            self.aa = parameters[last_index + 1]
+            self.bb = parameters[last_index + 2]
             self.A = parameters[last_index + 3] # in realtà è E1 dell'invariante PAH
             self.B = parameters[last_index + 4] # in realtà è E6 dell'invariante PAH
 
@@ -176,19 +190,65 @@ def create_one_peak(reflection_index, parameters):
     fourier_amplitudes = None
 
     if not fit_global_parameter.instrumental_parameters is None:
-        fourier_amplitudes = None # TODO: aggiungere funzione strumentale
+        if fourier_amplitudes is None:
+            fourier_amplitudes = instrumental_function(fit_space_parameters.L,
+                                                       reflection.h,
+                                                       reflection.k,
+                                                       reflection.l,
+                                                       lattice_parameter,
+                                                       fit_global_parameter.fit_initialization.diffraction_pattern.wavelength,
+                                                       common_fitting_data.U,
+                                                       common_fitting_data.V,
+                                                       common_fitting_data.W,
+                                                       common_fitting_data.a,
+                                                       common_fitting_data.b,
+                                                       common_fitting_data.c)
+        else:
+            fourier_amplitudes *= instrumental_function(fit_space_parameters.L,
+                                                        reflection.h,
+                                                        reflection.k,
+                                                        reflection.l,
+                                                        lattice_parameter,
+                                                        fit_global_parameter.fit_initialization.diffraction_pattern.wavelength,
+                                                        common_fitting_data.U,
+                                                        common_fitting_data.V,
+                                                        common_fitting_data.W,
+                                                        common_fitting_data.a,
+                                                        common_fitting_data.b,
+                                                        common_fitting_data.c)
+
 
     if not fit_global_parameter.size_parameters is None:
         if fourier_amplitudes is None:
-            fourier_amplitudes = size_function_lognormal(fit_space_parameters.L, common_fitting_data.sigma, common_fitting_data.mu)
+            fourier_amplitudes = size_function_lognormal(fit_space_parameters.L,
+                                                         common_fitting_data.sigma,
+                                                         common_fitting_data.mu)
         else:
-            fourier_amplitudes *= size_function_lognormal(fit_space_parameters.L, common_fitting_data.sigma, common_fitting_data.mu)
+            fourier_amplitudes *= size_function_lognormal(fit_space_parameters.L,
+                                                          common_fitting_data.sigma,
+                                                          common_fitting_data.mu)
 
     if not fit_global_parameter.strain_parameters is None:
         if fourier_amplitudes is None:
-            fourier_amplitudes = strain_function(fit_space_parameters.L, reflection.h, reflection.k, reflection.l, lattice_parameter, common_fitting_data.a, common_fitting_data.b, common_fitting_data.A, common_fitting_data.B)
+            fourier_amplitudes = strain_function(fit_space_parameters.L,
+                                                 reflection.h,
+                                                 reflection.k,
+                                                 reflection.l,
+                                                 lattice_parameter,
+                                                 common_fitting_data.aa,
+                                                 common_fitting_data.bb,
+                                                 common_fitting_data.A,
+                                                 common_fitting_data.B)
         else:
-            fourier_amplitudes *= strain_function(fit_space_parameters.L, reflection.h, reflection.k, reflection.l, lattice_parameter, common_fitting_data.a, common_fitting_data.b, common_fitting_data.A, common_fitting_data.B)
+            fourier_amplitudes *= strain_function(fit_space_parameters.L,
+                                                  reflection.h,
+                                                  reflection.k,
+                                                  reflection.l,
+                                                  lattice_parameter,
+                                                  common_fitting_data.aa,
+                                                  common_fitting_data.bb,
+                                                  common_fitting_data.A,
+                                                  common_fitting_data.B)
 
     s, I = fft(fourier_amplitudes,
                n_steps=fit_global_parameter.fit_initialization.fft_parameters.n_step,
@@ -228,6 +288,25 @@ def strain_function (L, h, k, l, lattice_parameter, a, b, A, B):
 
     return numpy.exp(exponent)
 
+def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a, b, c):
+    ln2 = numpy.log(2)
+
+    theta = utilities.theta_hkl(lattice_parameter, h,k,l,wavelength)
+
+    eta = a + b * theta + c * theta**2
+    hwhm = 0.5 * numpy.sqrt(U * (numpy.tan(theta))**2
+                            + V * numpy.tan(theta) + W)
+
+    k = (1 + (1 - eta)/(eta * numpy.sqrt(numpy.pi*ln2)))**(-1)
+
+    sigma = hwhm*numpy.cos(theta/wavelength)
+
+    exponent_1 = -((numpy.pi*sigma*L)**2)/ ln2
+    exponent_2 = -2*numpy.pi*sigma*L
+
+    return (1-k)*numpy.exp(exponent_1) + k*numpy.exp(exponent_2)
+
+
 class utilities:
 
     @classmethod
@@ -239,6 +318,17 @@ class utilities:
     @classmethod
     def s_hkl(cls, a, h, k, l):
         return numpy.sqrt(h * h + k * k + l * l) / a
+
+    @classmethod
+    def get_twotheta_from_s(cls, s, wavelength):
+        if s is None: return None
+
+        return numpy.degrees(2 * numpy.arcsin(s * wavelength / 2))
+
+    @classmethod
+    def theta_hkl (cls, a, h, k, l , wavelength):
+        return cls.get_twotheta_from_s(cls.s_hkl(a, h, k, l), wavelength)
+
 
     @classmethod
     def isolate_peak(cls, s, I, smin, smax):
