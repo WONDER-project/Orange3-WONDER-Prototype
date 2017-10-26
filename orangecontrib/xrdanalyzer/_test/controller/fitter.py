@@ -1,6 +1,7 @@
 import numpy
 from scipy.optimize import curve_fit
 from scipy.special import erfc
+import lmfit
 
 import matplotlib.pyplot as plt
 
@@ -28,6 +29,22 @@ def fitterScipyCurveFit(function_to_fit,
                            method= 'trf',
                            bounds=boundaries)
     return popt, pcov
+
+from lmfit import minimize, Minimizer, Parameters, Parameter, report_fit
+
+def fitter_with_lmfit(function_to_fit, s_experimental, intensity_experimental, listparameters):
+
+    minimizer = Minimizer(function_to_fit, nan_policy='omit', params=listparameters, fcn_args=(s_experimental, intensity_experimental),)
+
+    return minimizer.minimize()
+    #return minimizer.minimize(method='least_squares')
+
+    #gmodel = lmfit.Model(function_to_fit)
+
+    #return gmodel.fit(data=intensity_experimental, params= listparameters, s=s_experimental  )
+
+
+
 
 ######################################################################
 
@@ -67,8 +84,8 @@ def instrumental_function (L, lattice_parameter, h, k, l, wavelength, U,V,W, a, 
     theta = utilities.theta_hkl(lattice_parameter, h,k,l,wavelength)
 
     eta = a + b * theta + c * theta**2
-    hwhm = 0.5 * numpy.sqrt(U * (numpy.tan(theta))**2
-                            + V * numpy.tan(theta) + W)
+    hwhm = 0.5 * numpy.sqrt(numpy.abs(U * (numpy.tan(theta))**2
+                            + V * numpy.tan(theta) + W))
 
     k = (1 + (1 - eta)/(eta * numpy.sqrt(numpy.pi*ln2)))**(-1)
 
@@ -223,3 +240,67 @@ def functionNPeaks(s, *params):
     s_large, I_large = utilities.mergefunctions(separated_peaks_functions)
 
     return numpy.interp(s, s_large, bkg + I_large)
+
+def functionNPeaks_lmfit_plot(params, s):
+    params_for_each_peak = []
+    n_peaks = Global.n_peaks
+    latticeparam = params["lattice_parameter"]
+    for index in range(n_peaks):
+        params_for_each_peak.append(
+            [params["lattice_parameter"], params["I{}".format(index+1)],
+             params["sigma"], params["mu"],
+             params["a"], params["b"],
+             params["A"], params["B"],
+             params["U"], params["V"],
+             params["W"], params["aa"],
+             params["bb"], params["cc"],
+             params["wavelength"]]
+        )
+
+    bkg = params["bkg"]
+
+    separated_peaks_functions = []
+
+    for index in range(n_peaks):
+        h, k, l = Global.hkl_list[index]
+
+        sanalitycal, Ianalitycal = createonepeak_with_instrumental(params_for_each_peak[index], h, k, l)
+        sanalitycal += utilities.s_hkl(latticeparam, h, k, l)
+
+        separated_peaks_functions.append([sanalitycal, Ianalitycal])
+
+    s_large, I_large = utilities.mergefunctions(separated_peaks_functions)
+
+    return numpy.interp(s, s_large, bkg + I_large)
+
+def functionNPeaks_lmfit(params, s, I):
+    params_for_each_peak = []
+    n_peaks = Global.n_peaks
+    latticeparam = params["lattice_parameter"]
+    for index in range(n_peaks):
+        params_for_each_peak.append(
+            [params["lattice_parameter"], params["I{}".format(index+1)],
+             params["sigma"], params["mu"],
+             params["a"], params["b"],
+             params["A"], params["B"],
+             params["U"], params["V"],
+             params["W"], params["aa"],
+             params["bb"], params["cc"],
+             params["wavelength"]]
+        )
+
+    bkg = params["bkg"]
+
+    separated_peaks_functions = []
+
+    for index in range(n_peaks):
+        h, k, l = Global.hkl_list[index]
+
+        sanalitycal, Ianalitycal = createonepeak_with_instrumental(params_for_each_peak[index], h, k, l)
+        sanalitycal += utilities.s_hkl(latticeparam, h, k, l)
+
+        separated_peaks_functions.append([sanalitycal, Ianalitycal])
+
+    s_large, I_large = utilities.mergefunctions(separated_peaks_functions)
+
+    return I - numpy.interp(s, s_large, bkg + I_large)
