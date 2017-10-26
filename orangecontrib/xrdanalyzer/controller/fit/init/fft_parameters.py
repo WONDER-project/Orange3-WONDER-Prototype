@@ -21,8 +21,19 @@ class FFTInitParameters(PM2KParametersList):
     def duplicate(self):
         return FFTInitParameters(s_max=self.s_max, n_step=self.n_step)
 
+    def to_text(self):
+        text = "FFT PARAMETERS\n"
+        text += "-----------------------------------\n"
+        text += "fft steps: " + str(self.n_step) + "\n"
+        text += "s max    : "  + str(self.s_max) + "\n"
+        text += "-----------------------------------\n"
+
+        return text
+
     def to_PM2K(self):
         text  = "par !ftsteps " + str(self.n_step) + "\n"
         text += "par !smax "  + str(self.s_max) + "\n\n"
         text += "setFTSteps(ftsteps)" + "\n"
         text += "setSMax(smax)"
+
+        return text

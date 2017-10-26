@@ -35,6 +35,9 @@ class Reflection(PM2KParameter):
     def to_PM2K(self):
         return "addPeak(" + str(self.h) + "," + str(self.k) + "," + str(self.l) + ","  + self.intensity.to_PM2K(type=PM2KParameter.FUNCTION_PARAMETER) + ")"
 
+    def to_text(self):
+        return str(self.h) + ", " + str(self.k) + ", " + str(self.l) + ", "  + self.intensity.to_text()
+
     def get_theta_hkl(self, wavelength):
         return numpy.degrees(numpy.asin(2*self.d_spacing/wavelength))
 
@@ -85,7 +88,7 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
     def init_cube(cls, a, simmetry=Simmetry.FCC):
         if not cls.is_cube(simmetry): raise ValueError("Simmetry doesn't belong to a cubic crystal cell")
 
-        angle = FitParameter(value=90, fixed=True)
+        angle = FitParameter(parameter_name="alpha", value=90, fixed=True)
 
         return CrystalStructure(a,
                                 a,
@@ -222,6 +225,28 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
             crystal_structure.add_reflection(reflection_copy)
 
         return crystal_structure
+
+    def to_text(self):
+        text = "CRYSTAL STRUCTURE\n"
+        text += "-----------------------------------\n"
+
+        text += self.a.to_text() + "\n"
+        text += self.b.to_text() + "\n"
+        text += self.c.to_text() + "\n"
+        text += self.alpha.to_text() + "\n"
+        text += self.beta.to_text() + "\n"
+        text += self.gamma.to_text() + "\n"
+        text += "Simmetry: " + self.simmetry + "\n"
+
+        text += "\nREFLECTIONS\n"
+        text += "h, k, l, intensity:\n"
+
+        for reflection in self.reflections:
+            text += reflection.to_text() + "\n"
+
+        text += "-----------------------------------\n"
+
+        return text
 
 if __name__=="__main__":
     test = CrystalStructure.init_cube(a=FitParameter(parameter_name="a0", value=0.55), simmetry=Simmetry.BCC)

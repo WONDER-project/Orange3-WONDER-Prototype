@@ -51,7 +51,6 @@ class FitGlobalParameters:
     def space_parameters(self):
         return FitSpaceParameters(self)
 
-
     def duplicate(self):
         return FitGlobalParameters(fit_initialization=None if self.fit_initialization is None else self.fit_initialization.duplicate(),
                                    background_parameters=None if self.background_parameters is None else self.background_parameters.duplicate(),
@@ -59,7 +58,30 @@ class FitGlobalParameters:
                                    size_parameters=None if self.size_parameters is None else self.size_parameters.duplicate(),
                                    strain_parameters=None if self.strain_parameters is None else self.strain_parameters.duplicate())
 
+    def to_text(self):
+        
+        text = "FIT GLOBAL PARAMETERS\n"
+        text += "###################################\n\n"
+        
+        if not self.fit_initialization is None:
+            text += self.fit_initialization.to_text()
 
+        if not self.background_parameters is None:
+            text += self.background_parameters.to_text()
+            
+        if not self.instrumental_parameters is None:
+            text += self.instrumental_parameters.to_text()
+            
+        if not self.size_parameters is None:
+            text += self.size_parameters.to_text()
+
+        if not self.strain_parameters is None:
+            text += self.strain_parameters.to_text()
+        
+        text += "\n###################################\n"
+
+        return text
+        
 class FitSpaceParameters:
     def __init__(self, fit_global_parameters):
         s_max   = fit_global_parameters.fit_initialization.fft_parameters.s_max

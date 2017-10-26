@@ -137,6 +137,35 @@ class InvariantPAH(FitParametersList, PM2KParametersList):
     def to_PM2K(self):
         return "TODO!!!!!"
 
+    def to_text(self):
+        text = "STRAIN - INVARIANT PAH\n"
+        text += "-----------------------------------\n"
+
+        text += self.aa.to_text() + "\n"
+        text += self.bb.to_text() + "\n"
+
+        text += "Laue Group: " + str(self.laue_id) + ", " + LaueGroup.get_laue_group(self.laue_id) + "\n"
+
+        if not self.e1  is None: text += self.e1.to_text() + "\n"
+        if not self.e2  is None: text += self.e2.to_text() + "\n"
+        if not self.e3  is None: text += self.e3.to_text() + "\n"
+        if not self.e4  is None: text += self.e4.to_text() + "\n"
+        if not self.e5  is None: text += self.e5.to_text() + "\n"
+        if not self.e6  is None: text += self.e6.to_text() + "\n"
+        if not self.e7  is None: text += self.e7.to_text() + "\n"
+        if not self.e8  is None: text += self.e8.to_text() + "\n"
+        if not self.e9  is None: text += self.e9.to_text() + "\n"
+        if not self.e10 is None: text += self.e10.to_text() + "\n"
+        if not self.e11 is None: text += self.e11.to_text() + "\n"
+        if not self.e12 is None: text += self.e12.to_text() + "\n"
+        if not self.e13 is None: text += self.e13.to_text() + "\n"
+        if not self.e14 is None: text += self.e14.to_text() + "\n"
+        if not self.e15 is None: text += self.e15.to_text() + "\n"
+
+        text += "-----------------------------------\n"
+
+        return text
+
     def duplicate(self):
         return InvariantPAH(aa=None if self.aa is None else self.aa.duplicate(),
                             bb=None if self.bb is None else self.bb.duplicate(),

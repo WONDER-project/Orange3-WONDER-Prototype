@@ -2,54 +2,70 @@ import numpy
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PM2KParametersList, FitParametersList, FitParameter, Boundary
 
 class ChebyshevBackground(FitParametersList, PM2KParametersList):
-    a0 = None
-    a1 = None
-    a2 = None
-    a3 = None
-    a4 = None
-    a5 = None
+    c0 = None
+    c1 = None
+    c2 = None
+    c3 = None
+    c4 = None
+    c5 = None
 
-    def __init__(self, a0, a1, a2, a3, a4, a5):
+    def __init__(self, c0, c1, c2, c3, c4, c5):
         super(ChebyshevBackground, self).__init__()
 
-        self.a0 = a0
-        self.a1 = a1
-        self.a2 = a2
-        self.a3 = a3
-        self.a4 = a4
-        self.a5 = a5
+        self.c0 = c0
+        self.c1 = c1
+        self.c2 = c2
+        self.c3 = c3
+        self.c4 = c4
+        self.c5 = c5
 
-        super().add_parameter(self.a0)
-        super().add_parameter(self.a1)
-        super().add_parameter(self.a2)
-        super().add_parameter(self.a3)
-        super().add_parameter(self.a4)
-        super().add_parameter(self.a5)
+        super().add_parameter(self.c0)
+        super().add_parameter(self.c1)
+        super().add_parameter(self.c2)
+        super().add_parameter(self.c3)
+        super().add_parameter(self.c4)
+        super().add_parameter(self.c5)
 
     def to_PM2K(self):
         text = ""
 
-        text += self.a0.to_PM2K() + "\n"
-        text += self.a1.to_PM2K() + "\n"
-        text += self.a2.to_PM2K() + "\n"
-        text += self.a3.to_PM2K() + "\n"
-        text += self.a4.to_PM2K() + "\n"
-        text += self.a5.to_PM2K() + "\n\n"
+        text += self.c0.to_PM2K() + "\n"
+        text += self.c1.to_PM2K() + "\n"
+        text += self.c2.to_PM2K() + "\n"
+        text += self.c3.to_PM2K() + "\n"
+        text += self.c4.to_PM2K() + "\n"
+        text += self.c5.to_PM2K() + "\n\n"
 
         text += "add(Chebyshev(" + \
-                self.a0.parameter_name + ", " + \
-                self.a1.parameter_name + ", " + \
-                self.a2.parameter_name + ", " + \
-                self.a3.parameter_name + ", " + \
-                self.a4.parameter_name + ", " + \
-                self.a5.parameter_name + "))"
+                self.c0.parameter_name + ", " + \
+                self.c1.parameter_name + ", " + \
+                self.c2.parameter_name + ", " + \
+                self.c3.parameter_name + ", " + \
+                self.c4.parameter_name + ", " + \
+                self.c5.parameter_name + "))"
 
         return text
 
+    def to_text(self):
+        text = "BACKGROUND PARAMETERS\n"
+        text += "-----------------------------------\n"
+
+        text += self.c0.to_text() + "\n"
+        text += self.c1.to_text() + "\n"
+        text += self.c2.to_text() + "\n"
+        text += self.c3.to_text() + "\n"
+        text += self.c4.to_text() + "\n"
+        text += self.c5.to_text() + "\n"
+
+        text += "-----------------------------------\n"
+        
+        return text       
+
+
     def duplicate(self):
-        return ChebyshevBackground(a0=None if self.a0 is None else self.a0.duplicate(),
-                                   a1=None if self.a1 is None else self.a1.duplicate(),
-                                   a2=None if self.a2 is None else self.a2.duplicate(),
-                                   a3=None if self.a3 is None else self.a3.duplicate(),
-                                   a4=None if self.a4 is None else self.a4.duplicate(),
-                                   a5=None if self.a5 is None else self.a5.duplicate())
+        return ChebyshevBackground(c0=None if self.c0 is None else self.c0.duplicate(),
+                                   c1=None if self.c1 is None else self.c1.duplicate(),
+                                   c2=None if self.c2 is None else self.c2.duplicate(),
+                                   c3=None if self.c3 is None else self.c3.duplicate(),
+                                   c4=None if self.c4 is None else self.c4.duplicate(),
+                                   c5=None if self.c5 is None else self.c5.duplicate())

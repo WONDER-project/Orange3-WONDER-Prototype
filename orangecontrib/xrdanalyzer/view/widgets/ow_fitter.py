@@ -29,6 +29,8 @@ class OWFitter(OWGenericWidget):
 
     want_main_area = True
 
+    n_iterations = Setting(5)
+
     fit_global_parameters = None
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
@@ -46,13 +48,17 @@ class OWFitter(OWGenericWidget):
                                    "", orientation="horizontal",
                                    width=self.CONTROL_AREA_WIDTH-25)
 
+        gui.lineEdit(main_box, self, "n_iterations", "Nr. Iterations", labelWidth=250, valueType=int)
+
         gui.button(button_box,  self, "Fit", height=50, callback=self.do_fit)
 
         self.tabs = gui.tabWidget(self.mainArea)
 
-        self.tab_data = gui.createTabPage(self.tabs, "Data")
+        self.tab_fit_in = gui.createTabPage(self.tabs, "Fit Input Parameters")
         self.tab_plot = gui.createTabPage(self.tabs, "Plot")
-
+        self.tab_data = gui.createTabPage(self.tabs, "Fit Output Raw Data")
+        self.tab_fit_out = gui.createTabPage(self.tabs, "Fit Output Parameters")
+        
         self.plot = PlotWindow()
         self.plot.setDefaultPlotLines(True)
         self.plot.setActiveCurveColor(color="#00008B")
@@ -71,6 +77,32 @@ class OWFitter(OWGenericWidget):
         self.scrollarea.setWidgetResizable(1)
 
         self.tab_data.layout().addWidget(self.scrollarea, alignment=Qt.AlignHCenter)
+        
+        # -------------------
+        
+        self.scrollarea_fit_in = QScrollArea(self.tab_fit_in)
+        self.scrollarea_fit_in.setMinimumWidth(805)
+        self.scrollarea_fit_in.setMinimumHeight(605)
+
+        self.text_area_fit_in = gui.textArea(height=600, width=800, readOnly=True)
+
+        self.scrollarea_fit_in.setWidget(self.text_area_fit_in)
+        self.scrollarea_fit_in.setWidgetResizable(1)
+        
+        self.tab_fit_in.layout().addWidget(self.scrollarea_fit_in, alignment=Qt.AlignHCenter)
+        
+        # -------------------
+        
+        self.scrollarea_fit_out = QScrollArea(self.tab_fit_out)
+        self.scrollarea_fit_out.setMinimumWidth(805)
+        self.scrollarea_fit_out.setMinimumHeight(605)
+
+        self.text_area_fit_out = gui.textArea(height=600, width=800, readOnly=True)
+
+        self.scrollarea_fit_out.setWidget(self.text_area_fit_out)
+        self.scrollarea_fit_out.setWidgetResizable(1)
+        
+        self.tab_fit_out.layout().addWidget(self.scrollarea_fit_out, alignment=Qt.AlignHCenter)
 
 
     def do_fit(self):
@@ -78,11 +110,13 @@ class OWFitter(OWGenericWidget):
             if not self.fit_global_parameters is None:
                 fitter = FitterFactory.create_fitter()
 
-                self.fitted_pattern = fitter.do_fit(self.fit_global_parameters)
+                self.fitted_pattern, fitted_fit_global_parameters = fitter.do_fit(self.fit_global_parameters, self.n_iterations)
 
                 self.show_data()
 
-                fitted_fit_global_parameters = self.fit_global_parameters # TODO: Da sostituire con i calcolati dal fit
+                self.text_area_fit_out.setText(fitted_fit_global_parameters.to_text())
+
+                self.tabs.setCurrentIndex(1)
 
                 self.send("Fit Global Parameters", fitted_fit_global_parameters)
 
@@ -103,7 +137,8 @@ class OWFitter(OWGenericWidget):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
 
-            #ShowTextDialog.show_text("FIT PARAMETERS", str(self.fit_global_parameters.to_scipy_tuple()[0]) + "\n\n" + str(self.fit_global_parameters.to_scipy_tuple()[1]), parent=self)
+            self.text_area_fit_in.setText(self.fit_global_parameters.to_text())
+            self.tabs.setCurrentIndex(0)
 
             if self.is_automatic_run:
                 self.do_fit()

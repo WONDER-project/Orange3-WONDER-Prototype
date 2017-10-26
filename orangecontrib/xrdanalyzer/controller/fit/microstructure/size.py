@@ -52,6 +52,20 @@ class SizeParameters(FitParametersList, PM2KParametersList):
                self.mu.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + ", " + \
                self.sigma.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + "))"
 
+    def to_text(self):
+        text = "SIZE\n"
+        text += "-----------------------------------\n"
+
+        text += "Shape: " + self.shape + "\n"
+        text += "Distribution: " + self.distribution + "\n"
+
+        text += self.mu.to_text() + "\n"
+        text += self.sigma.to_text() + "\n"
+
+        text += "-----------------------------------\n"
+
+        return text
+
     def duplicate(self):
         return SizeParameters(shape=self.shape,
                               distribution=self.distribution,

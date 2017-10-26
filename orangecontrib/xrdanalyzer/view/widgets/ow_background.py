@@ -111,12 +111,12 @@ class OWBackground(OWGenericWidget):
         try:
             if not self.fit_global_parameters is None:
 
-                self.fit_global_parameters.background_parameters = ChebyshevBackground(a0=self.populate_parameter("a0"),
-                                                                                       a1=self.populate_parameter("a1"),
-                                                                                       a2=self.populate_parameter("a2"),
-                                                                                       a3=self.populate_parameter("a3"),
-                                                                                       a4=self.populate_parameter("a4"),
-                                                                                       a5=self.populate_parameter("a5"))
+                self.fit_global_parameters.background_parameters = ChebyshevBackground(c0=self.populate_parameter("a0"),
+                                                                                       c1=self.populate_parameter("a1"),
+                                                                                       c2=self.populate_parameter("a2"),
+                                                                                       c3=self.populate_parameter("a3"),
+                                                                                       c4=self.populate_parameter("a4"),
+                                                                                       c5=self.populate_parameter("a5"))
 
                 #ShowTextDialog.show_text("Output", self.fit_global_parameters.background_parameters.to_PM2K(), parent=self)
 

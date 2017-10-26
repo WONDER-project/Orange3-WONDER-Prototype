@@ -27,3 +27,22 @@ class FitInitialization:
         return FitInitialization(diffraction_pattern=None if self.diffraction_pattern is None else self.diffraction_pattern.duplicate(),
                                  crystal_structure=None if self.crystal_structure is None else self.crystal_structure.duplicate(),
                                  fft_parameters=None if self.fft_parameters is None else self.fft_parameters.duplicate())
+    
+    def to_text(self):
+        text = "FIT INITIALIZATION\n\n"
+        text += "***********************************\n\n"
+        
+        if not self.diffraction_pattern is None:
+            text += self.diffraction_pattern.to_text()
+
+        if not self.fft_parameters is None:
+            text += self.fft_parameters.to_text()
+
+        if not self.crystal_structure is None:
+            text += self.crystal_structure.to_text()
+            
+
+        text += "\n***********************************\n"
+
+        return text
+        

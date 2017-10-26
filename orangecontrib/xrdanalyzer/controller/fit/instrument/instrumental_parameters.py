@@ -46,6 +46,21 @@ class Caglioti(FitParametersList, PM2KParametersList):
 
         return text
 
+    def to_text(self):
+        text = "INSTRUMENTAL PARAMETERS\n"
+        text += "-----------------------------------\n"
+
+        text += self.U.to_text() + "\n"
+        text += self.V.to_text() + "\n"
+        text += self.W.to_text() + "\n"
+        text += self.a.to_text() + "\n"
+        text += self.b.to_text() + "\n"
+        text += self.c.to_text() + "\n"
+
+        text += "-----------------------------------\n"
+
+        return text
+
     def duplicate(self):
         return Caglioti(U=None if self.U is None else self.U.duplicate(),
                         V=None if self.V is None else self.V.duplicate(),
