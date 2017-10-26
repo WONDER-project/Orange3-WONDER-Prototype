@@ -126,7 +126,7 @@ class OWFitInitialization(OWGenericWidget):
                 self.fit_global_parameters.fit_initialization.fft_parameters = FFTInitParameters(s_max=self.s_max,
                                                                                                  n_step=self.n_step)
 
-                ShowTextDialog.show_text("Output", self.fit_global_parameters.fit_initialization.crystal_structure.to_PM2K(), parent=self)
+                #ShowTextDialog.show_text("Output", self.fit_global_parameters.fit_initialization.crystal_structure.to_PM2K(), parent=self)
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 

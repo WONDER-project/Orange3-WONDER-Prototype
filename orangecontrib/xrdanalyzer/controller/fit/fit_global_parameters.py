@@ -48,8 +48,8 @@ class FitGlobalParameters:
 
         return fit_global_parameters, fit_global_boundaries
 
-    def global_parameters(self):
-        return GlobalParameters(self)
+    def space_parameters(self):
+        return FitSpaceParameters(self)
 
 
     def duplicate(self):
@@ -59,11 +59,9 @@ class FitGlobalParameters:
                                    size_parameters=None if self.size_parameters is None else self.size_parameters.duplicate(),
                                    strain_parameters=None if self.strain_parameters is None else self.strain_parameters.duplicate())
 
-# ""GLOBAL"" variables
-class GlobalParameters:
 
+class FitSpaceParameters:
     def __init__(self, fit_global_parameters):
-
         s_max   = fit_global_parameters.fit_initialization.fft_parameters.s_max
         n_steps = fit_global_parameters.fit_initialization.fft_parameters.n_step
 
