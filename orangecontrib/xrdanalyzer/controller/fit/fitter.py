@@ -1,16 +1,24 @@
 
+import numpy
+from scipy.optimize import curve_fit
+from scipy.special import erfc
+
 from orangecontrib.xrdanalyzer import Singleton, synchronized_method
+
+from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Simmetry, Reflection
+from orangecontrib.xrdanalyzer.util.general_functions import fft
 
 @Singleton
 class FitterListener():
     registered_fit_global_parameters = None
-    global_parameters = None
+    space_parameters = None
     specific_fitter_data = None
 
     @synchronized_method
     def register_fit_global_parameters(self, fit_global_parameters = None):
         self.registered_fit_global_parameters = fit_global_parameters
-        self.global_parameters = fit_global_parameters.global_parameters()
+        self.space_parameters = fit_global_parameters.space_parameters()
 
     @synchronized_method
     def register_specific_fitter_data(self, specific_fitter_data=None):
@@ -19,8 +27,8 @@ class FitterListener():
     def get_registered_fit_global_parameters(self):
         return self.registered_fit_global_parameters
 
-    def Global(self):
-        return self.global_parameters
+    def get_registered_space_parameters(self):
+        return self.space_parameters
     
     def get_registered_specific_fitter_data(self):
         return self.specific_fitter_data
@@ -51,21 +59,15 @@ class FitterMock(FitterInterface):
     def do_specific_fit(self, fit_global_parameters):
         return DiffractionPattern()
 
-import numpy
-from scipy.optimize import curve_fit
-from scipy.special import erfc
-
-from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Simmetry, Reflection
 
 class FitterPrototype(FitterInterface):
 
     def do_specific_fit(self, fit_global_parameters):
         parameters, boundaries = fit_global_parameters.to_scipy_tuple()
         
-        FitterListener.Instance().register_specific_fitter_data(CreateOnePeakData(parameters))
+        FitterListener.Instance().register_specific_fitter_data(CommonFittingData(parameters))
         
-        twotheta_experimental, intensity_experimental, error_experimental,  s_experimental = fit_global_parameters.fit_initialization.diffraction_pattern.tuples()
+        twotheta_experimental, intensity_experimental, error_experimental, s_experimental = fit_global_parameters.fit_initialization.diffraction_pattern.tuples()
 
         fitted_parameters, covariance = self.call_scipy_curve_fit(s_experimental, intensity_experimental, parameters, boundaries)
 
@@ -92,8 +94,8 @@ class FitterPrototype(FitterInterface):
                          ydata=intensity_experimental,
                          #sigma=numpy.sqrt(intensity_experimental),
                          p0=parameters,
-                         bounds=boundaries)
-
+                         bounds=boundaries,
+                         method="dogbox")
 
 def fit_function(s, *parameters):
 
@@ -101,14 +103,12 @@ def fit_function(s, *parameters):
         parameters = parameters[0]
 
     fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
-    create_one_peak_data = FitterListener.Instance().get_registered_specific_fitter_data()
 
-    if CrystalStructure.is_cube(create_one_peak_data.crystal_structure.simmetry):
-
+    if CrystalStructure.is_cube(fit_global_parameter.fit_initialization.crystal_structure.simmetry):
         separated_peaks_functions = []
 
-        for reflection_index in range(create_one_peak_data.n_peaks):
-            sanalitycal, Ianalitycal = create_one_peak(reflection_index, create_one_peak_data, parameters)
+        for reflection_index in range(fit_global_parameter.fit_initialization.crystal_structure.get_reflections_count()):
+            sanalitycal, Ianalitycal = create_one_peak(reflection_index, parameters)
 
             separated_peaks_functions.append([sanalitycal, Ianalitycal])
 
@@ -117,6 +117,7 @@ def fit_function(s, *parameters):
                                                      fit_global_parameter.fit_initialization.fft_parameters.n_step)
 
         if not fit_global_parameter.background_parameters is None:
+            # TEMPORARY
             last_index = fit_global_parameter.fit_initialization.crystal_structure.get_parameters_count() - 1 + fit_global_parameter.background_parameters.get_parameters_count()
 
             background = numpy.array([parameters[last_index + 1]] * len(s_large))
@@ -127,88 +128,75 @@ def fit_function(s, *parameters):
     else:
         raise NotImplementedError("Only Cubic structures are supported by fit")
 
-from orangecontrib.xrdanalyzer.util.general_functions import fft
 
-
-class CreateOnePeakData():
+class CommonFittingData():
 
     def __init__(self, parameters):
-        self.fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
-        self.Global = FitterListener.Instance().Global() # nome storico, comodo non cambiarlo
+        fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
+        crystal_structure = fit_global_parameter.fit_initialization.crystal_structure
 
-        self.crystal_structure = self.fit_global_parameter.fit_initialization.crystal_structure
+        last_index = crystal_structure.get_parameters_count() - 1
 
-        self.n_peaks = self.crystal_structure.get_reflections_count()
+        if not fit_global_parameter.background_parameters is None:
+            last_index += fit_global_parameter.background_parameters.get_parameters_count()
 
-        self.L = numpy.linspace(self.Global.dL,
-                                self.Global.L_max + self.Global.dL,
-                                self.fit_global_parameter.fit_initialization.fft_parameters.n_step)
+        if not fit_global_parameter.instrumental_parameters is None:
+            last_index += fit_global_parameter.instrumental_parameters.get_parameters_count()
 
-        last_index = self.crystal_structure.get_parameters_count() - 1
+        if not fit_global_parameter.size_parameters is None:
+            self.mu    = parameters[last_index + 1]
+            self.sigma = parameters[last_index + 2]
 
-        if not self.fit_global_parameter.background_parameters is None:
-            last_index += self.fit_global_parameter.background_parameters.get_parameters_count()
+            last_index += fit_global_parameter.size_parameters.get_parameters_count()
 
-        if not self.fit_global_parameter.instrumental_parameters is None:
-            last_index += self.fit_global_parameter.instrumental_parameters.get_parameters_count()
-
-        if not self.fit_global_parameter.size_parameters is None:
-            self.sigma = parameters[last_index + 1]
-            self.mu    = parameters[last_index + 2]
-
-            last_index += self.fit_global_parameter.size_parameters.get_parameters_count()
-
-        if not self.fit_global_parameter.strain_parameters is None:
+        if not fit_global_parameter.strain_parameters is None:
             self.a = parameters[last_index + 1]
             self.b = parameters[last_index + 2]
             self.A = parameters[last_index + 3] # in realtà è E1 dell'invariante PAH
             self.B = parameters[last_index + 4] # in realtà è E6 dell'invariante PAH
 
-            last_index += self.fit_global_parameter.strain_parameters.get_parameters_count()
+            last_index += fit_global_parameter.strain_parameters.get_parameters_count()
+
+        self.last_index = last_index
 
 import matplotlib.pyplot as plt
 
-def create_one_peak(reflection_index, create_one_peak_data, parameters):
-    reflection = create_one_peak_data.crystal_structure.get_reflection(reflection_index)
+def create_one_peak(reflection_index, parameters):
+    fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
+    fit_space_parameters = FitterListener.Instance().get_registered_space_parameters()
+    common_fitting_data = FitterListener.Instance().get_registered_specific_fitter_data()
 
-    print(len(parameters), parameters)
+    crystal_structure = fit_global_parameter.fit_initialization.crystal_structure
+
+    reflection = crystal_structure.get_reflection(reflection_index)
 
     lattice_parameter = parameters[0]
     amplitude = parameters[6 + reflection_index]
 
     fourier_amplitudes = None
 
-    if not create_one_peak_data.fit_global_parameter.instrumental_parameters is None:
+    if not fit_global_parameter.instrumental_parameters is None:
         fourier_amplitudes = None # TODO: aggiungere funzione strumentale
 
-    if not create_one_peak_data.fit_global_parameter.size_parameters is None:
+    if not fit_global_parameter.size_parameters is None:
         if fourier_amplitudes is None:
-            fourier_amplitudes = size_function_lognormal(create_one_peak_data.L, create_one_peak_data.sigma, create_one_peak_data.mu)
+            fourier_amplitudes = size_function_lognormal(fit_space_parameters.L, common_fitting_data.sigma, common_fitting_data.mu)
         else:
-            fourier_amplitudes *= size_function_lognormal(create_one_peak_data.L, create_one_peak_data.sigma, create_one_peak_data.mu)
+            fourier_amplitudes *= size_function_lognormal(fit_space_parameters.L, common_fitting_data.sigma, common_fitting_data.mu)
 
-    if not create_one_peak_data.fit_global_parameter.strain_parameters is None:
+    if not fit_global_parameter.strain_parameters is None:
         if fourier_amplitudes is None:
-            fourier_amplitudes = strain_function(create_one_peak_data.L, reflection.h, reflection.k, reflection.l, lattice_parameter, create_one_peak_data.a, create_one_peak_data.b, create_one_peak_data.A, create_one_peak_data.B)
+            fourier_amplitudes = strain_function(fit_space_parameters.L, reflection.h, reflection.k, reflection.l, lattice_parameter, common_fitting_data.a, common_fitting_data.b, common_fitting_data.A, common_fitting_data.B)
         else:
-            fourier_amplitudes *= strain_function(create_one_peak_data.L, reflection.h, reflection.k, reflection.l, lattice_parameter, create_one_peak_data.a, create_one_peak_data.b, create_one_peak_data.A, create_one_peak_data.B)
+            fourier_amplitudes *= strain_function(fit_space_parameters.L, reflection.h, reflection.k, reflection.l, lattice_parameter, common_fitting_data.a, common_fitting_data.b, common_fitting_data.A, common_fitting_data.B)
 
     s, I = fft(fourier_amplitudes,
-               n_steps=create_one_peak_data.fit_global_parameter.fit_initialization.fft_parameters.n_step,
-               dL=create_one_peak_data.Global.dL)
+               n_steps=fit_global_parameter.fit_initialization.fft_parameters.n_step,
+               dL=fit_space_parameters.dL)
 
     s += utilities.s_hkl(lattice_parameter, reflection.h, reflection.k, reflection.l)
 
-    #plt.plot(s, I)
-    #plt.show()
-
     return s, amplitude*I
-
-
-
-
-
-
 
 
 ######################################################################
@@ -223,6 +211,7 @@ def size_function_lognormal(L, sigma, mu):
     L = numpy.abs(L)
     lnL = numpy.log(L)
     sqrt2 = numpy.sqrt(2)
+
     a = 0.5*erfc((lnL - mu -3*sigma**2)/(sigma*sqrt2))
     b = -0.75*L*erfc((lnL - mu -2*sigma**2)/(sigma*sqrt2))\
                 *numpy.exp(-mu - 2.5*sigma**2)
@@ -232,7 +221,6 @@ def size_function_lognormal(L, sigma, mu):
     return  a + b + c
 
 def strain_function (L, h, k, l, lattice_parameter, a, b, A, B):
-
     shkl = utilities.s_hkl(lattice_parameter, h, k, l)
     H = utilities.Hinvariant(h,k,l)
     C = A +B*H*H
@@ -274,3 +262,43 @@ class utilities:
         return super_s, super_I
 
 
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
+from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection
+from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
+from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
+from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import SizeParameters, Shape, Distribution
+
+from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPatternLimits, DiffractionPatternFactory
+
+if __name__=="__main__":
+    filename = "/Users/admin/Documents/workspace/Alberto_Flor/Orange3-Flor/Examples/FeMo_Batch4_GiaraA_1_HQ.xye"
+    #filename = "C:\\Users\\alber\\Documents\\Workspace\\Orange\\Orange3-Flor\\Examples\\FeMo_Batch4_GiaraA_1_HQ.xye"
+    wavelength = 0.0826# nm
+
+    crystal_structure = CrystalStructure.init_cube(a=FitParameter(parameter_name="a0", value=0.2873, fixed=True), simmetry=Simmetry.BCC)
+    crystal_structure.add_reflection(Reflection(1, 1, 0, intensity=FitParameter(value=1000.0, boundary=Boundary(min_value=100, max_value=20000.0))))
+
+    fit_initialization = FitInitialization(diffraction_pattern=DiffractionPatternFactory.create_diffraction_pattern_from_file(file_name=filename,
+                                                                                                                              wavelength=wavelength,
+                                                                                                                              limits=DiffractionPatternLimits(twotheta_min=20,
+                                                                                                                                                              twotheta_max=27)),
+                                           crystal_structure=crystal_structure,
+                                           fft_parameters=FFTInitParameters(s_max=9.0, n_step=8192))
+
+    size_parameters = SizeParameters(shape=Shape.SPHERE,
+                                     distribution=Distribution.LOGNORMAL,
+                                     mu=FitParameter(value=2.1711, boundary=Boundary(min_value=0.01, max_value=10.0)),
+                                     sigma=FitParameter(value=0.353, boundary=Boundary(min_value=0.01, max_value=0.8)))
+
+    fit_global_parameters = FitGlobalParameters(fit_initialization=fit_initialization,
+                                                size_parameters=size_parameters)
+
+    fitter = FitterFactory.create_fitter()
+
+    fit = fitter.do_fit(fit_global_parameters)
+
+    tt, I, e, s = fit.tuples()
+
+    plt.plot(tt, I)
+    plt.show()

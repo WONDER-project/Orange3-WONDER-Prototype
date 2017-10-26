@@ -103,7 +103,7 @@ class OWFitter(OWGenericWidget):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
 
-            ShowTextDialog.show_text("FIT PARAMETERS", str(self.fit_global_parameters.to_scipy_tuple()[0]) + "\n\n" + str(self.fit_global_parameters.to_scipy_tuple()[1]), parent=self)
+            #ShowTextDialog.show_text("FIT PARAMETERS", str(self.fit_global_parameters.to_scipy_tuple()[0]) + "\n\n" + str(self.fit_global_parameters.to_scipy_tuple()[1]), parent=self)
 
             if self.is_automatic_run:
                 self.do_fit()
