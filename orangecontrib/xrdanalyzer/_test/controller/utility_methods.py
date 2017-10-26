@@ -9,6 +9,18 @@ from orangecontrib.xrdanalyzer._test.controller.fftparameters import Global
 class utilities:
 
     @classmethod
+    def get_s_from_twotheta(cls, twotheta, wavelength):
+        if twotheta is None: return None
+
+        return 2 * numpy.sin(numpy.radians(twotheta / 2.)) / wavelength
+
+    @classmethod
+    def get_twotheta_from_s(cls, s, wavelength):
+        if s is None: return None
+
+        return numpy.degrees(2 * numpy.arcsin(s * wavelength / 2))
+
+    @classmethod
     def Hinvariant(cls, h, k, l):
         numerator = (h * h * k * k + k * k * l * l + l * l * h * h)
         denominator = (h * h + k * k + l * l) ** 2
@@ -17,6 +29,10 @@ class utilities:
     @classmethod
     def s_hkl(cls, a, h, k, l):
         return numpy.sqrt(h * h + k * k + l * l) / a
+
+    @classmethod
+    def theta_hkl (cls, a, h, k, l , wavelength):
+        return cls.get_twotheta_from_s(cls.s_hkl(a, h, k, l), wavelength)
 
     @classmethod
     def isolate_peak(cls, s, I, smin, smax):

@@ -23,8 +23,9 @@ def fitterScipyCurveFit(function_to_fit,
     popt, pcov = curve_fit(f=function_to_fit,
                            xdata=s_experimental,
                            ydata=intensity_experimental,
-                           #sigma=numpy.sqrt(intensity_experimental),
+                           sigma=1/numpy.sqrt(intensity_experimental),
                            p0=parameters,
+                           method= 'trf',
                            bounds=boundaries)
     return popt, pcov
 
@@ -60,12 +61,32 @@ def strainFunction (L, h, k, l, latticepar ,a ,b, A, B):
 
     return numpy.exp(exponent)
 
+def instrumental_function (L, lattice_parameter, h, k, l, wavelength, U,V,W, a, b, c):
+    ln2 = numpy.log(2)
+
+    theta = utilities.theta_hkl(lattice_parameter, h,k,l,wavelength)
+
+    eta = a + b * theta + c * theta**2
+    hwhm = 0.5 * numpy.sqrt(U * (numpy.tan(theta))**2
+                            + V * numpy.tan(theta) + W)
+
+    k = (1 + (1 - eta)/(eta * numpy.sqrt(numpy.pi*ln2)))**(-1)
+
+    sigma = hwhm*numpy.cos(theta/wavelength)
+
+
+
+    exponent_1 = -((numpy.pi*sigma*L)**2)/ ln2
+    exponent_2 = -2*numpy.pi*sigma*L
+
+    return (1-k)*numpy.exp(exponent_1) + k*numpy.exp(exponent_2)
+
 ######################################################################
 # Peaks Creation
 ######################################################################
 
 def createonepeak(params, h, k, l):
-    latticepar = params[0]
+    lattice_parameter = params[0]
     Amplitude = params[1]
     sigma = params[2]
     mu = params[3]
@@ -74,13 +95,46 @@ def createonepeak(params, h, k, l):
     A = params[6]
     B = params[7]
 
+
     L = numpy.linspace(Global.dL, Global.Lmax + Global.dL, Global.n_steps)
 
     #function_in_L = sizeFunctionCommonvolume(L,D)
-    lognormalfunction = sizeFunctionLognormal(L, sigma, mu)
-    strainfunction = strainFunction(L, h, k, l, latticepar, a, b, A, B)
+    lognormal_function = sizeFunctionLognormal(L, sigma, mu)
+    strain_function = strainFunction(L, h, k, l, lattice_parameter, a, b, A, B)
 
-    s, I = fft(lognormalfunction*strainfunction)
+
+    s, I = fft(lognormal_function*strain_function)
+    #s, I = fft(strainfunction)
+    #s, I = fft(lognormalfunction)
+
+    return s, Amplitude*I
+
+def createonepeak_with_instrumental(params, h, k, l):
+    lattice_parameter = params[0]
+    Amplitude = params[1]
+    sigma = params[2]
+    mu = params[3]
+    a = params[4]
+    b = params[5]
+    A = params[6]
+    B = params[7]
+
+    U = params[8]
+    V = params[9]
+    W = params[10]
+    aa = params[11]
+    bb = params[12]
+    cc = params[13]
+    wavelength = params[14]
+
+    L = numpy.linspace(Global.dL, Global.Lmax + Global.dL, Global.n_steps)
+
+    #function_in_L = sizeFunctionCommonvolume(L,D)
+    lognormal_function = sizeFunctionLognormal(L, sigma, mu)
+    strain_function = strainFunction(L, h, k, l, lattice_parameter, a, b, A, B)
+    instrumental = instrumental_function(L, lattice_parameter, h, k, l, wavelength, U,V,W, aa, bb, cc)
+
+    s, I = fft(lognormal_function*strain_function*instrumental)
     #s, I = fft(strainfunction)
     #s, I = fft(lognormalfunction)
 
@@ -91,7 +145,7 @@ def functionOfThePeak(s, *params):
     h, k, l = 1,1,0
 
     bkg = params[8]
-
+    print('+',end= '')
     swrong, Iwrong = createonepeak(params, h, k, l)
 
     return numpy.interp(s, swrong + utilities.s_hkl(params[0], h, k, l), bkg + Iwrong)
@@ -146,7 +200,11 @@ def functionNPeaks(s, *params):
             [params[0], params[index+1],
              params[n_peaks + 1], params[n_peaks + 2],
              params[n_peaks + 3], params[n_peaks + 4],
-             params[n_peaks + 5], params[n_peaks + 6]]
+             params[n_peaks + 5], params[n_peaks + 6],
+             params[n_peaks + 7], params[n_peaks + 8],
+             params[n_peaks + 9], params[n_peaks + 10],
+             params[n_peaks + 11], params[n_peaks + 12],
+             params[n_peaks + 13]]
         )
 
     bkg = params[Global.n_peaks + 7]
@@ -156,7 +214,7 @@ def functionNPeaks(s, *params):
     for index in range(n_peaks):
         h, k, l = Global.hkl_list[index]
 
-        sanalitycal, Ianalitycal = createonepeak(params_for_each_peak[index], h, k, l)
+        sanalitycal, Ianalitycal = createonepeak_with_instrumental(params_for_each_peak[index], h, k, l)
         sanalitycal += utilities.s_hkl(latticeparam, h, k, l)
 
         separated_peaks_functions.append([sanalitycal, Ianalitycal])

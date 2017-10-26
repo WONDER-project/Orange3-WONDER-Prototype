@@ -4,7 +4,7 @@ import numpy
 from orangecontrib.xrdanalyzer._test.controller.vecchi_test.fitterCESSO import isolate_peak
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPatternFactory
-from orangecontrib.xrdanalyzer._test.controller.fftparameters import Global
+from orangecontrib.xrdanalyzer._test.controller.fftparameters import *
 from orangecontrib.xrdanalyzer._test.controller.fitter import *
 
 def load_and_crop_pattern(filename, wavelength, smin, smax):
@@ -54,8 +54,30 @@ def get_parameters_method(parameters):
     # B    -  position 7
     guess_parameters.add_parameter(FitParameter(value=parameters[Global.n_peaks + 6], parameter_name="B", boundary=Boundary(min_value=0.0, max_value=1.0)))
 
-    # bkg    -  position 8
-    guess_parameters.add_parameter(FitParameter(value=parameters[Global.n_peaks + 7], parameter_name="bkg",boundary=Boundary(min_value=200.0, max_value=400.0)))
+    # U    -  position 8
+    guess_parameters.add_parameter(FitParameter(value=parameters[Global.n_peaks + 7], parameter_name="U",
+                                                boundary=Boundary(min_value=0, max_value=10)))
+    # V    -  position 9
+    guess_parameters.add_parameter(FitParameter(value=parameters[Global.n_peaks + 8], parameter_name="V",
+                                                boundary=Boundary(min_value=0, max_value=10)))
+    # W    -  position 10
+    guess_parameters.add_parameter(FitParameter(value=parameters[Global.n_peaks + 9], parameter_name="W",
+                                                boundary=Boundary(min_value=0, max_value=10)))
+    # aa    -  position 11
+    guess_parameters.add_parameter(FitParameter(value=parameters[Global.n_peaks + 10], parameter_name="aa",
+                                                boundary=Boundary(min_value=0, max_value=10)))
+    # bb    -  position 12
+    guess_parameters.add_parameter(FitParameter(value=parameters[Global.n_peaks + 11], parameter_name="bb",
+                                                boundary=Boundary(min_value=0, max_value=10)))
+    # cc    -  position 13
+    guess_parameters.add_parameter(FitParameter(value=parameters[Global.n_peaks + 12], parameter_name="cc",
+                                                boundary=Boundary(min_value=0, max_value=10)))
+    # wavelength    -  position 14
+    guess_parameters.add_parameter(FitParameter(value=parameters[Global.n_peaks + 13], fixed=True, parameter_name="wavelength",
+                                                boundary=Boundary(min_value=-100, max_value=100)))
+
+    # bkg    -  position 15
+    guess_parameters.add_parameter(FitParameter(value=parameters[Global.n_peaks + 14], parameter_name="bkg",boundary=Boundary(min_value=200.0, max_value=1000.0)))
 
     return guess_parameters
 
@@ -70,10 +92,11 @@ s_exp, intensity_exp = load_and_crop_pattern(filename, wavelength, 0., 11.5)
 Ihkl = [1000] * Global.n_peaks
 parameters = []
 parameters.append(2.873e-1) #lattice param
+print("n peaks", Global.n_peaks)
 for index in range(Global.n_peaks):
     parameters.append(Ihkl[index])
-parameters += [0.353, 2.1711, 1e-4, 1e-6, 0.0, 0.0, 300]
-
+parameters += [0.353, 2.1711, 1e-4, 1e-6, 0.0, 0.0, 1e-4,1e-4,1e-4,1e-4,1e-4,1e-4,wavelength, 400]
+print (len(parameters))
 guess_parameters = get_parameters_method(parameters)
 
 fitparameters, covariance = fitterScipyCurveFit(functionNPeaks,

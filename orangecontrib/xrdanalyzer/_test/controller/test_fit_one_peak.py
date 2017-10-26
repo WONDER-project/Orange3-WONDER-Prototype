@@ -66,7 +66,7 @@ s_exp, intensity_exp = load_and_crop_pattern(filename, wavelength, 0., 6)
 #plt.show()
 
 #           latticepar Amplitude  sigma   mu          others
-parameters = [2.873e-1, 15000, 0.353, 2.1711, 1e-4, 1e-6, 0.0, 0.0, 300]
+parameters = [2.873e-1, 1000, 0.353, 2.1711, 1e-4, 1e-6, 0.0, 0.0, 300]
 h, k, l = 1, 1, 0
 
 
