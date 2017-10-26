@@ -53,7 +53,7 @@ class FitParameter(PM2KParameter):
     boundary = None
     fixed = False
 
-    def __init__(self, parameter_name="", value = 0.0, boundary = Boundary(), fixed=False):
+    def __init__(self, value, parameter_name=None, boundary=None, fixed=False):
         super().__init__(parameter_name=parameter_name)
         self.value = value
         self.fixed = fixed
@@ -61,7 +61,8 @@ class FitParameter(PM2KParameter):
         if self.fixed:
             self.boundary = Boundary(min_value=self.value, max_value=self.value + 1e-12) # just a trick, to be done in a better way
         else:
-            self.boundary = boundary
+            if boundary is None: self.boundary = Boundary()
+            else: self.boundary = boundary
 
     def to_PM2K(self, type=PM2KParameter.GLOBAL_PARAMETER):
         text = self.get_type_name(type) + self.get_parameter_name(fixed=self.fixed) + " " + str(self.value)
@@ -75,19 +76,36 @@ class FitParameter(PM2KParameter):
         
         return text
 
+    def duplicate(self):
+        return FitParameter(parameter_name=self.parameter_name,
+                            value=self.value,
+                            fixed=self.fixed,
+                            boundary=None if self.boundary is None else Boundary(min_value=self.boundary.min_value,
+                                                                                 max_value=self.boundary.max_value))
+
 class FitParametersList:
-    fit_parameters_list = []
 
     def __init__(self):
         self.fit_parameters_list = []
 
-    def add_parameter(self, parameter = FitParameter()):
+    def _check_list(self):
+        if not hasattr(self, "fit_parameters_list"):
+            self.fit_parameters_list = []
+
+    def add_parameter(self, parameter):
+        self._check_list()
         self.fit_parameters_list.append(parameter)
 
+    def set_parameter(self, index, parameter):
+        self._check_list()
+        self.fit_parameters_list[index] = parameter
+
     def get_parameters_count(self):
+        self._check_list()
         return len(self.fit_parameters_list)
 
     def to_scipy_tuple(self):
+        self._check_list()
         parameters = []
         boundaries_min = []
         boundaries_max = []
@@ -107,6 +125,7 @@ class FitParametersList:
         return parameters, boundaries
 
     def append_to_scipy_tuple(self, parameters, boundaries):
+        self._check_list()
         my_parameters, my_boundaries = self.to_scipy_tuple()
 
         parameters    = list(numpy.append(parameters, my_parameters))

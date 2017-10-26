@@ -34,18 +34,16 @@ class SizeParameters(FitParametersList, PM2KParametersList):
     mu = None
     sigma = None
 
-    def __init__(self,
-                 shape=Shape.SPHERE,
-                 distribution=Distribution.LOGNORMAL,
-                 mu=FitParameter(parameter_name="mu", value=2.0, boundary=Boundary(min_value=1e-3)),
-                 sigma=FitParameter(parameter_name="sigma", value=0.5, boundary=Boundary(min_value=1e-3))):
+    def __init__(self, shape, distribution, mu, sigma):
+        super(SizeParameters, self).__init__()
+
         self.shape = shape
         self.distribution = distribution
         self.mu = mu
         self.sigma = sigma
 
-        self.add_parameter(self.mu)
-        self.add_parameter(self.sigma)
+        super().add_parameter(self.mu)
+        super().add_parameter(self.sigma)
 
     def to_PM2K(self):
         return "convolveFourier(SizeDistribution(“" + \
@@ -53,3 +51,9 @@ class SizeParameters(FitParametersList, PM2KParametersList):
                self.distribution + "”, " + \
                self.mu.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + ", " + \
                self.sigma.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + "))"
+
+    def duplicate(self):
+        return SizeParameters(shape=self.shape,
+                              distribution=self.distribution,
+                              mu=None if self.mu is None else self.mu.duplicate(),
+                              sigma=None if self.sigma is None else self.sigma.duplicate())

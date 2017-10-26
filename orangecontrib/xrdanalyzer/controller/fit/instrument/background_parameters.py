@@ -9,13 +9,9 @@ class ChebyshevBackground(FitParametersList, PM2KParametersList):
     a4 = None
     a5 = None
 
-    def __init__(self,
-               a0=FitParameter(parameter_name="a0", value=0.0),
-               a1=FitParameter(parameter_name="a1", value=0.0),
-               a2=FitParameter(parameter_name="a2", value=0.0),
-               a3=FitParameter(parameter_name="a3", value=0.0),
-               a4=FitParameter(parameter_name="a4", value=0.0),
-               a5=FitParameter(parameter_name="a5", value=0.0)):
+    def __init__(self, a0, a1, a2, a3, a4, a5):
+        super(ChebyshevBackground, self).__init__()
+
         self.a0 = a0
         self.a1 = a1
         self.a2 = a2
@@ -23,12 +19,12 @@ class ChebyshevBackground(FitParametersList, PM2KParametersList):
         self.a4 = a4
         self.a5 = a5
 
-        self.add_parameter(self.a0)
-        self.add_parameter(self.a1)
-        self.add_parameter(self.a2)
-        self.add_parameter(self.a3)
-        self.add_parameter(self.a4)
-        self.add_parameter(self.a5)
+        super().add_parameter(self.a0)
+        super().add_parameter(self.a1)
+        super().add_parameter(self.a2)
+        super().add_parameter(self.a3)
+        super().add_parameter(self.a4)
+        super().add_parameter(self.a5)
 
     def to_PM2K(self):
         text = ""
@@ -49,3 +45,11 @@ class ChebyshevBackground(FitParametersList, PM2KParametersList):
                 self.a5.parameter_name + "))"
 
         return text
+
+    def duplicate(self):
+        return ChebyshevBackground(a0=None if self.a0 is None else self.a0.duplicate(),
+                                   a1=None if self.a1 is None else self.a1.duplicate(),
+                                   a2=None if self.a2 is None else self.a2.duplicate(),
+                                   a3=None if self.a3 is None else self.a3.duplicate(),
+                                   a4=None if self.a4 is None else self.a4.duplicate(),
+                                   a5=None if self.a5 is None else self.a5.duplicate())

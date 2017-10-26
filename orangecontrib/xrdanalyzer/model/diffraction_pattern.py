@@ -71,16 +71,16 @@ class DiffractionPattern:
         else:
             self.wavelength = None
 
-    def add_diffraction_point (self, diffraction_point = DiffractionPoint(twotheta=0.0, intensity=0.0)):
+    def add_diffraction_point (self, diffraction_point):
         if diffraction_point is None: raise ValueError ("Diffraction Point is None")
         if not isinstance(diffraction_point, DiffractionPoint): raise ValueError ("diffraction point should be of type Diffraction Point")
 
         if self.diffraction_pattern is None:
             self.diffraction_pattern = numpy.array([self._check_diffraction_point(diffraction_point)])
         else:
-            self.diffraction_pattern.append(self._check_diffraction_point(diffraction_point))
+            self.diffraction_pattern = numpy.append(self.diffraction_pattern, self._check_diffraction_point(diffraction_point))
 
-    def set_diffraction_point(self, index = 0, diffraction_point = DiffractionPoint(twotheta=0.0, intensity=0.0)):
+    def set_diffraction_point(self, index, diffraction_point):
         self._check_diffraction_pattern()
         self.diffraction_pattern[index] = self._check_diffraction_point(diffraction_point)
 
@@ -103,8 +103,7 @@ class DiffractionPattern:
         n_points = self.diffraction_points_count()
         matrix = numpy.array([None] * n_points )
         for index in range(0, n_points):
-            matrix[index] = \
-                        self.get_diffraction_point(index).get_array()
+            matrix[index] = self.get_diffraction_point(index).get_array()
 
     def tuples(self):
         n_points = self.diffraction_points_count()
@@ -122,6 +121,14 @@ class DiffractionPattern:
             s[index] = diffraction_point.s
 
         return twotheta, intensity, error, s
+
+    def duplicate(self):
+        self._check_diffraction_pattern()
+
+        diffraction_pattern = DiffractionPattern(wavelength=self.wavelength)
+        diffraction_pattern.diffraction_pattern = self.diffraction_pattern
+
+        return diffraction_pattern
 
     # "PRIVATE METHODS"
     def _check_diffraction_pattern(self):
@@ -148,10 +155,16 @@ class DiffractionPattern:
 #  FACTORY METHOD
 # ----------------------------------------------------
 
+class DiffractionPatternLimits:
+    def __init__(self, twotheta_min = -numpy.inf, twotheta_max = numpy.inf):
+        self.twotheta_max = twotheta_max
+        self.twotheta_min = twotheta_min
+
+
 class DiffractionPatternFactory:
     @classmethod
-    def create_diffraction_pattern_from_file(clscls, file_name, wavelength=None):
-        return DiffractionPatternFactoryChain.Instance().create_diffraction_pattern_from_file(file_name, wavelength)
+    def create_diffraction_pattern_from_file(clscls, file_name, wavelength=None, limits=None):
+        return DiffractionPatternFactoryChain.Instance().create_diffraction_pattern_from_file(file_name, wavelength, limits)
 
 import os
 
@@ -160,7 +173,7 @@ import os
 # ----------------------------------------------------
 
 class DiffractionPatternFactoryInterface():
-    def create_diffraction_pattern_from_file(self, file_name, wavelength=None):
+    def create_diffraction_pattern_from_file(self, file_name, wavelength=None, limits=None):
         raise NotImplementedError ("Method is Abstract")
 
     def _get_extension(self, file_name):
@@ -197,12 +210,12 @@ class DiffractionPatternFactoryChain(DiffractionPatternFactoryInterface):
 
         self._chain_of_handlers.append(handler)
 
-    def create_diffraction_pattern_from_file(self, file_name, wavelength=None):
+    def create_diffraction_pattern_from_file(self, file_name, wavelength=None, limits=None):
         file_extension = self._get_extension(file_name)
 
         for handler in self._chain_of_handlers:
             if handler.is_handler(file_extension):
-                return handler.create_diffraction_pattern_from_file(file_name, wavelength)
+                return handler.create_diffraction_pattern_from_file(file_name, wavelength, limits)
 
         raise ValueError ("File Extension not recognized")
 
@@ -216,7 +229,7 @@ class DiffractionPatternFactoryChain(DiffractionPatternFactoryInterface):
 # HANDLERS INTERFACE
 # ---------------------------------------------------
 
-class DiffractionPatternFactoryHandler (DiffractionPatternFactoryInterface):
+class DiffractionPatternFactoryHandler(DiffractionPatternFactoryInterface):
 
     def _get_handled_extension(self):
         raise NotImplementedError()
@@ -233,16 +246,16 @@ class DiffractionPatternXyeFactoryHandler(DiffractionPatternFactoryHandler):
     def _get_handled_extension(self):
         return ".xye"
 
-    def create_diffraction_pattern_from_file(self, file_name, wavelength=None):
-        return DiffractionPatternXye(file_name = file_name, wavelength=wavelength)
+    def create_diffraction_pattern_from_file(self, file_name, wavelength=None, limits=None):
+        return DiffractionPatternXye(file_name = file_name, wavelength=wavelength, limits=limits)
 
 class DiffractionPatternRawFactoryHandler(DiffractionPatternFactoryHandler):
 
     def _get_handled_extension(self):
         return ".raw"
 
-    def create_diffraction_pattern_from_file(self, file_name, wavelength=None):
-        return DiffractionPatternRaw(file_name= file_name)
+    def create_diffraction_pattern_from_file(self, file_name, wavelength=None, limits=None):
+        return DiffractionPatternRaw(file_name= file_name, limits=limits)
 
 
 # ----------------------------------------------------
@@ -250,38 +263,41 @@ class DiffractionPatternRawFactoryHandler(DiffractionPatternFactoryHandler):
 # ----------------------------------------------------
 
 class DiffractionPatternXye(DiffractionPattern):
-    def __init__(self, file_name= "", wavelength=None):
-        super(DiffractionPatternXye, self).__init__(n_points = 0, wavelength=wavelength)
+    def __init__(self, file_name= "", wavelength=None, limits=None):
+        super(DiffractionPatternXye, self).__init__(n_points=0, wavelength=wavelength)
 
-        self.__initialize_from_file(file_name)
+        self.__initialize_from_file(file_name, limits)
 
-    def __initialize_from_file(self, file_name):
+    def __initialize_from_file(self, file_name, limits):
         #method supposes only 2 rows of header are present
         #can be changed. Right now i want to finish
         with open(file_name, 'r') as xyefile : lines = xyefile.readlines()
         n_points = len(lines) - 2
         if n_points > 0:
             if len(lines) < 3: raise Exception("Number of lines in file < 3: wrong file format")
-            self.diffraction_pattern = numpy.array([None] *n_points)
+            if limits is None: self.diffraction_pattern = numpy.array([None] *n_points)
 
             for i in numpy.arange(2, n_points+2):
                 line = lines[i].split()
 
                 if len(lines) < 2 : raise  Exception("Number of columns in line " + str(i) + " < 2: wrong file format")
 
-                point = DiffractionPoint(twotheta=float(line[0]), intensity=float(line[1]))
+                if limits is None:
+                    self.set_diffraction_point(index=i-2, diffraction_point=DiffractionPoint(twotheta=float(line[0]), intensity=float(line[1])))
+                else:
+                    twotheta = float(line[0])
 
-                self.set_diffraction_point(index=i-2,diffraction_point= point)
-
+                    if  limits.twotheta_min <= twotheta <= limits.twotheta_max:
+                        self.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=twotheta, intensity=float(line[1])))
 
 
 class DiffractionPatternRaw(DiffractionPattern):
-    def __init__(self, file_name= ""):
+    def __init__(self, file_name= "", limits=None):
         super(DiffractionPatternRaw, self).__init__(n_points = 0)
 
-        self.__initialize_from_file(file_name)
+        self.__initialize_from_file(file_name, limits)
 
-    def __initialize_from_file(self, file_name):
+    def __initialize_from_file(self, file_name, limits):
         #method supposes only 1 rows of header is present
         #can be changed.
         with open(file_name, 'r') as rawfile : lines = rawfile.readlines()
@@ -292,14 +308,24 @@ class DiffractionPatternRaw(DiffractionPattern):
         starting_theta = float(splitted_row[2])
 
         self.wavelength = float(splitted_row[3])
-        self.diffraction_pattern = numpy.array([None] *n_points)
+        if limits is None: self.diffraction_pattern = numpy.array([None] *n_points)
 
         for i in numpy.arange(2, n_points+2):
             index = i-2
             line = lines[i]
 
-            point = DiffractionPoint(twotheta=starting_theta + step*index,
-                                     intensity=float(line),
-                                     wavelength=self.wavelength)
+            if limits is None:
+                self.set_diffraction_point(index,
+                                           diffraction_point= DiffractionPoint(twotheta=starting_theta + step*index,
+                                                                               intensity=float(line),
+                                                                               wavelength=self.wavelength))
+            else:
+                twotheta = starting_theta + step*index
 
-            self.set_diffraction_point(index, diffraction_point= point)
+                if  limits.twotheta_min <= twotheta <= limits.twotheta_max:
+                    self.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=twotheta,
+                                                                                  intensity=float(line),
+                                                                                  wavelength=self.wavelength))
+
+
+

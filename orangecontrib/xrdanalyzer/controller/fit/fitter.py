@@ -1,4 +1,30 @@
 
+from orangecontrib.xrdanalyzer import Singleton, synchronized_method
+
+@Singleton
+class FitterListener():
+    registered_fit_global_parameters = None
+    global_parameters = None
+    specific_fitter_data = None
+
+    @synchronized_method
+    def register_fit_global_parameters(self, fit_global_parameters = None):
+        self.registered_fit_global_parameters = fit_global_parameters
+        self.global_parameters = fit_global_parameters.global_parameters()
+
+    @synchronized_method
+    def register_specific_fitter_data(self, specific_fitter_data=None):
+        self.specific_fitter_data = specific_fitter_data
+    
+    def get_registered_fit_global_parameters(self):
+        return self.registered_fit_global_parameters
+
+    def Global(self):
+        return self.global_parameters
+    
+    def get_registered_specific_fitter_data(self):
+        return self.specific_fitter_data
+
 
 class FitterInterface:
 
@@ -29,7 +55,6 @@ import numpy
 from scipy.optimize import curve_fit
 from scipy.special import erfc
 
-from orangecontrib.xrdanalyzer.controller.fit.fitter_listener import FitterListener
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Simmetry, Reflection
 
@@ -37,7 +62,9 @@ class FitterPrototype(FitterInterface):
 
     def do_specific_fit(self, fit_global_parameters):
         parameters, boundaries = fit_global_parameters.to_scipy_tuple()
-
+        
+        FitterListener.Instance().register_specific_fitter_data(CreateOnePeakData(parameters))
+        
         twotheta_experimental, intensity_experimental, error_experimental,  s_experimental = fit_global_parameters.fit_initialization.diffraction_pattern.tuples()
 
         fitted_parameters, covariance = self.call_scipy_curve_fit(s_experimental, intensity_experimental, parameters, boundaries)
@@ -69,8 +96,12 @@ class FitterPrototype(FitterInterface):
 
 
 def fit_function(s, *parameters):
+
+    if len(parameters) == 1:
+        parameters = parameters[0]
+
     fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
-    create_one_peak_data = CreateOnePeakData(parameters)
+    create_one_peak_data = FitterListener.Instance().get_registered_specific_fitter_data()
 
     if CrystalStructure.is_cube(create_one_peak_data.crystal_structure.simmetry):
 
@@ -101,7 +132,6 @@ from orangecontrib.xrdanalyzer.util.general_functions import fft
 
 class CreateOnePeakData():
 
-
     def __init__(self, parameters):
         self.fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
         self.Global = FitterListener.Instance().Global() # nome storico, comodo non cambiarlo
@@ -126,7 +156,7 @@ class CreateOnePeakData():
             self.sigma = parameters[last_index + 1]
             self.mu    = parameters[last_index + 2]
 
-            last_index += self.fit_global_parameter.instrumental_parameters.get_parameters_count()
+            last_index += self.fit_global_parameter.size_parameters.get_parameters_count()
 
         if not self.fit_global_parameter.strain_parameters is None:
             self.a = parameters[last_index + 1]
@@ -134,14 +164,17 @@ class CreateOnePeakData():
             self.A = parameters[last_index + 3] # in realtà è E1 dell'invariante PAH
             self.B = parameters[last_index + 4] # in realtà è E6 dell'invariante PAH
 
-            last_index += self.fit_global_parameter.instrumental_parameters.get_parameters_count()
+            last_index += self.fit_global_parameter.strain_parameters.get_parameters_count()
 
+import matplotlib.pyplot as plt
 
 def create_one_peak(reflection_index, create_one_peak_data, parameters):
     reflection = create_one_peak_data.crystal_structure.get_reflection(reflection_index)
 
+    print(len(parameters), parameters)
+
     lattice_parameter = parameters[0]
-    amplitude = parameters[6 + create_one_peak_data.n_peaks*reflection_index]
+    amplitude = parameters[6 + reflection_index]
 
     fourier_amplitudes = None
 
@@ -165,6 +198,9 @@ def create_one_peak(reflection_index, create_one_peak_data, parameters):
                dL=create_one_peak_data.Global.dL)
 
     s += utilities.s_hkl(lattice_parameter, reflection.h, reflection.k, reflection.l)
+
+    #plt.plot(s, I)
+    #plt.show()
 
     return s, amplitude*I
 

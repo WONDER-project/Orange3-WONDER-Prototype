@@ -126,7 +126,7 @@ class OWFitInitialization(OWGenericWidget):
                 self.fit_global_parameters.fit_initialization.fft_parameters = FFTInitParameters(s_max=self.s_max,
                                                                                                  n_step=self.n_step)
 
-                #ShowTextDialog.show_text("Output", self.fit_global_parameters.fit_initialization.crystal_structure.to_PM2K(), parent=self)
+                ShowTextDialog.show_text("Output", self.fit_global_parameters.fit_initialization.crystal_structure.to_PM2K(), parent=self)
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -135,15 +135,14 @@ class OWFitInitialization(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            #raise e
+            raise e
 
     def set_data(self, data):
-        self.fit_global_parameters = data
+        if not data is None:
+            self.fit_global_parameters = data.duplicate()
 
-        if not self.fit_global_parameters is None and self.is_automatic_run:
-            self.send_fit_initialization()
-
-
+            if self.is_automatic_run:
+                self.send_fit_initialization()
 
 
 

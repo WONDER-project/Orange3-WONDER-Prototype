@@ -9,13 +9,9 @@ class Caglioti(FitParametersList, PM2KParametersList):
     b = None
     c = None
 
-    def __init__(self,
-               U=FitParameter(parameter_name="U", value=1e-4),
-               V=FitParameter(parameter_name="V", value=1e-4),
-               W=FitParameter(parameter_name="W", value=1e-4),
-               a=FitParameter(parameter_name="a", value=0.5),
-               b=FitParameter(parameter_name="b", value=1e-4),
-               c=FitParameter(parameter_name="c", value=0.0, fixed=True)):
+    def __init__(self, U, V, W, a, b, c):
+        super(Caglioti, self).__init__()
+
         self.U = U
         self.V = V
         self.W = W
@@ -23,12 +19,12 @@ class Caglioti(FitParametersList, PM2KParametersList):
         self.b = b
         self.c = c
 
-        self.add_parameter(self.U)
-        self.add_parameter(self.V)
-        self.add_parameter(self.W)
-        self.add_parameter(self.a)
-        self.add_parameter(self.b)
-        self.add_parameter(self.c)
+        super().add_parameter(self.U)
+        super().add_parameter(self.V)
+        super().add_parameter(self.W)
+        super().add_parameter(self.a)
+        super().add_parameter(self.b)
+        super().add_parameter(self.c)
 
     def to_PM2K(self):
         text = ""
@@ -50,6 +46,13 @@ class Caglioti(FitParametersList, PM2KParametersList):
 
         return text
 
+    def duplicate(self):
+        return Caglioti(U=None if self.U is None else self.U.duplicate(),
+                        V=None if self.V is None else self.V.duplicate(),
+                        W=None if self.W is None else self.W.duplicate(),
+                        a=None if self.a is None else self.a.duplicate(),
+                        b=None if self.b is None else self.b.duplicate(),
+                        c=None if self.c is None else self.c.duplicate())
 
 if __name__=="__main__":
     test = Caglioti(U=FitParameter(parameter_name="U", value=1.0, fixed=True),
