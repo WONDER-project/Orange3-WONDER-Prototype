@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, numpy
 
 from PyQt5.QtWidgets import QMessageBox, QScrollArea, QTableWidget, QApplication
 from PyQt5.QtCore import Qt
@@ -9,7 +9,7 @@ from Orange.widgets.settings import Setting
 from Orange.widgets import gui as orangegui
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
-from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPatternFactory
+from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPatternFactory, DiffractionPatternLimits
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui
 from orangecontrib.xrdanalyzer.util import congruence
 
@@ -30,6 +30,12 @@ class OWDiffractionPattern(OWGenericWidget):
     wavelength = Setting(0.826)
 
     diffraction_pattern = None
+
+    twotheta_min = Setting(0.0)
+    twotheta_has_min = Setting(0)
+
+    twotheta_max = Setting(0.0)
+    twotheta_has_max = Setting(0)
 
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 
@@ -54,6 +60,16 @@ class OWDiffractionPattern(OWGenericWidget):
         orangegui.button(file_box, self, "...", callback=self.open_folders)
 
         gui.lineEdit(main_box, self, "wavelength", "Wavelength", labelWidth=250, valueType=float)
+
+        box = gui.widgetBox(main_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50)
+
+        orangegui.checkBox(box, self, "twotheta_has_min", "2th min")
+        gui.lineEdit(box, self, "twotheta_min", "", labelWidth=5, valueType=float)
+
+        box = gui.widgetBox(main_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50)
+
+        orangegui.checkBox(box, self, "twotheta_has_max", "2th max")
+        gui.lineEdit(box, self, "twotheta_max", "", labelWidth=5, valueType=float)
 
         button_box = gui.widgetBox(main_box,
                                    "", orientation="horizontal",
@@ -98,7 +114,13 @@ class OWDiffractionPattern(OWGenericWidget):
         try:
             congruence.checkFile(self.filename)
 
-            self.diffraction_pattern = DiffractionPatternFactory.create_diffraction_pattern_from_file(self.filename, self.wavelength)
+            if self.twotheta_has_min == 1 or self.twotheta_has_max == 1:
+                limits = DiffractionPatternLimits(twotheta_min=self.twotheta_min if self.twotheta_has_min==1 else -numpy.inf,
+                                                  twotheta_max=self.twotheta_max if self.twotheta_has_max==1 else numpy.inf)
+            else:
+                limits=None
+
+            self.diffraction_pattern = DiffractionPatternFactory.create_diffraction_pattern_from_file(self.filename, self.wavelength, limits)
 
             self.wavelength = self.diffraction_pattern.wavelength
 
@@ -112,6 +134,8 @@ class OWDiffractionPattern(OWGenericWidget):
             QMessageBox.critical(self, "Error during load",
                                  str(e),
                                  QMessageBox.Ok)
+
+            raise e
 
     def show_data(self):
         text = "2Theta [deg], s [Å-1], Intensity"

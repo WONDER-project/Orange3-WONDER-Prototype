@@ -22,3 +22,8 @@ class FitInitialization:
             parameters, boundaries = self.crystal_structure.append_to_scipy_tuple(parameters, boundaries)
 
         return parameters, boundaries
+
+    def duplicate(self):
+        return FitInitialization(diffraction_pattern=None if self.diffraction_pattern is None else self.diffraction_pattern.duplicate(),
+                                 crystal_structure=None if self.crystal_structure is None else self.crystal_structure.duplicate(),
+                                 fft_parameters=None if self.fft_parameters is None else self.fft_parameters.duplicate())

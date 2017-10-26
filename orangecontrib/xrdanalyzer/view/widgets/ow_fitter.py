@@ -22,7 +22,6 @@ from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInit
 from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterFactory
 
 class OWFitter(OWGenericWidget):
-
     name = "Fitter"
     description = "Fitter"
     icon = "icons/fit.png"
@@ -100,6 +99,18 @@ class OWFitter(OWGenericWidget):
         if not self.fit_global_parameters is None and self.is_automatic_run:
             self.do_fit()
 
+    def set_data(self, data):
+        if not data is None:
+            self.fit_global_parameters = data.duplicate()
+
+            ShowTextDialog.show_text("FIT PARAMETERS", str(self.fit_global_parameters.to_scipy_tuple()[0]) + "\n\n" + str(self.fit_global_parameters.to_scipy_tuple()[1]), parent=self)
+
+            if self.is_automatic_run:
+                self.do_fit()
+
+
+
+
     def show_data(self):
         diffraction_pattern = self.fit_global_parameters.fit_initialization.diffraction_pattern
 
@@ -117,8 +128,8 @@ class OWFitter(OWGenericWidget):
             y.append(diffraction_pattern.get_diffraction_point(index).intensity)
             yf.append(self.fitted_pattern.get_diffraction_point(index).intensity)
 
-        self.plot.addCurve(x, y, color="blue", symbol='o')
-        self.plot.addCurve(x, yf, color="red")
+        self.plot.addCurve(x, y, legend="data", symbol='o', color="blue")
+        self.plot.addCurve(x, yf, legend="fit", color="red")
 
         self.text_area.setText(text)
 

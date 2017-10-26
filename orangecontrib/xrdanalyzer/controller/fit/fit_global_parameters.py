@@ -51,6 +51,14 @@ class FitGlobalParameters:
     def global_parameters(self):
         return GlobalParameters(self)
 
+
+    def duplicate(self):
+        return FitGlobalParameters(fit_initialization=None if self.fit_initialization is None else self.fit_initialization.duplicate(),
+                                   background_parameters=None if self.background_parameters is None else self.background_parameters.duplicate(),
+                                   instrumental_parameters=None if self.instrumental_parameters is None else self.instrumental_parameters.duplicate(),
+                                   size_parameters=None if self.size_parameters is None else self.size_parameters.duplicate(),
+                                   strain_parameters=None if self.strain_parameters is None else self.strain_parameters.duplicate())
+
 # ""GLOBAL"" variables
 class GlobalParameters:
 
@@ -64,4 +72,3 @@ class GlobalParameters:
 
         self.L_max = (n_steps - 1) * self.dL
         self.L = numpy.linspace(self.dL, self.L_max + self.dL, n_steps)
-

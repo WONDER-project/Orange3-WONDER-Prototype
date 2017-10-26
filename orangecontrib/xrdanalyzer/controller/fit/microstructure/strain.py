@@ -55,8 +55,8 @@ class InvariantPAH(FitParametersList, PM2KParametersList):
     e15 = None
 
     def __init__(self,
-                 aa=FitParameter(parameter_name="aa", value=1e-3),
-                 bb=FitParameter(parameter_name="bb", value=1e-3),
+                 aa,
+                 bb,
                  laue_id = 1,
                  e1  = None,
                  e2  = None,
@@ -73,13 +73,14 @@ class InvariantPAH(FitParametersList, PM2KParametersList):
                  e13 = None,
                  e14 = None,
                  e15 = None):
+        super(InvariantPAH, self).__init__()
 
         self.aa = aa
         self.bb = bb
         self.laue_id = laue_id
 
-        self.add_parameter(self.aa)
-        self.add_parameter(self.bb)
+        super().add_parameter(self.aa)
+        super().add_parameter(self.bb)
 
         self.e1  = e1
         self.e2  = e2
@@ -97,21 +98,21 @@ class InvariantPAH(FitParametersList, PM2KParametersList):
         self.e14 = e14
         self.e15 = e15
 
-        if not self.e1  is None: self.add_parameter(e1)
-        if not self.e2  is None: self.add_parameter(e2)
-        if not self.e3  is None: self.add_parameter(e3)
-        if not self.e4  is None: self.add_parameter(e4)
-        if not self.e5  is None: self.add_parameter(e5)
-        if not self.e6  is None: self.add_parameter(e6)
-        if not self.e7  is None: self.add_parameter(e7)
-        if not self.e8  is None: self.add_parameter(e8)
-        if not self.e9  is None: self.add_parameter(e9)
-        if not self.e10 is None: self.add_parameter(e10)
-        if not self.e11 is None: self.add_parameter(e11)
-        if not self.e12 is None: self.add_parameter(e12)
-        if not self.e13 is None: self.add_parameter(e13)
-        if not self.e14 is None: self.add_parameter(e14)
-        if not self.e15 is None: self.add_parameter(e15)
+        if not self.e1  is None: super().add_parameter(e1)
+        if not self.e2  is None: super().add_parameter(e2)
+        if not self.e3  is None: super().add_parameter(e3)
+        if not self.e4  is None: super().add_parameter(e4)
+        if not self.e5  is None: super().add_parameter(e5)
+        if not self.e6  is None: super().add_parameter(e6)
+        if not self.e7  is None: super().add_parameter(e7)
+        if not self.e8  is None: super().add_parameter(e8)
+        if not self.e9  is None: super().add_parameter(e9)
+        if not self.e10 is None: super().add_parameter(e10)
+        if not self.e11 is None: super().add_parameter(e11)
+        if not self.e12 is None: super().add_parameter(e12)
+        if not self.e13 is None: super().add_parameter(e13)
+        if not self.e14 is None: super().add_parameter(e14)
+        if not self.e15 is None: super().add_parameter(e15)
 
     def get_invariant(self, h, k, l):
         invariant = self.e1.value*(h**4)
@@ -136,12 +137,31 @@ class InvariantPAH(FitParametersList, PM2KParametersList):
     def to_PM2K(self):
         return "TODO!!!!!"
 
+    def duplicate(self):
+        return InvariantPAH(aa=None if self.aa is None else self.aa.duplicate(),
+                            bb=None if self.bb is None else self.bb.duplicate(),
+                            laue_id=self.laue_id,
+                            e1 = None if self.e1  is None else self.e1.duplicate(),
+                            e2 = None if self.e2  is None else self.e2.duplicate(),
+                            e3 = None if self.e3  is None else self.e3.duplicate(),
+                            e4 = None if self.e4  is None else self.e4.duplicate(),
+                            e5 = None if self.e5  is None else self.e5.duplicate(),
+                            e6 = None if self.e6  is None else self.e6.duplicate(),
+                            e7 = None if self.e7  is None else self.e7.duplicate(),
+                            e8 = None if self.e8  is None else self.e8.duplicate(),
+                            e9 = None if self.e9  is None else self.e9.duplicate(),
+                            e10= None if self.e10 is None else self.e10.duplicate(),
+                            e11= None if self.e11 is None else self.e11.duplicate(),
+                            e12= None if self.e12 is None else self.e12.duplicate(),
+                            e13= None if self.e13 is None else self.e13.duplicate(),
+                            e14= None if self.e14 is None else self.e14.duplicate(),
+                            e15= None if self.e15 is None else self.e15.duplicate())
 
 class InvariantPAHLaueGroup1(InvariantPAH):
 
     def __init__(self,
-                 aa=FitParameter(parameter_name="aa", value=1e-3),
-                 bb=FitParameter(parameter_name="bb", value=1e-3),
+                 aa  =FitParameter(parameter_name="aa", value=1e-3),
+                 bb  =FitParameter(parameter_name="bb", value=1e-3),
                  e1  = FitParameter(parameter_name="e1" , value=1e-4),
                  e2  = FitParameter(parameter_name="e2" , value=1e-4),
                  e3  = FitParameter(parameter_name="e3" , value=1e-4),

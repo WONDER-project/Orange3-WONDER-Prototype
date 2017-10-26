@@ -23,7 +23,7 @@ class Reflection(PM2KParameter):
 
     intensity = None
 
-    def __init__(self, h = 1, k = 0, l = 0, intensity = FitParameter(value=100)):
+    def __init__(self, h, k, l, intensity):
         congruence.checkStrictlyPositiveNumber(intensity.value, "Intensity")
 
         self.h = h
@@ -58,15 +58,8 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
 
     reflections = []
 
-    def __init__(self,
-                 a=FitParameter(),
-                 b=FitParameter(),
-                 c=FitParameter(),
-                 alpha=FitParameter(),
-                 beta=FitParameter(),
-                 gamma=FitParameter(),
-                 simmetry=Simmetry.NONE):
-        super(FitParametersList, self).__init__()
+    def __init__(self, a, b, c, alpha, beta, gamma, simmetry=Simmetry.NONE):
+        super(CrystalStructure, self).__init__()
 
         self.a = a
         self.b = b
@@ -77,19 +70,19 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
         self.simmetry = simmetry
         self.reflections = []
 
-        self.add_parameter(self.a)
-        self.add_parameter(self.b)
-        self.add_parameter(self.c)
-        self.add_parameter(self.alpha)
-        self.add_parameter(self.beta)
-        self.add_parameter(self.gamma)
+        super().add_parameter(self.a)
+        super().add_parameter(self.b)
+        super().add_parameter(self.c)
+        super().add_parameter(self.alpha)
+        super().add_parameter(self.beta)
+        super().add_parameter(self.gamma)
 
     @classmethod
     def is_cube(cls, simmetry):
         return simmetry in (Simmetry.BCC, Simmetry.FCC, Simmetry.CUBIC)
 
     @classmethod
-    def init_cube(cls, a=FitParameter(), simmetry=Simmetry.FCC):
+    def init_cube(cls, a, simmetry=Simmetry.FCC):
         if not cls.is_cube(simmetry): raise ValueError("Simmetry doesn't belong to a cubic crystal cell")
 
         angle = FitParameter(value=90, fixed=True)
@@ -102,15 +95,15 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
                                 angle,
                                 simmetry)
 
-    def add_reflection(self, reflection=Reflection()):
+    def add_reflection(self, reflection):
         self.reflections.append(reflection)
-        self.add_parameter(reflection.intensity)
+        super().add_parameter(reflection.intensity)
 
         self.update_reflection(-1)
 
-    def set_reflection(self, index, reflection=Reflection()):
+    def set_reflection(self, index, reflection):
         self.reflections[index] = reflection
-        self.fit_parameters_list[6 + index] = reflection
+        super().set_parameter(6 + index, reflection)
 
         self.update_reflection(index)
 
@@ -207,10 +200,28 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
                                                                     value=intensity_value,
                                                                     boundary=boundary))
             reflections.append(reflection)
-            self.add_parameter(reflection.intensity)
+            super().add_parameter(reflection.intensity)
 
         self.reflections = reflections
         self.update_reflections()
+
+
+    def duplicate(self):
+        crystal_structure = CrystalStructure(a=None if self.a is None else self.a.duplicate(),
+                                             b=None if self.b is None else self.b.duplicate(),
+                                             c=None if self.c is None else self.c.duplicate(),
+                                             alpha=None if self.alpha is None else self.alpha.duplicate(),
+                                             beta=None if self.beta is None else self.beta.duplicate(),
+                                             gamma=None if self.gamma is None else self.gamma.duplicate(),
+                                             simmetry=self.simmetry)
+
+        for reflection in self.reflections:
+            reflection_copy = Reflection(h=reflection.h, k=reflection.k, l=reflection.l, intensity=None if reflection.intensity is None else reflection.intensity.duplicate())
+            reflection_copy.d_spacing = reflection.d_spacing
+
+            crystal_structure.add_reflection(reflection_copy)
+
+        return crystal_structure
 
 if __name__=="__main__":
     test = CrystalStructure.init_cube(a=FitParameter(parameter_name="a0", value=0.55), simmetry=Simmetry.BCC)

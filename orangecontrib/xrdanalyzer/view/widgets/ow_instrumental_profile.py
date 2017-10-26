@@ -143,12 +143,11 @@ class OWInstrumentalProfile(OWGenericWidget):
 
 
     def set_data(self, data):
-        self.fit_global_parameters = data
+        if not data is None:
+            self.fit_global_parameters = data.duplicate()
 
-        if not self.fit_global_parameters is None and self.is_automatic_run:
-            self.send_intrumental_profile()
-
-
+            if self.is_automatic_run:
+                self.send_intrumental_profile()
 
 
 
