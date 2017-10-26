@@ -76,7 +76,15 @@ class FitterPrototype(FitterInterface):
         current_covariance = None
 
         for i in range(0, n_iterations):
-            current_parameters, current_covariance = self.call_scipy_curve_fit(s_experimental, intensity_experimental, current_parameters, boundaries)
+            try:
+                current_parameters, current_covariance = self.call_scipy_curve_fit(s_experimental, intensity_experimental, current_parameters, boundaries)
+            except ValueError as err:
+                if str(err) == "`x0` violates bound constraints.":
+                    break
+                elif str(err) == "`x0` is infeasible.":
+                    raise ValueError("Fit cannot start: one ore more fit input parameters violate their boudaries")
+                else:
+                    raise err
 
         fitted_parameters = current_parameters
         fitted_covariance = current_covariance
@@ -157,10 +165,9 @@ class FitterPrototype(FitterInterface):
         return curve_fit(f=fit_function,
                          xdata=s_experimental,
                          ydata=intensity_experimental,
-                         #sigma=numpy.sqrt(intensity_experimental),
+                         sigma=numpy.sqrt(intensity_experimental),
                          p0=parameters,
-                         bounds=boundaries,
-                         method="dogbox")
+                         bounds=boundaries)
 
 def fit_function(s, *parameters):
 

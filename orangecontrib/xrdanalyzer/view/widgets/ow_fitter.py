@@ -30,6 +30,7 @@ class OWFitter(OWGenericWidget):
     want_main_area = True
 
     n_iterations = Setting(5)
+    is_incremental = Setting(1)
 
     fit_global_parameters = None
 
@@ -44,11 +45,17 @@ class OWFitter(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
 
 
+        iteration_box = gui.widgetBox(main_box,
+                                 "", orientation="horizontal",
+                                 width=250)
+
+        gui.lineEdit(iteration_box, self, "n_iterations", "Nr. Iterations", labelWidth=80, valueType=int)
+        orangegui.checkBox(iteration_box, self, "is_incremental", "Incremental")
+
         button_box = gui.widgetBox(main_box,
                                    "", orientation="horizontal",
                                    width=self.CONTROL_AREA_WIDTH-25)
 
-        gui.lineEdit(main_box, self, "n_iterations", "Nr. Iterations", labelWidth=250, valueType=int)
 
         gui.button(button_box,  self, "Fit", height=50, callback=self.do_fit)
 
@@ -118,6 +125,10 @@ class OWFitter(OWGenericWidget):
 
                 self.tabs.setCurrentIndex(1)
 
+                if self.is_incremental == 1:
+                    self.fit_global_parameters = fitted_fit_global_parameters.duplicate()
+                    self.text_area_fit_in.setText(self.fit_global_parameters.to_text())
+
                 self.send("Fit Global Parameters", fitted_fit_global_parameters)
 
         except Exception as e:
@@ -125,7 +136,7 @@ class OWFitter(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            raise e
+            #raise e
 
     def set_data(self, data):
         self.fit_global_parameters = data

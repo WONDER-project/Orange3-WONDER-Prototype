@@ -24,7 +24,7 @@ class Reflection(PM2KParameter):
     intensity = None
 
     def __init__(self, h, k, l, intensity):
-        congruence.checkStrictlyPositiveNumber(intensity.value, "Intensity")
+        congruence.checkPositiveNumber(intensity.value, "Intensity")
 
         self.h = h
         self.k = k
@@ -183,6 +183,7 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
                 intensity_value = float(data[3])
 
             boundary = None
+            fixed = False
 
             if len(data) > 4:
                 min_value = -numpy.inf
@@ -193,14 +194,17 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
 
                     if boundary_data[0] == "min": min_value = float(boundary_data[1].strip())
                     elif boundary_data[0] == "max": max_value = float(boundary_data[1].strip())
+                    elif boundary_data[0] == "fixed": fixed = True
 
-                if min_value != -numpy.inf or max_value != numpy.inf:
-                    boundary = Boundary(min_value=min_value, max_value=max_value)
-                else:
-                    boundary = Boundary()
+                if not fixed:
+                    if min_value != -numpy.inf or max_value != numpy.inf:
+                        boundary = Boundary(min_value=min_value, max_value=max_value)
+                    else:
+                        boundary = Boundary()
 
             reflection = Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
                                                                     value=intensity_value,
+                                                                    fixed=fixed,
                                                                     boundary=boundary))
             reflections.append(reflection)
             super().add_parameter(reflection.intensity)
