@@ -20,11 +20,11 @@ from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGl
 from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection, Simmetry
 from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
-from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName, FitterViewListenerInterface
+from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName
 from orangecontrib.xrdanalyzer.controller.fit.fitter_lmfit import LmfitFittingMethods
 
 
-class OWFitter(OWGenericWidget, FitterViewListenerInterface):
+class OWFitter(OWGenericWidget):
     name = "Fitter"
     description = "Fitter"
     icon = "icons/fit.png"
@@ -158,21 +158,29 @@ class OWFitter(OWGenericWidget, FitterViewListenerInterface):
     def do_fit(self):
         try:
             if not self.fit_global_parameters is None:
+                congruence.checkStrictlyPositiveNumber(self.n_iterations, "Nr. Iterations")
 
                 self.progressBarInit()
 
-                fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
-                                                     fitting_method=self.cb_fitting_method.currentText())
+                fitted_fit_global_parameters = self.fit_global_parameters
 
-                self.fitted_pattern, fitted_fit_global_parameters = fitter.do_fit(fitter_view_listener=self,
-                                                                                  fit_global_parameters=self.fit_global_parameters,
-                                                                                  n_iterations=self.n_iterations)
+                for iteration in range(1, self.n_iterations + 1):
 
-                self.show_data()
+                    self.progressBarSet(int(iteration/self.n_iterations)*100)
+                    self.setStatusMessage("Fitting iteration nr. " + str(iteration))
 
-                self.text_area_fit_out.setText(fitted_fit_global_parameters.to_text())
+                    fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
+                                                         fitting_method=self.cb_fitting_method.currentText())
 
-                self.tabs.setCurrentIndex(1)
+                    self.fitted_pattern, fitted_fit_global_parameters = fitter.do_fit(fit_global_parameters=fitted_fit_global_parameters)
+
+                    self.show_data()
+
+                    self.text_area_fit_out.setText(fitted_fit_global_parameters.to_text())
+
+                    self.tabs.setCurrentIndex(1)
+
+                self.setStatusMessage("Fitting procedure completed")
 
                 if self.is_incremental == 1:
                     self.fit_global_parameters = fitted_fit_global_parameters.duplicate()
@@ -187,11 +195,8 @@ class OWFitter(OWGenericWidget, FitterViewListenerInterface):
 
             raise e
 
+        self.setStatusMessage("")
         self.progressBarFinished()
-
-    def signal_iteration(self, iteration_number):
-        self.le_current_iteration.setText(str(iteration_number))
-        self.progressBarSet(int(iteration_number/self.n_iterations)*100)
 
     def set_data(self, data):
         self.fit_global_parameters = data

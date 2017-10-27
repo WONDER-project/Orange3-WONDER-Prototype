@@ -21,9 +21,3 @@ class FitterFactory():
             return FitterScipy()
         elif fitter_name == FitterName.LMFIT:
             return FitterLmfit(fitting_method=fitting_method)
-
-
-class FitterViewListenerInterface:
-
-    def signal_iteration(self, iteration_number):
-        raise NotImplementedError("Abstract")

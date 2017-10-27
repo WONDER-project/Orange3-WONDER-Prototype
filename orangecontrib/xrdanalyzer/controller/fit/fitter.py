@@ -1,5 +1,4 @@
 from orangecontrib.xrdanalyzer import Singleton, synchronized_method
-from orangecontrib.xrdanalyzer.util import congruence
 
 @Singleton
 class FitterListener():
@@ -22,13 +21,11 @@ class FitterInterface:
     def __init__(self):
         pass
 
-    def do_fit(self, fitter_view_listener, fit_global_parameters=None, n_iterations=1):
-        congruence.checkStrictlyPositiveNumber(n_iterations, "Number of Iterations")
-
+    def do_fit(self, fit_global_parameters=None):
         FitterListener.Instance().register_fit_global_parameters(fit_global_parameters)
 
-        return self.do_specific_fit(fitter_view_listener, fit_global_parameters, n_iterations)
+        return self.do_specific_fit(fit_global_parameters)
 
-    def do_specific_fit(self, fit_global_parameters, n_iterations):
+    def do_specific_fit(self, fit_global_parameters):
         raise NotImplementedError("Abstract")
 
