@@ -19,7 +19,9 @@ from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGl
 from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection, Simmetry
 from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
-from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterFactory
+from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName
+from orangecontrib.xrdanalyzer.controller.fit.fitter_lmfit import LmfitFittingMethods
+
 
 class OWFitter(OWGenericWidget):
     name = "Fitter"
@@ -28,6 +30,9 @@ class OWFitter(OWGenericWidget):
     priority = 7
 
     want_main_area = True
+
+    fitter = Setting(1)
+    fitting_method = Setting(0)
 
     n_iterations = Setting(5)
     is_incremental = Setting(1)
@@ -44,6 +49,28 @@ class OWFitter(OWGenericWidget):
                                  "Fitter", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
 
+
+        fitter_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        self.cb_fitter = orangegui.comboBox(fitter_box, self, "fitter", label="Fitter", items=FitterName.tuple(), callback=self.set_fitter, orientation="horizontal")
+
+        self.fitter_box_1 = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25,
+                                   height=30)
+
+        self.fitter_box_2 = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25,
+                                   height=30)
+
+
+        self.cb_fitting_method = orangegui.comboBox(self.fitter_box_2, self, "fitting_method", label="Method", items=LmfitFittingMethods.tuple(), orientation="horizontal")
+
+
+        self.set_fitter()
 
         iteration_box = gui.widgetBox(main_box,
                                  "", orientation="horizontal",
@@ -111,11 +138,15 @@ class OWFitter(OWGenericWidget):
         
         self.tab_fit_out.layout().addWidget(self.scrollarea_fit_out, alignment=Qt.AlignHCenter)
 
+    def set_fitter(self):
+        self.fitter_box_1.setVisible(self.fitter == 0)
+        self.fitter_box_2.setVisible(self.fitter == 1)
 
     def do_fit(self):
         try:
             if not self.fit_global_parameters is None:
-                fitter = FitterFactory.create_fitter()
+                fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
+                                                     fitting_method=self.cb_fitting_method.currentText())
 
                 self.fitted_pattern, fitted_fit_global_parameters = fitter.do_fit(self.fit_global_parameters, self.n_iterations)
 
@@ -136,7 +167,7 @@ class OWFitter(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            #raise e
+            raise e
 
     def set_data(self, data):
         self.fit_global_parameters = data

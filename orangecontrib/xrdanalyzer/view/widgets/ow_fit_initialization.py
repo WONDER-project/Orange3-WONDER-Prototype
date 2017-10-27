@@ -117,8 +117,7 @@ class OWFitInitialization(OWGenericWidget):
                 congruence.checkStrictlyPositiveNumber(self.n_step, "FFT steps")
                 congruence.checkEmptyString(self.reflections, "Reflections")
 
-                crystal_structure = CrystalStructure.init_cube(a=FitParameter(parameter_name="a0", value=self.a, fixed=True),
-                                                               simmetry=self.cb_simmetry.currentText())
+                crystal_structure = CrystalStructure.init_cube(a0=FitParameter(value=self.a, fixed=True))
 
                 crystal_structure.parse_reflections(self.reflections)
 

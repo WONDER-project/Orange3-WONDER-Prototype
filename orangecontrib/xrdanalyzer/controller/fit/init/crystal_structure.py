@@ -85,17 +85,22 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
         return simmetry in (Simmetry.BCC, Simmetry.FCC, Simmetry.CUBIC)
 
     @classmethod
-    def init_cube(cls, a, simmetry=Simmetry.FCC):
+    def init_cube(cls, a0, simmetry=Simmetry.FCC):
         if not cls.is_cube(simmetry): raise ValueError("Simmetry doesn't belong to a cubic crystal cell")
 
-        angle = FitParameter(parameter_name="alpha", value=90, fixed=True)
+        a = FitParameter(parameter_name="cp_a", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+        b = FitParameter(parameter_name="cp_b", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+        c = FitParameter(parameter_name="cp_c", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+        alpha = FitParameter(parameter_name="alpha", value=90, fixed=True)
+        beta = FitParameter(parameter_name="beta",   value=90, fixed=True)
+        gamma = FitParameter(parameter_name="gamma", value=90, fixed=True)
 
         return CrystalStructure(a,
-                                a,
-                                a,
-                                angle,
-                                angle,
-                                angle,
+                                b,
+                                c,
+                                alpha,
+                                beta,
+                                gamma,
                                 simmetry)
 
     def add_reflection(self, reflection):
@@ -253,7 +258,7 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
         return text
 
 if __name__=="__main__":
-    test = CrystalStructure.init_cube(a=FitParameter(parameter_name="a0", value=0.55), simmetry=Simmetry.BCC)
+    test = CrystalStructure.init_cube(a0=FitParameter(value=0.55, fixed=True), simmetry=Simmetry.BCC)
 
     print(test.to_PM2K())
 
