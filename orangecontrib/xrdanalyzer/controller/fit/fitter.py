@@ -17,18 +17,17 @@ class FitterListener():
     def get_registered_space_parameters(self):
         return self.space_parameters
 
-
 class FitterInterface:
 
     def __init__(self):
         pass
 
-    def do_fit(self, fit_global_parameters=None, n_iterations=1):
+    def do_fit(self, fitter_view_listener, fit_global_parameters=None, n_iterations=1):
         congruence.checkStrictlyPositiveNumber(n_iterations, "Number of Iterations")
 
         FitterListener.Instance().register_fit_global_parameters(fit_global_parameters)
 
-        return self.do_specific_fit(fit_global_parameters, n_iterations)
+        return self.do_specific_fit(fitter_view_listener, fit_global_parameters, n_iterations)
 
     def do_specific_fit(self, fit_global_parameters, n_iterations):
         raise NotImplementedError("Abstract")

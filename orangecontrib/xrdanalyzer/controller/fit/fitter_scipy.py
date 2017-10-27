@@ -23,7 +23,7 @@ from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_p
 
 class FitterScipy(FitterInterface):
 
-    def do_specific_fit(self, fit_global_parameters, n_iterations):
+    def do_specific_fit(self, fitter_view_listener, fit_global_parameters, n_iterations):
         parameters, boundaries = fit_global_parameters.to_scipy_tuple()
         
         twotheta_experimental, intensity_experimental, error_experimental, s_experimental = fit_global_parameters.fit_initialization.diffraction_pattern.tuples()
@@ -41,6 +41,8 @@ class FitterScipy(FitterInterface):
                     raise ValueError("Fit cannot start: one ore more fit input parameters violate their boudaries")
                 else:
                     raise err
+
+            fitter_view_listener.signal_iteration(i + 1)
 
         fitted_parameters = current_parameters
         fitted_covariance = current_covariance

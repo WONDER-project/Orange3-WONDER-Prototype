@@ -1,7 +1,8 @@
-import os, sys
+import os, sys, threading
 
 from PyQt5.QtWidgets import QMessageBox, QScrollArea, QTableWidget, QApplication
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPalette, QColor, QFont
 
 from silx.gui.plot.PlotWindow import PlotWindow
 
@@ -19,11 +20,11 @@ from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGl
 from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection, Simmetry
 from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
-from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName
+from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName, FitterViewListenerInterface
 from orangecontrib.xrdanalyzer.controller.fit.fitter_lmfit import LmfitFittingMethods
 
 
-class OWFitter(OWGenericWidget):
+class OWFitter(OWGenericWidget, FitterViewListenerInterface):
     name = "Fitter"
     description = "Fitter"
     icon = "icons/fit.png"
@@ -36,6 +37,7 @@ class OWFitter(OWGenericWidget):
 
     n_iterations = Setting(5)
     is_incremental = Setting(1)
+    current_iteration = 0
 
     fit_global_parameters = None
 
@@ -79,6 +81,17 @@ class OWFitter(OWGenericWidget):
         gui.lineEdit(iteration_box, self, "n_iterations", "Nr. Iterations", labelWidth=80, valueType=int)
         orangegui.checkBox(iteration_box, self, "is_incremental", "Incremental")
 
+
+        self.le_current_iteration = gui.lineEdit(main_box, self, "current_iteration", "Current Iteration", labelWidth=320, valueType=int, orientation="horizontal")
+        self.le_current_iteration.setReadOnly(True)
+        font = QFont(self.le_current_iteration.font())
+        font.setBold(True)
+        self.le_current_iteration.setFont(font)
+        palette = QPalette(self.le_current_iteration.palette())
+        palette.setColor(QPalette.Text, QColor('dark blue'))
+        palette.setColor(QPalette.Base, QColor(243, 240, 160))
+        self.le_current_iteration.setPalette(palette)
+
         button_box = gui.widgetBox(main_box,
                                    "", orientation="horizontal",
                                    width=self.CONTROL_AREA_WIDTH-25)
@@ -92,7 +105,7 @@ class OWFitter(OWGenericWidget):
         self.tab_plot = gui.createTabPage(self.tabs, "Plot")
         self.tab_data = gui.createTabPage(self.tabs, "Fit Output Raw Data")
         self.tab_fit_out = gui.createTabPage(self.tabs, "Fit Output Parameters")
-        
+
         self.plot = PlotWindow()
         self.plot.setDefaultPlotLines(True)
         self.plot.setActiveCurveColor(color="#00008B")
@@ -111,9 +124,9 @@ class OWFitter(OWGenericWidget):
         self.scrollarea.setWidgetResizable(1)
 
         self.tab_data.layout().addWidget(self.scrollarea, alignment=Qt.AlignHCenter)
-        
+
         # -------------------
-        
+
         self.scrollarea_fit_in = QScrollArea(self.tab_fit_in)
         self.scrollarea_fit_in.setMinimumWidth(805)
         self.scrollarea_fit_in.setMinimumHeight(605)
@@ -122,11 +135,11 @@ class OWFitter(OWGenericWidget):
 
         self.scrollarea_fit_in.setWidget(self.text_area_fit_in)
         self.scrollarea_fit_in.setWidgetResizable(1)
-        
+
         self.tab_fit_in.layout().addWidget(self.scrollarea_fit_in, alignment=Qt.AlignHCenter)
-        
+
         # -------------------
-        
+
         self.scrollarea_fit_out = QScrollArea(self.tab_fit_out)
         self.scrollarea_fit_out.setMinimumWidth(805)
         self.scrollarea_fit_out.setMinimumHeight(605)
@@ -135,7 +148,7 @@ class OWFitter(OWGenericWidget):
 
         self.scrollarea_fit_out.setWidget(self.text_area_fit_out)
         self.scrollarea_fit_out.setWidgetResizable(1)
-        
+
         self.tab_fit_out.layout().addWidget(self.scrollarea_fit_out, alignment=Qt.AlignHCenter)
 
     def set_fitter(self):
@@ -145,10 +158,15 @@ class OWFitter(OWGenericWidget):
     def do_fit(self):
         try:
             if not self.fit_global_parameters is None:
+
+                self.progressBarInit()
+
                 fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
                                                      fitting_method=self.cb_fitting_method.currentText())
 
-                self.fitted_pattern, fitted_fit_global_parameters = fitter.do_fit(self.fit_global_parameters, self.n_iterations)
+                self.fitted_pattern, fitted_fit_global_parameters = fitter.do_fit(fitter_view_listener=self,
+                                                                                  fit_global_parameters=self.fit_global_parameters,
+                                                                                  n_iterations=self.n_iterations)
 
                 self.show_data()
 
@@ -169,6 +187,12 @@ class OWFitter(OWGenericWidget):
 
             raise e
 
+        self.progressBarFinished()
+
+    def signal_iteration(self, iteration_number):
+        self.le_current_iteration.setText(str(iteration_number))
+        self.progressBarSet(int(iteration_number/self.n_iterations)*100)
+
     def set_data(self, data):
         self.fit_global_parameters = data
 
@@ -184,9 +208,6 @@ class OWFitter(OWGenericWidget):
 
             if self.is_automatic_run:
                 self.do_fit()
-
-
-
 
     def show_data(self):
         diffraction_pattern = self.fit_global_parameters.fit_initialization.diffraction_pattern

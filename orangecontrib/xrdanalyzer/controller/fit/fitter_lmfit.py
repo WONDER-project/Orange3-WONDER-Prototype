@@ -53,7 +53,7 @@ class FitterLmfit(FitterInterface):
 
         self.fitting_method = fitting_method
 
-    def do_specific_fit(self, fit_global_parameters, n_iterations):
+    def do_specific_fit(self, fitter_view_listener, fit_global_parameters, n_iterations):
         parameters = self.build_lmfit_parameters(fit_global_parameters)
 
         twotheta_experimental, intensity_experimental, error_experimental, s_experimental = fit_global_parameters.fit_initialization.diffraction_pattern.tuples()
@@ -73,6 +73,8 @@ class FitterLmfit(FitterInterface):
             except ValueError as err:
                 #TODO: eventuale gestione di errori particolari
                 raise err
+
+            fitter_view_listener.signal_iteration(i + 1)
 
         fitted_parameters = current_parameters
         fitted_residual = current_residual
