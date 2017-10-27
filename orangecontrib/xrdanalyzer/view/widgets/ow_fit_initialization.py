@@ -136,6 +136,27 @@ class OWFitInitialization(OWGenericWidget):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
 
+            if not self.fit_global_parameters.fit_initialization.fft_parameters is None:
+                self.n_step = self.fit_global_parameters.fit_initialization.fft_parameters.n_step
+                self.s_max = self.fit_global_parameters.fit_initialization.fft_parameters.s_max
+
+            if not self.fit_global_parameters.fit_initialization.crystal_structure is None:
+                crystal_structure = self.fit_global_parameters.fit_initialization.crystal_structure
+
+                self.a = crystal_structure.a.value
+
+                simmetries = Simmetry.tuple()
+                for index in range(0, len(simmetries)):
+                    if simmetries[index] == crystal_structure.simmetry:
+                        self.simmetry = index
+
+                text = ""
+
+                for reflection in crystal_structure.reflections:
+                    text += reflection.to_text() + "\n"
+
+                self.text_area.setText(text)
+
             if self.is_automatic_run:
                 self.send_fit_initialization()
 

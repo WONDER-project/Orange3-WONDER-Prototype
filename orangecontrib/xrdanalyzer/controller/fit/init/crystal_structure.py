@@ -170,49 +170,50 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
         for i in range(len(lines)):
             congruence.checkEmptyString(text, "Reflections: line " + str(i+1))
 
-            data = lines[i].strip().split(",")
+            if not lines[i].strip().startswith("#"):
+                data = lines[i].strip().split(",")
 
-            if len(data) < 4: raise ValueError("Reflections, malformed line: " + str(i+1))
+                if len(data) < 4: raise ValueError("Reflections, malformed line: " + str(i+1))
 
-            h = int(data[0].strip())
-            k = int(data[1].strip())
-            l = int(data[2].strip())
+                h = int(data[0].strip())
+                k = int(data[1].strip())
+                l = int(data[2].strip())
 
-            intensity_data = data[3].strip().split()
+                intensity_data = data[3].strip().split()
 
-            if len(intensity_data) == 2:
-                intensity_name = intensity_data[0]
-                intensity_value = float(intensity_data[1])
-            else:
-                intensity_name = None
-                intensity_value = float(data[3])
+                if len(intensity_data) == 2:
+                    intensity_name = intensity_data[0]
+                    intensity_value = float(intensity_data[1])
+                else:
+                    intensity_name = None
+                    intensity_value = float(data[3])
 
-            boundary = None
-            fixed = False
+                boundary = None
+                fixed = False
 
-            if len(data) > 4:
-                min_value = -numpy.inf
-                max_value = numpy.inf
+                if len(data) > 4:
+                    min_value = -numpy.inf
+                    max_value = numpy.inf
 
-                for j in range(4, len(data)):
-                    boundary_data = data[j].strip().split()
+                    for j in range(4, len(data)):
+                        boundary_data = data[j].strip().split()
 
-                    if boundary_data[0] == "min": min_value = float(boundary_data[1].strip())
-                    elif boundary_data[0] == "max": max_value = float(boundary_data[1].strip())
-                    elif boundary_data[0] == "fixed": fixed = True
+                        if boundary_data[0] == "min": min_value = float(boundary_data[1].strip())
+                        elif boundary_data[0] == "max": max_value = float(boundary_data[1].strip())
+                        elif boundary_data[0] == "fixed": fixed = True
 
-                if not fixed:
-                    if min_value != -numpy.inf or max_value != numpy.inf:
-                        boundary = Boundary(min_value=min_value, max_value=max_value)
-                    else:
-                        boundary = Boundary()
+                    if not fixed:
+                        if min_value != -numpy.inf or max_value != numpy.inf:
+                            boundary = Boundary(min_value=min_value, max_value=max_value)
+                        else:
+                            boundary = Boundary()
 
-            reflection = Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
-                                                                    value=intensity_value,
-                                                                    fixed=fixed,
-                                                                    boundary=boundary))
-            reflections.append(reflection)
-            super().add_parameter(reflection.intensity)
+                reflection = Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
+                                                                        value=intensity_value,
+                                                                        fixed=fixed,
+                                                                        boundary=boundary))
+                reflections.append(reflection)
+                super().add_parameter(reflection.intensity)
 
         self.reflections = reflections
         self.update_reflections()

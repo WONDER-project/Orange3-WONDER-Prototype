@@ -130,8 +130,6 @@ class OWInstrumentalProfile(OWGenericWidget):
                                                                               b=self.populate_parameter("b"),
                                                                               c=self.populate_parameter("c"))
 
-                #ShowTextDialog.show_text("Output", self.fit_global_parameters.instrumental_parameters.to_PM2K(), parent=self)
-
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
         except Exception as e:
@@ -145,6 +143,14 @@ class OWInstrumentalProfile(OWGenericWidget):
     def set_data(self, data):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
+
+            if not self.fit_global_parameters.instrumental_parameters is None:
+                self.U = self.fit_global_parameters.instrumental_parameters.U.value
+                self.V = self.fit_global_parameters.instrumental_parameters.V.value
+                self.W = self.fit_global_parameters.instrumental_parameters.W.value
+                self.a = self.fit_global_parameters.instrumental_parameters.a.value
+                self.b = self.fit_global_parameters.instrumental_parameters.b.value
+                self.c = self.fit_global_parameters.instrumental_parameters.c.value
 
             if self.is_automatic_run:
                 self.send_intrumental_profile()

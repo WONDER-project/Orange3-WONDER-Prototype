@@ -134,6 +134,14 @@ class OWBackground(OWGenericWidget):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
 
+            if not self.fit_global_parameters.background_parameters is None:
+                self.c0 = self.fit_global_parameters.background_parameters.c0.value
+                self.c1 = self.fit_global_parameters.background_parameters.c1.value
+                self.c2 = self.fit_global_parameters.background_parameters.c2.value
+                self.c3 = self.fit_global_parameters.background_parameters.c3.value
+                self.c4 = self.fit_global_parameters.background_parameters.c4.value
+                self.c5 = self.fit_global_parameters.background_parameters.c5.value
+
             if self.is_automatic_run:
                 self.send_background()
 

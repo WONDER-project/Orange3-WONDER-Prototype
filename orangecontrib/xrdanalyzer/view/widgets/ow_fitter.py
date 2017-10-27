@@ -81,8 +81,11 @@ class OWFitter(OWGenericWidget):
         gui.lineEdit(iteration_box, self, "n_iterations", "Nr. Iterations", labelWidth=80, valueType=int)
         orangegui.checkBox(iteration_box, self, "is_incremental", "Incremental")
 
+        iteration_box = gui.widgetBox(main_box,
+                                 "", orientation="vertical",
+                                 width=250)
 
-        self.le_current_iteration = gui.lineEdit(main_box, self, "current_iteration", "Current Iteration", labelWidth=320, valueType=int, orientation="horizontal")
+        self.le_current_iteration = gui.lineEdit(iteration_box, self, "current_iteration", "Current Iteration", labelWidth=120, valueType=int, orientation="horizontal")
         self.le_current_iteration.setReadOnly(True)
         font = QFont(self.le_current_iteration.font())
         font.setBold(True)
@@ -198,11 +201,6 @@ class OWFitter(OWGenericWidget):
         self.setStatusMessage("")
         self.progressBarFinished()
 
-    def set_data(self, data):
-        self.fit_global_parameters = data
-
-        if not self.fit_global_parameters is None and self.is_automatic_run:
-            self.do_fit()
 
     def set_data(self, data):
         if not data is None:

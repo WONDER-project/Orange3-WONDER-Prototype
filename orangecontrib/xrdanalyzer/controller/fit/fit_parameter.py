@@ -77,17 +77,17 @@ class FitParameter(PM2KParameter):
         return text
 
     def to_text(self):
-        text = self.get_parameter_name() + " - value: " + str(self.value)
+        text = self.get_parameter_name() + " " + str(self.value)
 
         if not self.fixed:
             if not self.boundary is None:
                 if not self.boundary.min_value == -numpy.inf:
-                    text += " min " + str(self.boundary.min_value)
+                    text += ", min " + str(self.boundary.min_value)
 
                 if not self.boundary.max_value == numpy.inf:
-                    text += " max " + str(self.boundary.max_value)
+                    text += ", max " + str(self.boundary.max_value)
         else:
-            text += " FIXED"
+            text += ", fixed"
 
         return text
 

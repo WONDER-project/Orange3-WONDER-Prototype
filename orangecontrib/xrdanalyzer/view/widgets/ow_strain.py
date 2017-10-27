@@ -130,6 +130,12 @@ class OWStrain(OWGenericWidget):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
 
+            if not self.fit_global_parameters.strain_parameters is None:
+                self.aa = self.fit_global_parameters.strain_parameters.aa.value
+                self.bb = self.fit_global_parameters.strain_parameters.bb.value
+                self.e1 = self.fit_global_parameters.strain_parameters.e1.value
+                self.e6 = self.fit_global_parameters.strain_parameters.e6.value
+
             if self.is_automatic_run:
                 self.send_strain()
 

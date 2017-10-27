@@ -104,8 +104,6 @@ class OWSize(OWGenericWidget):
                                                                             mu=self.populate_parameter("mu"),
                                                                             sigma=self.populate_parameter("sigma"))
 
-                #ShowTextDialog.show_text("Output", self.fit_global_parameters.size_parameters.to_PM2K(), parent=self)
-
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
         except Exception as e:
@@ -120,6 +118,10 @@ class OWSize(OWGenericWidget):
     def set_data(self, data):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
+
+            if not self.fit_global_parameters.size_parameters is None:
+                self.mu = self.fit_global_parameters.size_parameters.mu.value
+                self.sigma = self.fit_global_parameters.size_parameters.sigma.value
 
             if self.is_automatic_run:
                 self.send_size()
