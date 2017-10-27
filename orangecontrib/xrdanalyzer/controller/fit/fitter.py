@@ -5,25 +5,17 @@ from orangecontrib.xrdanalyzer.util import congruence
 class FitterListener():
     registered_fit_global_parameters = None
     space_parameters = None
-    specific_fitter_data = None
 
     @synchronized_method
     def register_fit_global_parameters(self, fit_global_parameters = None):
         self.registered_fit_global_parameters = fit_global_parameters
         self.space_parameters = fit_global_parameters.space_parameters()
 
-    @synchronized_method
-    def register_specific_fitter_data(self, specific_fitter_data=None):
-        self.specific_fitter_data = specific_fitter_data
-    
     def get_registered_fit_global_parameters(self):
         return self.registered_fit_global_parameters
 
     def get_registered_space_parameters(self):
         return self.space_parameters
-    
-    def get_registered_specific_fitter_data(self):
-        return self.specific_fitter_data
 
 
 class FitterInterface:

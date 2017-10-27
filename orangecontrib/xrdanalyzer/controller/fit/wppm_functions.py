@@ -1,10 +1,9 @@
 from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterListener
 from orangecontrib.xrdanalyzer.util.general_functions import fft
 
-def create_one_peak(reflection_index, parameters):
+def create_one_peak(reflection_index, parameters, common_fitting_data):
     fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
     fit_space_parameters = FitterListener.Instance().get_registered_space_parameters()
-    common_fitting_data = FitterListener.Instance().get_registered_specific_fitter_data()
 
     crystal_structure = fit_global_parameter.fit_initialization.crystal_structure
 
@@ -90,7 +89,6 @@ def create_one_peak(reflection_index, parameters):
 
 import numpy
 from scipy.special import erfc
-
 from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
 
 def size_function_common_volume (L, D):

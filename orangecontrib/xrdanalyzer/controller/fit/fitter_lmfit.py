@@ -56,8 +56,6 @@ class FitterLmfit(FitterInterface):
     def do_specific_fit(self, fit_global_parameters, n_iterations):
         parameters = self.build_lmfit_parameters(fit_global_parameters)
 
-        FitterListener.Instance().register_specific_fitter_data(CommonFittingData(parameters))
-
         twotheta_experimental, intensity_experimental, error_experimental, s_experimental = fit_global_parameters.fit_initialization.diffraction_pattern.tuples()
 
         current_parameters = parameters
@@ -251,13 +249,13 @@ class CommonFittingData():
 def fit_function(parameters, s, I):
 
     fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
-    common_fitting_data = FitterListener.Instance().get_registered_specific_fitter_data()
+    common_fitting_data = CommonFittingData(parameters)
 
     if CrystalStructure.is_cube(fit_global_parameter.fit_initialization.crystal_structure.simmetry):
         separated_peaks_functions = []
 
         for reflection_index in range(fit_global_parameter.fit_initialization.crystal_structure.get_reflections_count()):
-            sanalitycal, Ianalitycal = create_one_peak(reflection_index, parameters)
+            sanalitycal, Ianalitycal = create_one_peak(reflection_index, parameters, common_fitting_data)
 
             separated_peaks_functions.append([sanalitycal, Ianalitycal])
 
@@ -278,13 +276,13 @@ def fit_function(parameters, s, I):
 def get_fitted_intensity(parameters, s):
 
     fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
-    common_fitting_data = FitterListener.Instance().get_registered_specific_fitter_data()
+    common_fitting_data = CommonFittingData(parameters)
 
     if CrystalStructure.is_cube(fit_global_parameter.fit_initialization.crystal_structure.simmetry):
         separated_peaks_functions = []
 
         for reflection_index in range(fit_global_parameter.fit_initialization.crystal_structure.get_reflections_count()):
-            sanalitycal, Ianalitycal = create_one_peak(reflection_index, parameters)
+            sanalitycal, Ianalitycal = create_one_peak(reflection_index, parameters, common_fitting_data)
 
             separated_peaks_functions.append([sanalitycal, Ianalitycal])
 

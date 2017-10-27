@@ -98,7 +98,6 @@ class OWFitInitialization(OWGenericWidget):
         gui.button(button_box,  self, "Send Fit Initialization", height=50, callback=self.send_fit_initialization)
 
 
-
     def set_simmetry(self):
         if not CrystalStructure.is_cube(self.cb_simmetry.currentText()):
             QMessageBox.critical(self, "Error",
@@ -106,7 +105,6 @@ class OWFitInitialization(OWGenericWidget):
                                  QMessageBox.Ok)
 
             self.simmetry = 4
-
 
     def send_fit_initialization(self):
         try:
@@ -117,15 +115,13 @@ class OWFitInitialization(OWGenericWidget):
                 congruence.checkStrictlyPositiveNumber(self.n_step, "FFT steps")
                 congruence.checkEmptyString(self.reflections, "Reflections")
 
-                crystal_structure = CrystalStructure.init_cube(a0=FitParameter(value=self.a, fixed=True))
+                crystal_structure = CrystalStructure.init_cube(a0=FitParameter(value=self.a, fixed=True), simmetry=self.cb_simmetry.currentText())
 
                 crystal_structure.parse_reflections(self.reflections)
 
                 self.fit_global_parameters.fit_initialization.crystal_structure = crystal_structure
                 self.fit_global_parameters.fit_initialization.fft_parameters = FFTInitParameters(s_max=self.s_max,
                                                                                                  n_step=self.n_step)
-
-                #ShowTextDialog.show_text("Output", self.fit_global_parameters.fit_initialization.crystal_structure.to_PM2K(), parent=self)
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -134,7 +130,7 @@ class OWFitInitialization(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            raise e
+            #raise e
 
     def set_data(self, data):
         if not data is None:
