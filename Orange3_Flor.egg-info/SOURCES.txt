@@ -18,6 +18,7 @@ orangecontrib/xrdanalyzer/_test/controller/__init__.py
 orangecontrib/xrdanalyzer/_test/controller/fftparameters.py
 orangecontrib/xrdanalyzer/_test/controller/fitter.py
 orangecontrib/xrdanalyzer/_test/controller/test_fit_many_peaks.py
+orangecontrib/xrdanalyzer/_test/controller/test_fit_many_peaks_with_lmfit.py
 orangecontrib/xrdanalyzer/_test/controller/test_fit_one_peak.py
 orangecontrib/xrdanalyzer/_test/controller/test_fit_three_peaks.py
 orangecontrib/xrdanalyzer/_test/controller/test_plot_picco_analitico.py
@@ -57,6 +58,10 @@ orangecontrib/xrdanalyzer/controller/fit/__init__.py
 orangecontrib/xrdanalyzer/controller/fit/fit_global_parameters.py
 orangecontrib/xrdanalyzer/controller/fit/fit_parameter.py
 orangecontrib/xrdanalyzer/controller/fit/fitter.py
+orangecontrib/xrdanalyzer/controller/fit/fitter_factory.py
+orangecontrib/xrdanalyzer/controller/fit/fitter_lmfit.py
+orangecontrib/xrdanalyzer/controller/fit/fitter_scipy.py
+orangecontrib/xrdanalyzer/controller/fit/wppm_functions.py
 orangecontrib/xrdanalyzer/controller/fit/init/__init__.py
 orangecontrib/xrdanalyzer/controller/fit/init/crystal_structure.py
 orangecontrib/xrdanalyzer/controller/fit/init/fft_parameters.py
@@ -67,6 +72,8 @@ orangecontrib/xrdanalyzer/controller/fit/instrument/instrumental_parameters.py
 orangecontrib/xrdanalyzer/controller/fit/microstructure/__init__.py
 orangecontrib/xrdanalyzer/controller/fit/microstructure/size.py
 orangecontrib/xrdanalyzer/controller/fit/microstructure/strain.py
+orangecontrib/xrdanalyzer/controller/fit/util/__init__.py
+orangecontrib/xrdanalyzer/controller/fit/util/fit_utilities.py
 orangecontrib/xrdanalyzer/model/__init__.py
 orangecontrib/xrdanalyzer/model/atom.py
 orangecontrib/xrdanalyzer/model/diffraction_pattern.py
@@ -76,7 +83,6 @@ orangecontrib/xrdanalyzer/util/general_functions.py
 orangecontrib/xrdanalyzer/util/gui/__init__.py
 orangecontrib/xrdanalyzer/util/gui/gui_utility.py
 orangecontrib/xrdanalyzer/util/widgets/__init__.py
-orangecontrib/xrdanalyzer/util/widgets/fit_parameter_box.py
 orangecontrib/xrdanalyzer/util/widgets/ow_generic_widget.py
 orangecontrib/xrdanalyzer/view/__init__.py
 orangecontrib/xrdanalyzer/view/widgets/__init__.py
@@ -92,6 +98,7 @@ orangecontrib/xrdanalyzer/view/widgets/icons/diffraction_pattern.png
 orangecontrib/xrdanalyzer/view/widgets/icons/fit.png
 orangecontrib/xrdanalyzer/view/widgets/icons/initialization.png
 orangecontrib/xrdanalyzer/view/widgets/icons/instrumental_profile.png
+orangecontrib/xrdanalyzer/view/widgets/icons/magnifyXRD.png
 orangecontrib/xrdanalyzer/view/widgets/icons/size.png
 orangecontrib/xrdanalyzer/view/widgets/icons/strain.png
 orangecontrib/xrdanalyzer/view/widgets/icons/xrdanalyzer.png
