@@ -131,6 +131,13 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
     def update_reflections(self):
         for index in range(self.get_reflections_count()): self.update_reflection(index)
 
+    def existing_reflection(self, h, k, l):
+        for reflection in self.reflections:
+            if reflection.h == h and reflection.k == k and reflection.l == l:
+                return reflection
+
+        return None
+
     def get_d_spacing(self, h, k, l):
         if self.is_cube(self.simmetry):
             return numpy.sqrt(self.a.value**2/(h**2 + k**2 + l**2))

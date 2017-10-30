@@ -141,6 +141,9 @@ class OWFitInitialization(OWGenericWidget):
                 self.s_max = self.fit_global_parameters.fit_initialization.fft_parameters.s_max
 
             if not self.fit_global_parameters.fit_initialization.crystal_structure is None:
+                existing_crystal_structure = CrystalStructure.init_cube(a0=FitParameter(value=self.a, fixed=True), simmetry=self.cb_simmetry.currentText())
+                existing_crystal_structure.parse_reflections(self.text_area.toPlainText())
+
                 crystal_structure = self.fit_global_parameters.fit_initialization.crystal_structure
 
                 self.a = crystal_structure.a.value
@@ -150,9 +153,17 @@ class OWFitInitialization(OWGenericWidget):
                     if simmetries[index] == crystal_structure.simmetry:
                         self.simmetry = index
 
+                for reflection in crystal_structure.get_reflections():
+                    existing_reflection = existing_crystal_structure.existing_reflection(reflection.h, reflection.k, reflection.l)
+
+                    if existing_reflection is None:
+                        existing_crystal_structure.add_reflection(reflection)
+                    else:
+                        existing_reflection.intensity.value = reflection.intensity.value
+
                 text = ""
 
-                for reflection in crystal_structure.reflections:
+                for reflection in existing_crystal_structure.get_reflections():
                     text += reflection.to_text() + "\n"
 
                 self.text_area.setText(text)
