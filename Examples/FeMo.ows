@@ -10,14 +10,13 @@
 		<node id="6" name="Fitter" position="(919.0, 252.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_fitter.OWFitter" title="Fitter" version="" />
 		<node id="7" name="Fitter" position="(630.0, 51.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_fitter.OWFitter" title="Fitter" version="" />
 		<node id="8" name="Fitter" position="(507.0, 44.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_fitter.OWFitter" title="Fitter" version="" />
-		<node id="9" name="Fit Initialization" position="(202.0, 435.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_fit_initialization.OWFitInitialization" title="Fit Initialization (MORE PEAKS)" version="" />
+		<node id="9" name="Fit Initialization" position="(172.0, 372.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_fit_initialization.OWFitInitialization" title="Fit Initialization (MORE PEAKS)" version="" />
 		<node id="10" name="Fitter" position="(380.0, 414.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_fitter.OWFitter" title="Fitter" version="" />
 		<node id="11" name="Size" position="(677.0, 223.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_size.OWSize" title="Size (FREE)" version="" />
 		<node id="12" name="Fitter" position="(762.0, 52.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_fitter.OWFitter" title="Fitter" version="" />
 		<node id="13" name="Size" position="(280.0, 501.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_size.OWSize" title="Size (FIXED)" version="" />
 		<node id="14" name="Size" position="(455.0, 498.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_size.OWSize" title="Size (FREE)" version="" />
 		<node id="15" name="Fitter" position="(560.0, 407.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_fitter.OWFitter" title="Fitter" version="" />
-		<node id="16" name="Fit Initialization" position="(238.0, 294.0)" project_name="Orange3-Flor" qualified_name="orangecontrib.xrdanalyzer.view.widgets.ow_fit_initialization.OWFitInitialization" title="Fit Initialization (1)" version="" />
 	</nodes>
 	<links>
 		<link enabled="true" id="0" sink_channel="Fit Global Parameters" sink_node_id="1" source_channel="Fit Global Parameters" source_node_id="0" />
@@ -26,7 +25,7 @@
 		<link enabled="true" id="3" sink_channel="Fit Global Parameters" sink_node_id="6" source_channel="Fit Global Parameters" source_node_id="5" />
 		<link enabled="true" id="4" sink_channel="Fit Global Parameters" sink_node_id="7" source_channel="Fit Global Parameters" source_node_id="4" />
 		<link enabled="true" id="5" sink_channel="Fit Global Parameters" sink_node_id="8" source_channel="Fit Global Parameters" source_node_id="2" />
-		<link enabled="false" id="6" sink_channel="Fit Global Parameters" sink_node_id="4" source_channel="Fit Global Parameters" source_node_id="8" />
+		<link enabled="true" id="6" sink_channel="Fit Global Parameters" sink_node_id="4" source_channel="Fit Global Parameters" source_node_id="8" />
 		<link enabled="true" id="7" sink_channel="Fit Global Parameters" sink_node_id="9" source_channel="Fit Global Parameters" source_node_id="6" />
 		<link enabled="true" id="8" sink_channel="Fit Global Parameters" sink_node_id="11" source_channel="Fit Global Parameters" source_node_id="7" />
 		<link enabled="true" id="9" sink_channel="Fit Global Parameters" sink_node_id="12" source_channel="Fit Global Parameters" source_node_id="11" />
@@ -35,7 +34,6 @@
 		<link enabled="true" id="12" sink_channel="Fit Global Parameters" sink_node_id="10" source_channel="Fit Global Parameters" source_node_id="13" />
 		<link enabled="true" id="13" sink_channel="Fit Global Parameters" sink_node_id="14" source_channel="Fit Global Parameters" source_node_id="10" />
 		<link enabled="true" id="14" sink_channel="Fit Global Parameters" sink_node_id="15" source_channel="Fit Global Parameters" source_node_id="14" />
-		<link enabled="true" id="15" sink_channel="Fit Global Parameters" sink_node_id="16" source_channel="Fit Global Parameters" source_node_id="8" />
 	</links>
 	<annotations />
 	<thumbnail />
@@ -49,21 +47,11 @@
 		<properties format="literal" node_id="6">{'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\xff\xff\xf9\xff\x00\x00\x00U\xff\xff\xff&amp;\x00\x00\x03)\xff\xff\xf9\xff\x00\x00\x00k\xff\xff\xff&amp;\x00\x00\x03)\x00\x00\x00\x01\x00\x00\x00\x00\x0f\x00', 'is_automatic_run': False, 'fitting_method': 0, 'n_iterations': 1, '__version__': 1, 'is_incremental': True, 'fitter': 1}</properties>
 		<properties format="literal" node_id="7">{'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\xff\xff\xf9P\x00\x00\x00j\xff\xff\xfew\x00\x00\x03&gt;\xff\xff\xf9P\x00\x00\x00\x80\xff\xff\xfew\x00\x00\x03&gt;\x00\x00\x00\x01\x00\x00\x00\x00\x0f\x00', 'is_automatic_run': False, 'fitting_method': 0, 'n_iterations': 1, '__version__': 1, 'is_incremental': True, 'fitter': 1}</properties>
 		<properties format="literal" node_id="8">{'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x00D\x00\x00\x00M\x00\x00\x05k\x00\x00\x03!\x00\x00\x00D\x00\x00\x00c\x00\x00\x05k\x00\x00\x03!\x00\x00\x00\x00\x00\x00\x00\x00\x07\x80', 'is_automatic_run': True, 'fitting_method': 0, 'n_iterations': 1, '__version__': 1, 'is_incremental': False, 'fitter': 1}</properties>
-		<properties format="literal" node_id="9">{'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x01\x0e\x00\x00\x00\x88\x00\x00\x02\xaa\x00\x00\x03`\x00\x00\x01\x0e\x00\x00\x00\x9e\x00\x00\x02\xaa\x00\x00\x03`\x00\x00\x00\x00\x00\x00\x00\x00\x07\x80', 'is_automatic_run': True, 'a': 0.2873, 's_max': 9.0, 'reflections': '1, 1, 0, intensity1 4170.20382147, min 0.0\n2, 0, 0, intensity2 703.939502041, min 0.0\n2, 1, 1, intensity3 1744.40546368, min 0.0\n2, 2, 0, intensity4 563.636490163, min 0.0\n3, 1, 0, intensity5 644.108397779, min 0.0\n2,  2,  2, intensity6 10, min 0\n3,  2,  1, intensity7 10, min 0', 'simmetry': 2, '__version__': 1, 'n_step': 4096}</properties>
+		<properties format="literal" node_id="9">{'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x01\x0e\x00\x00\x00\x88\x00\x00\x02\xaa\x00\x00\x03`\x00\x00\x01\x0e\x00\x00\x00\x9e\x00\x00\x02\xaa\x00\x00\x03`\x00\x00\x00\x00\x00\x00\x00\x00\x07\x80', 'is_automatic_run': True, 'a': 0.2873, 's_max': 9.0, 'reflections': '1, 1, 0, intensity1 4170.18820229, min 0.0\n2, 0, 0, intensity2 703.938178558, min 0.0\n2, 1, 1, intensity3 1744.40450257, min 0.0\n2, 2, 0, intensity4 563.636308995, min 0.0\n3, 1, 0, intensity5 644.108602367, min 0.0\n2, 2, 2, intensity6 10.0, min 0.0\n3, 2, 1, intensity7 10.0, min 0.0\n', 'simmetry': 2, '__version__': 1, 'n_step': 4096}</properties>
 		<properties format="literal" node_id="10">{'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x00\x14\x00\x00\x00+\x00\x00\x05;\x00\x00\x02\xff\x00\x00\x00\x14\x00\x00\x00A\x00\x00\x05;\x00\x00\x02\xff\x00\x00\x00\x00\x00\x00\x00\x00\x07\x80', 'is_automatic_run': False, 'fitting_method': 0, 'n_iterations': 1, '__version__': 1, 'is_incremental': True, 'fitter': 1}</properties>
 		<properties format="literal" node_id="11">{'sigma_max': 0.8, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x00^\x00\x00\x00\x1f\x00\x00\x01\xfa\x00\x00\x02\xf7\x00\x00\x00^\x00\x00\x005\x00\x00\x01\xfa\x00\x00\x02\xf7\x00\x00\x00\x00\x00\x00\x00\x00\x07\x80', 'sigma_min': 0.01, '__version__': 1, 'shape': 1, 'mu_has_min': True, 'sigma_fixed': False, 'mu_fixed': False, 'mu_min': 1.0, 'distribution': 1, 'is_automatic_run': True, 'mu_has_max': True, 'sigma_has_max': True, 'mu_max': 5.0, 'sigma': 0.353, 'mu': 2.1711, 'sigma_has_min': True}</properties>
 		<properties format="literal" node_id="12">{'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\xff\xff\xf9\x88\x00\x00\x00Z\xff\xff\xfe\xaf\x00\x00\x03.\xff\xff\xf9\x88\x00\x00\x00p\xff\xff\xfe\xaf\x00\x00\x03.\x00\x00\x00\x01\x00\x00\x00\x00\x0f\x00', 'is_automatic_run': False, 'fitting_method': 0, 'n_iterations': 1, '__version__': 1, 'is_incremental': True, 'fitter': 1}</properties>
-		<properties format="pickle" node_id="13">gAN9cQAoWAkAAABzaWdtYV9tYXhxAUc/8AAAAAAAAFgTAAAAc2F2ZWRXaWRnZXRHZW9tZXRyeXEC
-QzIB2dDLAAIAAAAAAF4AAAAfAAAB+gAAAvcAAABeAAAANQAAAfoAAAL3AAAAAAAAAAAHgHEDWAkA
-AABzaWdtYV9taW5xBEc/uZmZmZmZmlgLAAAAX192ZXJzaW9uX19xBUsBWAUAAABzaGFwZXEGSwFY
-CgAAAG11X2hhc19taW5xB4lYCwAAAHNpZ21hX2ZpeGVkcQiIWAgAAABtdV9maXhlZHEJiFgGAAAA
-bXVfbWlucQpHP/gAAAAAAABYDAAAAGRpc3RyaWJ1dGlvbnELSwFYEAAAAGlzX2F1dG9tYXRpY19y
-dW5xDIhYCgAAAG11X2hhc19tYXhxDYlYDQAAAHNpZ21hX2hhc19tYXhxDolYBgAAAG11X21heHEP
-R0AUAAAAAAAAWAUAAABzaWdtYXEQY251bXB5LmNvcmUubXVsdGlhcnJheQpzY2FsYXIKcRFjbnVt
-cHkKZHR5cGUKcRJYAgAAAGY4cRNLAEsBh3EUUnEVKEsDWAEAAAA8cRZOTk5K/////0r/////SwB0
-cRdiQwhm+7MJadHmP3EYhnEZUnEaWAIAAABtdXEbaBFoFUMIEPPMQls4/T9xHIZxHVJxHlgNAAAA
-c2lnbWFfaGFzX21pbnEfiXUu
-</properties>
+		<properties format="literal" node_id="13">{'sigma_max': 1.0, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x00^\x00\x00\x00\x1f\x00\x00\x01\xfa\x00\x00\x02\xf7\x00\x00\x00^\x00\x00\x005\x00\x00\x01\xfa\x00\x00\x02\xf7\x00\x00\x00\x00\x00\x00\x00\x00\x07\x80', 'sigma_min': 0.1, '__version__': 1, 'shape': 1, 'mu_has_min': False, 'sigma_fixed': True, 'mu_fixed': True, 'mu_min': 1.5, 'distribution': 1, 'is_automatic_run': True, 'mu_has_max': False, 'sigma_has_max': False, 'mu_max': 5.0, 'sigma': 0.712918447094, 'mu': 1.8268393337, 'sigma_has_min': False}</properties>
 		<properties format="pickle" node_id="14">gAN9cQAoWAkAAABzaWdtYV9tYXhxAUc/8AAAAAAAAFgTAAAAc2F2ZWRXaWRnZXRHZW9tZXRyeXEC
 QzIB2dDLAAIAAAAAAF4AAAAfAAAB+gAAAvcAAABeAAAANQAAAfoAAAL3AAAAAAAAAAAHgHEDWAkA
 AABzaWdtYV9taW5xBEc/uZmZmZmZmlgLAAAAX192ZXJzaW9uX19xBUsBWAUAAABzaGFwZXEGSwFY
@@ -76,6 +64,5 @@ AHRxF2JDCGb7swlp0eY/cRiGcRlScRpYAgAAAG11cRtoEWgVQwgQ88xCWzj9P3EchnEdUnEeWA0A
 AABzaWdtYV9oYXNfbWlucR+IdS4=
 </properties>
 		<properties format="literal" node_id="15">{'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x01l\x00\x00\x00K\x00\x00\x06\x93\x00\x00\x03\x1f\x00\x00\x01l\x00\x00\x00a\x00\x00\x06\x93\x00\x00\x03\x1f\x00\x00\x00\x00\x00\x00\x00\x00\x07\x80', 'is_automatic_run': False, 'fitting_method': 0, 'n_iterations': 1, '__version__': 1, 'is_incremental': True, 'fitter': 1}</properties>
-		<properties format="literal" node_id="16">{'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x01\x0c\x00\x00\x00\x82\x00\x00\x02\xa8\x00\x00\x03Z\x00\x00\x01\x0c\x00\x00\x00\x98\x00\x00\x02\xa8\x00\x00\x03Z\x00\x00\x00\x00\x00\x00\x00\x00\x07\x80', 'is_automatic_run': True, 'a': 0.2873, 's_max': 9.0, 'reflections': '1, 1, 0, intensity1 2071.38054367, min 0.0\n2, 0, 0, intensity2 304.045184899, min 0.0\n2, 1, 1, intensity3 667.85789925, min 0.0\n2, 2, 0, intensity4 177.199157689, min 0.0\n3, 1, 0, intensity5 36.2129827316, min 0.0\n', 'simmetry': 2, '__version__': 1, 'n_step': 4096}</properties>
 	</node_properties>
 </scheme>
