@@ -1,6 +1,6 @@
-import os, sys, threading
+import sys
 
-from PyQt5.QtWidgets import QMessageBox, QScrollArea, QTableWidget, QApplication
+from PyQt5.QtWidgets import QMessageBox, QScrollArea, QApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPalette, QColor, QFont
 
@@ -10,16 +10,10 @@ from Orange.widgets.settings import Setting
 from Orange.widgets import gui as orangegui
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
-from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ShowTextDialog
+from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui
 from orangecontrib.xrdanalyzer.util import congruence
 
-from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPatternFactory
-
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection, Simmetry
-from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
 from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName
 from orangecontrib.xrdanalyzer.controller.fit.fitter_lmfit import LmfitFittingMethods
 

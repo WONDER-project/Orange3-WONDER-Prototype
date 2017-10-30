@@ -23,8 +23,9 @@ from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, Fit
 from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_peak
 
 class LmfitFittingMethods:
-    LEVENBERG_MARQUARDT = "leastsq"
     LEAST_SQUARES = "least_squares"
+    LEVENBERG_MARQUARDT = "leastsq"
+
     
     '''
     'differential_evolution’: differential evolution
