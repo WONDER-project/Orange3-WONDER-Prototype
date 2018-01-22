@@ -1,12 +1,8 @@
 import numpy
 
-from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
-from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground
-from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Caglioti
-from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import SizeParameters
-from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList
 
-class FitGlobalParameters:
+class FitGlobalParameters(FitParametersList):
 
     fit_initialization = None
     background_parameters = None
@@ -20,12 +16,24 @@ class FitGlobalParameters:
                  instrumental_parameters = None,
                  size_parameters = None,
                  strain_parameters = None):
+        super().__init__()
+
         self.fit_initialization = fit_initialization
         self.background_parameters = background_parameters
         self.instrumental_parameters = instrumental_parameters
         self.size_parameters = size_parameters
         self.strain_parameters = strain_parameters
 
+        if not self.fit_initialization is None:
+            self.append(self.fit_initialization.get_parameters())
+        if not self.background_parameters is None:
+            self.append(self.background_parameters.get_parameters())
+        if not self.instrumental_parameters is None:
+            self.append(self.instrumental_parameters.get_parameters())
+        if not self.size_parameters is None:
+            self.append(self.size_parameters.get_parameters())
+        if not self.strain_parameters is None:
+            self.append(self.strain_parameters.get_parameters())
 
     def to_scipy_tuple(self):
         fit_global_parameters = []

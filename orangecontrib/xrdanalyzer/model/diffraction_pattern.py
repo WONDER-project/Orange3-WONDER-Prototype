@@ -278,7 +278,7 @@ class DiffractionPatternXye(DiffractionPattern):
 
     def __initialize_from_file(self, file_name, limits):
         #method supposes only 2 rows of header are present
-        #can be changed. Right now i want to finish
+        #can be changed. Right now I want to finish
         with open(file_name, 'r') as xyefile : lines = xyefile.readlines()
         n_points = len(lines) - 2
         if n_points > 0:
@@ -290,14 +290,25 @@ class DiffractionPatternXye(DiffractionPattern):
 
                 if len(lines) < 2 : raise  Exception("Number of columns in line " + str(i) + " < 2: wrong file format")
 
-                if limits is None:
-                    self.set_diffraction_point(index=i-2, diffraction_point=DiffractionPoint(twotheta=float(line[0]), intensity=float(line[1])))
+                twotheta = float(line[0])
+                intensity = float(line[1])
+
+                if len(lines >= 3):
+                    error = float(line[2])
                 else:
-                    twotheta = float(line[0])
+                    error = numpy.sqrt(intensity)
+
+                if limits is None:
+                    self.set_diffraction_point(index=i-2,
+                                               diffraction_point=DiffractionPoint(twotheta=twotheta,
+                                                                                  intensity=intensity,
+                                                                                  error=error))
+                else:
 
                     if  limits.twotheta_min <= twotheta <= limits.twotheta_max:
-                        self.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=twotheta, intensity=float(line[1])))
-
+                        self.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=twotheta,
+                                                                                      intensity=intensity,
+                                                                                      error=error))
 
 class DiffractionPatternRaw(DiffractionPattern):
     def __init__(self, file_name= "", limits=None):
@@ -322,17 +333,22 @@ class DiffractionPatternRaw(DiffractionPattern):
             index = i-2
             line = lines[i]
 
+            intensity = float(line)
+            error = numpy.sqrt(intensity)
+
             if limits is None:
                 self.set_diffraction_point(index,
                                            diffraction_point= DiffractionPoint(twotheta=starting_theta + step*index,
-                                                                               intensity=float(line),
+                                                                               intensity=intensity,
+                                                                               error=error,
                                                                                wavelength=self.wavelength))
             else:
                 twotheta = starting_theta + step*index
 
                 if  limits.twotheta_min <= twotheta <= limits.twotheta_max:
                     self.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=twotheta,
-                                                                                  intensity=float(line),
+                                                                                  intensity=intensity,
+                                                                                  error=error,
                                                                                   wavelength=self.wavelength))
 
 

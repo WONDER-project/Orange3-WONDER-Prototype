@@ -149,7 +149,7 @@ class OWBackground(OWGenericWidget):
 
 if __name__ == "__main__":
     a4 =  QApplication(sys.argv)
-    ow = OWDiffractionPattern()
+    ow = OWBackground()
     ow.show()
     a.exec_()
     ow.saveSettings()

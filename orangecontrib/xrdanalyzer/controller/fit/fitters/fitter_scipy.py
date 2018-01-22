@@ -2,22 +2,9 @@
 import numpy
 from scipy.optimize import curve_fit
 
-
-from orangecontrib.xrdanalyzer import Singleton, synchronized_method
-
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Simmetry, Reflection
-from orangecontrib.xrdanalyzer.util.general_functions import fft
-
 from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
-
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
-from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection
-from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
-from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
-from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import SizeParameters, Shape, Distribution
-
 from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener
 from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_peak
 

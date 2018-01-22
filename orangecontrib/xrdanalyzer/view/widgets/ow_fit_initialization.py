@@ -175,7 +175,7 @@ class OWFitInitialization(OWGenericWidget):
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)
-    ow = OWDiffractionPattern()
+    ow = OWFitInitialization()
     ow.show()
     a.exec_()
     ow.saveSettings()

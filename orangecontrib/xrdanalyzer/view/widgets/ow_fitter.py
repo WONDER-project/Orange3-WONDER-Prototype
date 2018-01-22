@@ -15,7 +15,7 @@ from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName
-from orangecontrib.xrdanalyzer.controller.fit.fitter_lmfit import LmfitFittingMethods
+from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_lmfit import LmfitFittingMethods
 
 
 class OWFitter(OWGenericWidget):
@@ -26,7 +26,7 @@ class OWFitter(OWGenericWidget):
 
     want_main_area = True
 
-    fitter = Setting(1)
+    fitter = Setting(0)
     fitting_method = Setting(0)
 
     n_iterations = Setting(5)
@@ -149,8 +149,8 @@ class OWFitter(OWGenericWidget):
         self.tab_fit_out.layout().addWidget(self.scrollarea_fit_out, alignment=Qt.AlignHCenter)
 
     def set_fitter(self):
-        self.fitter_box_1.setVisible(self.fitter == 0)
-        self.fitter_box_2.setVisible(self.fitter == 1)
+        self.fitter_box_1.setVisible(self.fitter <= 1)
+        self.fitter_box_2.setVisible(self.fitter == 2)
 
     def do_fit(self):
         try:

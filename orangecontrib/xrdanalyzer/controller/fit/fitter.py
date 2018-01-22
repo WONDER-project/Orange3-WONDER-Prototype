@@ -29,3 +29,5 @@ class FitterInterface:
     def do_specific_fit(self, fit_global_parameters):
         raise NotImplementedError("Abstract")
 
+
+

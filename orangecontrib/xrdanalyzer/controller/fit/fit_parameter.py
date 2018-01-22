@@ -48,12 +48,21 @@ class Boundary:
         self.max_value = max_value
 
 
+
+PARAM_FIX		= 1 << 0
+PARAM_SYS		= 1 << 1
+PARAM_REF		= 1 << 2
+PARAM_HWMIN		= -numpy.finfo('d').max
+PARAM_HWMAX		= numpy.finfo('d').max
+PARAM_ERR		= numpy.finfo('d').max
+
 class FitParameter(PM2KParameter):
     value = 0.0
     boundary = None
     fixed = False
+    step = PARAM_ERR
 
-    def __init__(self, value, parameter_name=None, boundary=None, fixed=False):
+    def __init__(self, value, parameter_name=None, boundary=None, fixed=False, step=PARAM_ERR):
         super().__init__(parameter_name=parameter_name)
         self.value = value
         self.fixed = fixed
@@ -63,6 +72,25 @@ class FitParameter(PM2KParameter):
         else:
             if boundary is None: self.boundary = Boundary()
             else: self.boundary = boundary
+
+        if step is None:
+            self.step = PARAM_ERR
+        else:
+            self.step = step
+
+    def check_value(self):
+        if self.value is None: raise ValueError("Parameter Value cannot be None")
+        if not self.fixed:
+            if self.boundary is None: self.boundary = Boundary()
+
+            if self.value > self.boundary.max_value:
+                self.value = self.boundary.max_value
+            elif self.value < self.boundary.min_value:
+                self.value = self.boundary.min_value
+        else:
+            if self.boundary is None: self.boundary = Boundary(min_value=self.value, max_value=self.value + 1e-12)
+
+
 
     def to_PM2K(self, type=PM2KParameter.GLOBAL_PARAMETER):
         text = self.get_type_name(type) + self.get_parameter_name(fixed=self.fixed) + " " + str(self.value)
@@ -118,6 +146,15 @@ class FitParametersList:
     def get_parameters_count(self):
         self._check_list()
         return len(self.fit_parameters_list)
+
+    def get_parameters(self):
+        self._check_list()
+        return self.fit_parameters_list
+
+    def append(self, fit_parameters_list):
+        if not fit_parameters_list is None:
+            for parameter in fit_parameters_list:
+                self.fit_parameters_list.append(parameter)
 
     def to_scipy_tuple(self):
         self._check_list()
