@@ -288,12 +288,12 @@ class DiffractionPatternXye(DiffractionPattern):
             for i in numpy.arange(2, n_points+2):
                 line = lines[i].split()
 
-                if len(lines) < 2 : raise  Exception("Number of columns in line " + str(i) + " < 2: wrong file format")
+                if len(line) < 2 : raise  Exception("Number of columns in line " + str(i) + " < 2: wrong file format")
 
                 twotheta = float(line[0])
                 intensity = float(line[1])
 
-                if len(lines >= 3):
+                if len(line) >= 3:
                     error = float(line[2])
                 else:
                     error = numpy.sqrt(intensity)

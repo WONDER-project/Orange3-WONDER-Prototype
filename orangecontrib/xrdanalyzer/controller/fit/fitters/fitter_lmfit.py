@@ -54,7 +54,13 @@ class FitterLmfit(FitterInterface):
 
         self.fitting_method = fitting_method
 
-    def do_specific_fit(self, fit_global_parameters):
+    def init_fitter(self, fit_global_parameters):
+        pass
+
+    def finalize_fit(self):
+        pass
+
+    def do_specific_fit(self, fit_global_parameters, current_iteration):
         parameters = self.build_lmfit_parameters(fit_global_parameters)
 
         twotheta_experimental, intensity_experimental, error_experimental, s_experimental = fit_global_parameters.fit_initialization.diffraction_pattern.tuples()

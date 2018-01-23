@@ -13,6 +13,20 @@ class FitInitialization:
         self.crystal_structure = crystal_structure
         self.fft_parameters = fft_parameters
 
+    def get_parameters(self):
+        parameters = []
+
+        # ADESSO WL e fissa, dovra diventare un parametro di fit
+        #if not self.diffraction_pattern is None:
+        #    for parameter in self.diffraction_pattern.get_parameters():
+        #        parameters.append(parameter)
+
+        if not self.crystal_structure is None:
+            for parameter in self.crystal_structure.get_parameters():
+                parameters.append(parameter)
+
+        return parameters
+
     def append_to_scipy_tuple(self, parameters, boundaries):
 
         # ADESSO WL e fissa, dovra diventare un parametro di fit

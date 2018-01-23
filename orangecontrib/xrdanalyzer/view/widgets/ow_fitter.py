@@ -159,6 +159,11 @@ class OWFitter(OWGenericWidget):
 
                 self.progressBarInit()
 
+                fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
+                                                     fitting_method=self.cb_fitting_method.currentText())
+
+                fitter.init_fitter(self.fit_global_parameters)
+
                 fitted_fit_global_parameters = self.fit_global_parameters
 
                 for iteration in range(1, self.n_iterations + 1):
@@ -166,16 +171,18 @@ class OWFitter(OWGenericWidget):
                     self.progressBarSet(int(iteration/self.n_iterations)*100)
                     self.setStatusMessage("Fitting iteration nr. " + str(iteration))
 
-                    fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
-                                                         fitting_method=self.cb_fitting_method.currentText())
-
-                    self.fitted_pattern, fitted_fit_global_parameters = fitter.do_fit(fit_global_parameters=fitted_fit_global_parameters)
+                    self.fitted_pattern, fitted_fit_global_parameters = fitter.do_fit(fit_global_parameters=fitted_fit_global_parameters,
+                                                                                      current_iteration=iteration)
 
                     self.show_data()
 
                     self.text_area_fit_out.setText(fitted_fit_global_parameters.to_text())
 
                     self.tabs.setCurrentIndex(1)
+
+                    self.current_iteration = iteration
+
+                fitter.finalize_fit()
 
                 self.setStatusMessage("Fitting procedure completed")
 

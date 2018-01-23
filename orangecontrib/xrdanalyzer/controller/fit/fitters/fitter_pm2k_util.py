@@ -77,34 +77,30 @@ class CMatrix:
         self.m = _m
 
         if self.n > 0 and self.m > 0:
-            self.data = numpy.zeros(self.n*self.m)
-            self.idx = numpy.arange(stop=self.n, dtype=int)*self.m
+            self.data = numpy.zeros(self.n*self.m).reshape((self.n, self.m))
         else:
             self.data = None
-            self.idx = None
 
     def setSize(self, _n, _m):
         if (self.n == _n) and (self.m == _m):
             return
 
         if self.n*self.m != _n*_m:
-            self.data = numpy.zeros(self.n*self.m)
+            self.data = numpy.zeros(self.n*self.m).reshape((self.n, self.m))
 
         self.n = _n
         self.m = _m
-
-        self.idx = numpy.arange(stop=self.n, dtype=int)*self.m
 
     #inline double *operator [] (int i)		  const { assert(i<n);  return idx[i]; }
     def __getitem__(self, index):
         assert index < self.n
 
-        return self.data[index]
+        return self.data[index, :]
 
     def __setitem__(self, index, value):
         assert index < self.n
 
-        self.data[index] = value
+        self.data[index, :] = value
 
 
     #inline double &operator () (int i, int j) const	{ assert(j<=m); return idx[--i][--j]; }
@@ -112,14 +108,16 @@ class CMatrix:
     def getitem(self, i, j=None):
         if j is None:
             assert i <= self.n
-            return self.idx[--i]
+            return self.data[i-1, :]
         else:
             assert j <= self.m
-            return self.data[self.idx[--i]*--j]
+
+            return self.data[i-1, j-1]
 
     def setitem(self, i, j, value):
         assert j <= self.m
-        self.data[self.idx[--i]*--j] = value
+
+        self.data[i-1, j-1] = value
 
     def zero(self):
         self.__init__(self.n, self.m)
@@ -130,12 +128,12 @@ class CMatrix:
     def __str__(self):
         str = ""
         if not self.data is None:
-            for index in self.idx:
+            for j in range(0, self.m):
                 for i in range(0, self.n):
-                    str += "%4.4f\t"%self.data[index*i]
+                    str += "%4.4f\t"%self.data[i, j]
                 str += "\n"
         return str
-
+import copy
 class CTriMatrix:
 
     def __init__(self, _n=0, other=None):
@@ -143,7 +141,7 @@ class CTriMatrix:
             self._create_attributes(_n)
         else:
             self.n = other.getSize()
-            self.data = numpy.ones(self.n)*other.data
+            self.data = copy.deepcopy(other.data)
 
     def _create_attributes(self, _n):
         self.n = _n
@@ -152,6 +150,9 @@ class CTriMatrix:
             self.data = numpy.zeros(int(self.n*(self.n + 1)/2))
         else:
             self.data = None
+
+    def getSize(self):
+        return self.n
 
     def setSize(self, _n):
         if self.n != _n:
@@ -196,8 +197,11 @@ class CTriMatrix:
             assert i <= self.n
             assert j <= self.n
 
-            if --i < --j : i, j = self.swap(i, j)
-            l = i*(i+1)/2
+            i -=1
+            j -=1
+
+            if i < j : i, j = self.swap(i, j)
+            l = int(i*(i+1)/2)
 
             return self.data[l+j]
 
@@ -208,11 +212,11 @@ class CTriMatrix:
 
     def chodec(self):
         for j in range(1, self.n+1):
-            l = j*(j+1)/2
+            l = int(j*(j+1)/2)
 
             if j>1:
                 for i in range(j, self.n+1):
-                    k1 = i*(i-1)/2+j
+                    k1 = int(i * (i - 1)/2 + j)
                     f  = self.getitem(k1)
                     k2 = j - 1
                     for k in range(1, k2+1):
@@ -223,7 +227,7 @@ class CTriMatrix:
                     f = numpy.sqrt(self.getitem(l))
 
                     for i in range(j, self.n+1):
-                        k2 = i*(i-1)/2+j
+                        k2 = int(i*(i-1)/2+j)
                         self.setitem(k2, self.getitem(k2)/f)
                 else:
                     return -1; # negative diagonal
@@ -250,7 +254,7 @@ class CTriMatrix:
 
                 i = self.n+2-k1
                 k = i-1
-                l = i*k/2
+                l = int(i*k/2)
 
                 for j in range (1, k+1):
                     g.setitem(j, g.getitem(i) - self.getitem(l+j)*g.getitem(i))
@@ -259,8 +263,7 @@ class CTriMatrix:
     def zero(self):
         self.__init__(self.n)
 
-    def getSize(self):
-        return self.n
+
 
     def __str__(self):
         str = ""

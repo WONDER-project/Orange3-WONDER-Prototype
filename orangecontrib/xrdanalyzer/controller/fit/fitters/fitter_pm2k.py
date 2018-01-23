@@ -30,9 +30,7 @@ class FitterPM2K(FitterInterface):
     def __init__(self):
         super().__init__()
 
-        self.reset()
-
-    def reset(self, fit_global_parameters):
+    def init_fitter(self, fit_global_parameters):
         self.totalWeight = 0.0
 
         self._lambda	= .001
@@ -75,7 +73,7 @@ class FitterPM2K(FitterInterface):
         self.currpar.setSize(self.nfit)
 
         self.nincr	= 0 # number of increments in lambda
-        self.wss = self.getWSSQ()
+        self.wss = 0
         self.oldwss  = self.wss
 
         self.conver = False
@@ -91,250 +89,258 @@ class FitterPM2K(FitterInterface):
 
         self.mighell = False
 
-    def do_specific_fit(self, fit_global_parameters):
+    def do_specific_fit(self, fit_global_parameters, current_iteration):
 
-        # check values of lambda for large number of iterations
-        if (self._totIter > 4 and self._lambda < self._lmin): self._lmin = self._lambda
+        if not self.conver:
 
-        #update total number of iterations
-        self._totIter += 1
+            # check values of lambda for large number of iterations
+            if (self._totIter > 4 and self._lambda < self._lmin): self._lmin = self._lambda
 
-        #decrease lambda using golden section 0.31622777=1/(sqrt(10.0))
-        self._lambda *= 0.31622777
+            #update total number of iterations
+            self._totIter += 1
 
-        #number of increments in lambda
-        self._nincr = 0
+            #decrease lambda using golden section 0.31622777=1/(sqrt(10.0))
+            self._lambda *= 0.31622777
 
-        #zero the working arrays
-        self.a.zero()
-        self.grad.zero()
+            #number of increments in lambda
+            self._nincr = 0
 
-        fmm = self.getWeightedDelta()
-        deriv = self.getDerivative()
+            #zero the working arrays
+            self.a.zero()
+            self.grad.zero()
 
-        for i in range(1, self.getNrPoint() + 1):
-            for jj in range(1, self.nfit + 1):
+            fmm = self.getWeightedDelta()
+            deriv = self.getDerivative()
 
-                l = int(jj*(jj-1)/2)
-                self.grad.setitem(jj, self.grad.getitem(jj) + deriv.getitem(jj, i)*fmm[i-1])
+            for i in range(1, self.getNrPoint() + 1):
+                for jj in range(1, self.nfit + 1):
 
-                for k in range(1, jj+1):
-                    self.a.setitem(l+k, self.a.getitem(i) + deriv.getitem(jj,i)*deriv.getitem(k,i))
+                    l = int(jj*(jj-1)/2)
+                    self.grad.setitem(jj, self.grad.getitem(jj) + deriv.getitem(jj, i)*fmm[i-1])
 
-        self.c.assign(self.a) #save the matrix A and the current value of the parameters
+                    for k in range(1, jj+1):
+                        self.a.setitem(l+k, self.a.getitem(l+k) + deriv.getitem(jj, i)*deriv.getitem(k, i))
 
-        j = 0
-        for  i in range (0, self.nprm):
-            parameter = self.parameters[i]
+            self.c.assign(self.a) #save the matrix A and the current value of the parameters
 
-            if not parameter.fixed and not parameter.function:
-                j += 1
-                self.initialpar.setitem(j, parameter.value)
-                self.currpar.setitem(j, self.initialpar.getitem(j))
+            j = 0
+            for  i in range (0, self.nprm):
+                parameter = self.parameters[i]
 
-        # emulate C++ do ... while cycle
-        do_cycle = True
-        while do_cycle:
-            self.exitflag = False
-            self.conver = False
+                if not parameter.fixed and not parameter.function:
+                    j += 1
+                    self.initialpar.setitem(j, parameter.value)
+                    self.currpar.setitem(j, self.initialpar.getitem(j))
 
-            #set the diagonal of A to be A*(1+lambda)+phi*lambda
-            da = self._phi*self._lambda
+            # emulate C++ do ... while cycle
+            do_cycle = True
+            while do_cycle:
+                self.exitflag = False
+                self.conver = False
 
-            for jj in range(1, self.nfit+1):
-                self.g.setitem(jj, -self.grad.getitem(jj))
-                l = jj*(jj+1)/2
-                self.a.setitem(l, self.c.getitem(l)*(1.0 + self._lambda) + da)
-                if jj > 1:
-                    for i in range (1, jj+1):
-                        self.a.setitem(l-i, self.c.getitem(l-i))
+                #set the diagonal of A to be A*(1+lambda)+phi*lambda
+                da = self._phi*self._lambda
 
-            if self.a.chodec() == 0: # Cholesky decomposition
-                # the matrix is inverted, so calculate g (change in the
-				# parameters) by back substitution
-                self.a.choback(self.g)
+                for jj in range(1, self.nfit+1):
+                    self.g.setitem(jj, -self.grad.getitem(jj))
+                    l = int(jj*(jj+1)/2)
+                    self.a.setitem(l, self.c.getitem(l)*(1.0 + self._lambda) + da)
+                    if jj > 1:
+                        for i in range (1, jj+1):
+                            self.a.setitem(l-i, self.c.getitem(l-i))
 
-                recyc = False
-                prevwss = self.oldwss
-                recycle = 1
+                if self.a.chodec() == 0: # Cholesky decomposition
+                    # the matrix is inverted, so calculate g (change in the
+                    # parameters) by back substitution
+                    self.a.choback(self.g)
 
-                # Update the parameters: param = old param + g
-				# n0 counts the number of zero elements in g
-                do_cycle = True
-                while do_cycle:
                     recyc = False
-                    n0 = 0
-                    i = 0
-                    for j in range(0, self.nprm):
-                        parameter = self.parameters[j]
+                    prevwss = self.oldwss
+                    recycle = 1
 
-                        if not parameter.fixed and not parameter.function:
-                            i += 1
+                    # Update the parameters: param = old param + g
+                    # n0 counts the number of zero elements in g
+                    do_cycle = True
+                    while do_cycle:
+                        recyc = False
+                        n0 = 0
+                        i = 0
+                        for j in range(0, self.nprm):
+                            parameter = self.parameters[j]
 
-                            # update value of parameter
-                            self.parameters[j].value = self.currpar.get_item(i) + recycle*self.g.get_item(i)
-                            #  apply the required constraints (min/max)
-                            self.parameters[j].check_value()
+                            if not parameter.fixed and not parameter.function:
+                                i += 1
 
-                            # check number of parameters reaching convergence
-                            if (abs(self.g.getitem(i))<=abs(PRCSN*self.currpar.getitem(i))): n0 += 1
+                                # update value of parameter
+                                self.parameters[j].value = self.currpar.get_item(i) + recycle*self.g.get_item(i)
+                                #  apply the required constraints (min/max)
+                                self.parameters[j].check_value()
 
-                    if (n0==self.nfit): self.conver = True
+                                # check number of parameters reaching convergence
+                                if (abs(self.g.getitem(i))<=abs(PRCSN*self.currpar.getitem(i))): n0 += 1
 
-                    # update the wss
+                        if (n0==self.nfit): self.conver = True
+
+                        # update the wss
+                        self.wss = self.getWSSQ()
+
+                        if self.wss < prevwss:
+                            prevwss = self.wss
+                            recyc = True
+                            recycle += 1
+
+                        # last line of while loop
+                        do_cycle = recyc and recycle<10
+
+                    if recycle > 1:
+
+                        # restore parameters to best value
+                        recycle -= 1
+
+                        i = 0
+                        for j in range(0, self.nprm):
+                            parameter = self.parameters[j]
+
+                            if not parameter.fixed and not parameter.function:
+                                i += 1
+
+                                # update value of parameter
+                                self.parameters[j].value = self.currpar.get_item(i) + recycle*self.g.get_item(i)
+                                #  apply the required constraints (min/max)
+                                self.parameters[j].check_value()
+
+                        # update the wss
+                        self.wss = self.getWSSQ()
+
+
+                    # if all parameters reached convergence then it's time to quit
+
+                    if self.wss < self.oldwss:
+                        self.oldwss     = self.wss
+
+                        self.exitflag   = True
+
+                        ii = 0
+                        for j in range(0, self.nprm):
+                            parameter = self.parameters[j]
+
+                            if not parameter.fixed and not parameter.function:
+                                i += 1
+
+                                # update value of parameter
+                                self.initialpar.setitem(ii, self.currpar.get_item(ii) + recycle*self.g.get_item(ii))
+
                     self.wss = self.getWSSQ()
 
-                    if self.wss < prevwss:
-                        prevwss = self.wss
-                        recyc = True
-                        recycle += 1
+                    #TODO
+                    '''
+                    ss  = minObjList->getSSQFromData();
 
-                    # last line of while loop
-                    do_cycle = recyc and recycle<10
+                    double wsq	= minObjList->getWSQFromData();
+                    double rwp	= sqrt(wss / wsq);
+                    double rexp	= sqrt(((double)dof) / wsq);
+                    double gof	= rwp / rexp;
+                    '''
+                else:
+                    if not self.exitflag  and not self.conver:
+                        if self._lambda<PRCSN: self._lambda = PRCSN
+                        self._nincr += 1
+                        self._lambda *= 10.0
+                        if self._lambda>(1E5*self._lmin): self.conver = True
 
-                if recycle > 1:
+                # last line of the while loop
+                do_cycle =  not self.exitflag  and not self.conver
 
-                    # restore parameters to best value
-                    recycle -= 1
+            j = 0
 
-                    i = 0
-                    for j in range(0, self.nprm):
-                        parameter = self.parameters[j]
+            for i in range(0, self.nprm):
+                parameter = self.parameters[i]
 
-                        if not parameter.fixed and not parameter.function:
-                            i += 1
+                if not parameter.fixed and not parameter.function:
+                    j += 1
+                    self.parameters[i].value = self.initialpar.getitem(j)
+                    #  apply the required constraints (min/max)
+                    self.parameters[i].check_value()
 
-                            # update value of parameter
-                            self.parameters[j].value = self.currpar.get_item(i) + recycle*self.g.get_item(i)
-                            #  apply the required constraints (min/max)
-                            self.parameters[j].check_value()
-
-                    # update the wss
-                    self.wss = self.getWSSQ()
-
-
-                # if all parameters reached convergence then it's time to quit
-
-                if self.wss < self.oldwss:
-                    self.oldwss     = self.wss
-
-                    self.exitflag   = True
-
-                    ii = 0
-                    for j in range(0, self.nprm):
-                        parameter = self.parameters[j]
-
-                        if not parameter.fixed and not parameter.function:
-                            i += 1
-
-                            # update value of parameter
-                            self.initialpar.setitem(ii, self.currpar.get_item(ii) + recycle*self.g.get_item(ii))
-
-                self.wss = self.getWSSQ()
-
-                #TODO
-                '''
-				ss  = minObjList->getSSQFromData();
-
-				double wsq	= minObjList->getWSQFromData();
-				double rwp	= sqrt(wss / wsq);
-				double rexp	= sqrt(((double)dof) / wsq);
-				double gof	= rwp / rexp;
-                '''
-            else:
-                if not self.exitflag  and not self.conver:
-                    if self._lambda<PRCSN: self._lambda = PRCSN
-                    self._nincr += 1
-                    self._lambda *= 10.0
-                    if self._lambda>(1E5*self._lmin): self.conver = True
-
-            # last line of the while loop
-            do_cycle =  not self.exitflag  and not self.conver
-
-        j = 0
-
-        for i in range(0, self.nprm):
-            parameter = self.parameters[i]
-
-            if not parameter.fixed and not parameter.function:
-                j += 1
-                self.parameters[i].value = self.initialpar.get_item(j)
-                #  apply the required constraints (min/max)
-                self.parameters[i].check_value()
-
-
-        '''
-        fitted_parameters = current_parameters
-
+        fitted_parameters = self.parameters
 
         fit_global_parameters_out = self.build_fit_global_parameters_out(fitted_parameters)
 
         fitted_pattern = DiffractionPattern()
         fitted_pattern.wavelength = fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
 
-        fitted_intensity = fit_function(s_experimental, fitted_parameters)
+        fitted_intensity = fit_function(self.s_experimental, fitted_parameters)
 
         for index in range(0, len(fitted_intensity)):
-            fitted_pattern.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=twotheta_experimental[index],
+            fitted_pattern.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=self.twotheta_experimental[index],
                                                                                     intensity=fitted_intensity[index],
                                                                                     error=0.0,
-                                                                                    s=s_experimental[index]))
+                                                                                    s=self.s_experimental[index]))
 
         return fitted_pattern, fit_global_parameters_out
-        '''
+
+
+    def finalize_fit(self):
+        pass
+
 
     def build_fit_global_parameters_out(self, fitted_parameters):
         fit_global_parameters = FitterListener.Instance().get_registered_fit_global_parameters().duplicate()
         crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
 
-        crystal_structure.a.value = fitted_parameters[0]
-        crystal_structure.b.value = fitted_parameters[1]
-        crystal_structure.c.value = fitted_parameters[2]
-        crystal_structure.alpha.value = fitted_parameters[3]
-        crystal_structure.beta.value = fitted_parameters[4]
-        crystal_structure.gamma.value = fitted_parameters[5]
+        crystal_structure.a.value = fitted_parameters[0].value
+        crystal_structure.b.value = fitted_parameters[1].value
+        crystal_structure.c.value = fitted_parameters[2].value
+        crystal_structure.alpha.value = fitted_parameters[3].value
+        crystal_structure.beta.value = fitted_parameters[4].value
+        crystal_structure.gamma.value = fitted_parameters[5].value
 
         for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
-            crystal_structure.get_reflection(reflection_index).intensity.value = fitted_parameters[6+reflection_index]
+            crystal_structure.get_reflection(reflection_index).intensity.value = fitted_parameters[6+reflection_index].value
 
         last_index = crystal_structure.get_parameters_count() - 1
 
         if not fit_global_parameters.background_parameters is None:
-            fit_global_parameters.background_parameters.c0.value = fitted_parameters[last_index + 1]
-            fit_global_parameters.background_parameters.c1.value = fitted_parameters[last_index + 2]
-            fit_global_parameters.background_parameters.c2.value = fitted_parameters[last_index + 3]
-            fit_global_parameters.background_parameters.c3.value = fitted_parameters[last_index + 4]
-            fit_global_parameters.background_parameters.c4.value = fitted_parameters[last_index + 5]
-            fit_global_parameters.background_parameters.c5.value = fitted_parameters[last_index + 6]
+            fit_global_parameters.background_parameters.c0.value = fitted_parameters[last_index + 1].value
+            fit_global_parameters.background_parameters.c1.value = fitted_parameters[last_index + 2].value
+            fit_global_parameters.background_parameters.c2.value = fitted_parameters[last_index + 3].value
+            fit_global_parameters.background_parameters.c3.value = fitted_parameters[last_index + 4].value
+            fit_global_parameters.background_parameters.c4.value = fitted_parameters[last_index + 5].value
+            fit_global_parameters.background_parameters.c5.value = fitted_parameters[last_index + 6].value
 
             last_index += fit_global_parameters.background_parameters.get_parameters_count()
 
         if not fit_global_parameters.instrumental_parameters is None:
-            fit_global_parameters.instrumental_parameters.U.value = fitted_parameters[last_index + 1]
-            fit_global_parameters.instrumental_parameters.V.value = fitted_parameters[last_index + 2]
-            fit_global_parameters.instrumental_parameters.W.value = fitted_parameters[last_index + 3]
-            fit_global_parameters.instrumental_parameters.a.value = fitted_parameters[last_index + 4]
-            fit_global_parameters.instrumental_parameters.b.value = fitted_parameters[last_index + 5]
-            fit_global_parameters.instrumental_parameters.c.value = fitted_parameters[last_index + 6]
+            fit_global_parameters.instrumental_parameters.U.value = fitted_parameters[last_index + 1].value
+            fit_global_parameters.instrumental_parameters.V.value = fitted_parameters[last_index + 2].value
+            fit_global_parameters.instrumental_parameters.W.value = fitted_parameters[last_index + 3].value
+            fit_global_parameters.instrumental_parameters.a.value = fitted_parameters[last_index + 4].value
+            fit_global_parameters.instrumental_parameters.b.value = fitted_parameters[last_index + 5].value
+            fit_global_parameters.instrumental_parameters.c.value = fitted_parameters[last_index + 6].value
 
             last_index += fit_global_parameters.instrumental_parameters.get_parameters_count()
 
         if not fit_global_parameters.size_parameters is None:
-            fit_global_parameters.size_parameters.mu.value    = fitted_parameters[last_index + 1]
-            fit_global_parameters.size_parameters.sigma.value = fitted_parameters[last_index + 2]
+            fit_global_parameters.size_parameters.mu.value    = fitted_parameters[last_index + 1].value
+            fit_global_parameters.size_parameters.sigma.value = fitted_parameters[last_index + 2].value
 
             last_index += fit_global_parameters.size_parameters.get_parameters_count()
 
         if not fit_global_parameters.strain_parameters is None:
-            fit_global_parameters.strain_parameters.aa.value = fitted_parameters[last_index + 1]
-            fit_global_parameters.strain_parameters.bb.value = fitted_parameters[last_index + 2]
-            fit_global_parameters.strain_parameters.e1.value = fitted_parameters[last_index + 3] # in realtà è E1 dell'invariante PAH
-            fit_global_parameters.strain_parameters.e6.value = fitted_parameters[last_index + 4] # in realtà è E6 dell'invariante PAH
+            fit_global_parameters.strain_parameters.aa.value = fitted_parameters[last_index + 1].value
+            fit_global_parameters.strain_parameters.bb.value = fitted_parameters[last_index + 2].value
+            fit_global_parameters.strain_parameters.e1.value = fitted_parameters[last_index + 3].value # in realtà è E1 dell'invariante PAH
+            fit_global_parameters.strain_parameters.e6.value = fitted_parameters[last_index + 4].value # in realtà è E6 dell'invariante PAH
 
             last_index += fit_global_parameters.strain_parameters.get_parameters_count()
 
         return fit_global_parameters
 
+    ###############################################
+    #
+    # METODI minObj
+    #
+    ###############################################
 
     def getNrPoint(self):
         return len(self.twotheta_experimental)
@@ -346,16 +352,8 @@ class FitterPM2K(FitterInterface):
                 nfit += 1
         return nfit
 
-
-    def setStep(self, step):
-        self.y = numpy.zeros(self.np)
-        self.fmm = numpy.zeros(self.np)
-
-
-    # METODI minObj
-
     def getWeightedDelta(self):
-        y = fit_function(self.parameters, self.s_experimental)
+        y = fit_function(self.s_experimental, self.parameters)
 
         fmm = numpy.zeros(self.getNrPoint())
 
@@ -365,14 +363,12 @@ class FitterPM2K(FitterInterface):
             else:
                 fmm[i] = (y[i] - self.intensity_experimental[i])/self.error_experimental[i]
 
-
         return fmm
 
-
     def getDerivative(self):
-        y = fit_function(self.parameters, self.s_experimental)
+        y = fit_function(self.s_experimental, self.parameters)
 
-        deriv = CMatrix(self.getNrParamToFit())
+        deriv = CMatrix(self.getNrParamToFit(), self.getNrPoint())
 
         jj = 0
         for k in range (0, self.nprm):
@@ -409,7 +405,7 @@ class FitterPM2K(FitterInterface):
         return deriv
 
     def getWSSQ(self):
-        y = fit_function(self.parameters, self.s_experimental)
+        y = fit_function(self.s_experimental, self.parameters)
 
         wssq = 0.0
         wssqlow = 0.0
@@ -445,47 +441,53 @@ class FitterPM2K(FitterInterface):
         return wssq + wssqlow
 
 
+#################################################
+#
+# FIT FUNCTION
+#
+#################################################
+
 class CommonFittingData():
 
     def __init__(self, parameters):
         fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
         crystal_structure = fit_global_parameter.fit_initialization.crystal_structure
 
-        self.lattice_parameter = parameters[0]
+        self.lattice_parameter = parameters[0].value
 
         last_index = crystal_structure.get_parameters_count() - 1
 
         if not fit_global_parameter.background_parameters is None:
-            self.c0 = parameters[last_index + 1]
-            self.c1 = parameters[last_index + 2]
-            self.c2 = parameters[last_index + 3]
-            self.c3 = parameters[last_index + 4]
-            self.c4 = parameters[last_index + 5]
-            self.c5 = parameters[last_index + 6]
+            self.c0 = parameters[last_index + 1].value
+            self.c1 = parameters[last_index + 2].value
+            self.c2 = parameters[last_index + 3].value
+            self.c3 = parameters[last_index + 4].value
+            self.c4 = parameters[last_index + 5].value
+            self.c5 = parameters[last_index + 6].value
 
             last_index += fit_global_parameter.background_parameters.get_parameters_count()
 
         if not fit_global_parameter.instrumental_parameters is None:
-            self.U = parameters[last_index + 1]
-            self.V = parameters[last_index + 2]
-            self.W = parameters[last_index + 3]
-            self.a = parameters[last_index + 4]
-            self.b = parameters[last_index + 5]
-            self.c = parameters[last_index + 6]
+            self.U = parameters[last_index + 1].value
+            self.V = parameters[last_index + 2].value
+            self.W = parameters[last_index + 3].value
+            self.a = parameters[last_index + 4].value
+            self.b = parameters[last_index + 5].value
+            self.c = parameters[last_index + 6].value
 
             last_index += fit_global_parameter.instrumental_parameters.get_parameters_count()
 
         if not fit_global_parameter.size_parameters is None:
-            self.mu    = parameters[last_index + 1]
-            self.sigma = parameters[last_index + 2]
+            self.mu    = parameters[last_index + 1].value
+            self.sigma = parameters[last_index + 2].value
 
             last_index += fit_global_parameter.size_parameters.get_parameters_count()
 
         if not fit_global_parameter.strain_parameters is None:
-            self.aa = parameters[last_index + 1]
-            self.bb = parameters[last_index + 2]
-            self.A = parameters[last_index + 3] # in realtà è E1 dell'invariante PAH
-            self.B = parameters[last_index + 4] # in realtà è E6 dell'invariante PAH
+            self.aa = parameters[last_index + 1].value
+            self.bb = parameters[last_index + 2].value
+            self.A = parameters[last_index + 3].value # in realtà è E1 dell'invariante PAH
+            self.B = parameters[last_index + 4].value # in realtà è E6 dell'invariante PAH
 
             last_index += fit_global_parameter.strain_parameters.get_parameters_count()
 
@@ -493,19 +495,10 @@ class CommonFittingData():
 
     @classmethod
     def get_amplitude(cls, parameters, reflection_index):
-        return parameters[6 + reflection_index]
+        return parameters[6 + reflection_index].value
 
 
-#################################################
-#
-# FIT FUNCTION
-#
-#################################################
-
-def fit_function(s, *parameters):
-
-    if len(parameters) == 1:
-        parameters = parameters[0]
+def fit_function(s, parameters):
 
     fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
     common_fitting_data = CommonFittingData(parameters)
