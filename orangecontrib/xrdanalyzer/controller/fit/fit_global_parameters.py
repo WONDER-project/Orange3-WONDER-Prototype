@@ -10,6 +10,8 @@ class FitGlobalParameters(FitParametersList):
     size_parameters = None
     strain_parameters = None
 
+    convergence_reached = False
+
     def __init__(self,
                  fit_initialization = None,
                  background_parameters = None,
@@ -34,6 +36,15 @@ class FitGlobalParameters(FitParametersList):
             self.append(self.size_parameters.get_parameters())
         if not self.strain_parameters is None:
             self.append(self.strain_parameters.get_parameters())
+
+
+        self.convergence_reached = False
+
+    def set_convergence_reached(self, value=True):
+        self.convergence_reached = value
+
+    def is_convergence_reached(self):
+        return self.convergence_reached == True
 
     def to_scipy_tuple(self):
         fit_global_parameters = []

@@ -1,5 +1,11 @@
 import numpy
 
+########################################
+#
+# DATA STRUCTURES
+#
+########################################
+
 class CVector:
 
     def __init__(self, _n=0):
@@ -272,12 +278,16 @@ class CTriMatrix:
 
         return i, j
 
+
 if __name__=="__main__":
 
     vector = CVector(10)
 
     vector[2] = 1.4
+    vector.setitem(4, 25)
 
     print(vector[2])
+    print(vector[3])
+    print(vector.getitem(4))
     print(vector)
     print(-vector)

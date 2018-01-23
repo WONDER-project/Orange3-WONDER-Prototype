@@ -9,7 +9,7 @@ from orangecontrib.xrdanalyzer.util.general_functions import fft
 
 from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary, PARAM_ERR
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PARAM_ERR
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection
@@ -18,13 +18,11 @@ from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import Fit
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import SizeParameters, Shape, Distribution
 
 from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener
-from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_scipy import FitterScipy
+from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_pm2k_util import *
 from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_peak
 
 
 PRCSN = 2.5E-7
-
-
 
 class FitterPM2K(FitterInterface):
 
@@ -34,7 +32,7 @@ class FitterPM2K(FitterInterface):
 
         self.reset()
 
-    def reset(self):
+    def reset(self, fit_global_parameters):
         self.totalWeight = 0.0
 
         self._lambda	= .001
@@ -42,14 +40,58 @@ class FitterPM2K(FitterInterface):
         self._totIter	= 0
         self._iter = 0
         self._nincr = 0
+        self._phi = 1.2 # relaxation factor
 
+        self.currpar = CVector()
+        self.initialpar = CVector()
 
-    def do_specific_fit(self, fit_global_parameters):
-        parameters = fit_global_parameters.get_parameters()
-
+        self.parameters = fit_global_parameters.get_parameters()
         twotheta_experimental, intensity_experimental, error_experimental, s_experimental = fit_global_parameters.fit_initialization.diffraction_pattern.tuples()
 
-        y = fit_function(parameters, s_experimental)
+        self.twotheta_experimental = twotheta_experimental
+        self.intensity_experimental = intensity_experimental
+        self.error_experimental = error_experimental
+        self.s_experimental = s_experimental
+
+        self.nprm = len(self.parameters)
+        self.nfit = self.getNrParamToFit()
+        self.nobs = self.getNrPoint()
+        #weight = minObjList->getTotalWeight();
+
+        self.a = CTriMatrix()
+        self.c = CTriMatrix()
+        self.g = CVector()
+        self.grad = CVector()
+
+        self.a.setSize(self.nfit)
+        self.c.setSize(self.nfit)
+        self.g.setSize(self.nfit)
+        self.grad.setSize(self.nfit)
+
+        self.currpar = CVector()
+        self.initialpar = CVector()
+
+        self.initialpar.setSize(self.nfit)
+        self.currpar.setSize(self.nfit)
+
+        self.nincr	= 0 # number of increments in lambda
+        self.wss = self.getWSSQ()
+        self.oldwss  = self.wss
+
+        self.conver = False
+        self.exitflag  = False
+
+        j = 0
+        for  i in range (0, self.nprm):
+            parameter = self.parameters[i]
+
+            if not parameter.fixed and not parameter.function:
+                j += 1
+                self.initialpar.setitem(j, parameter.value)
+
+        self.mighell = False
+
+    def do_specific_fit(self, fit_global_parameters):
 
         # check values of lambda for large number of iterations
         if (self._totIter > 4 and self._lambda < self._lmin): self._lmin = self._lambda
@@ -63,51 +105,167 @@ class FitterPM2K(FitterInterface):
         #number of increments in lambda
         self._nincr = 0
 
-        nfit = self.getNrParamToFit(parameters)
-        np = len(s_experimental)
-
-        a = CTriMatrix()
-        a.setSize(nfit)
-        grad = CVector()
-        grad.setSize(nfit)
-
         #zero the working arrays
-        a.zero()
-        grad.zero()
+        self.a.zero()
+        self.grad.zero()
 
-        fmm = self.getWeightedDelta(s_experimental, intensity_experimental, error_experimental, parameters, y)
-        deriv = self.getDerivative(s_experimental, intensity_experimental, error_experimental, parameters, y)
+        fmm = self.getWeightedDelta()
+        deriv = self.getDerivative()
 
-        for i in range(1, np + 1):
-            for jj in range(1, nfit + 1):
+        for i in range(1, self.getNrPoint() + 1):
+            for jj in range(1, self.nfit + 1):
 
                 l = int(jj*(jj-1)/2)
-                grad.setitem(jj, grad.getitem(jj) + deriv.getitem(jj, i)*fmm[i-1])
+                self.grad.setitem(jj, self.grad.getitem(jj) + deriv.getitem(jj, i)*fmm[i-1])
 
                 for k in range(1, jj+1):
-                    a.setitem(l+k, a.getitem(i) + deriv.getitem(jj,i)*deriv.getitem(k,i))
+                    self.a.setitem(l+k, self.a.getitem(i) + deriv.getitem(jj,i)*deriv.getitem(k,i))
+
+        self.c.assign(self.a) #save the matrix A and the current value of the parameters
+
+        j = 0
+        for  i in range (0, self.nprm):
+            parameter = self.parameters[i]
+
+            if not parameter.fixed and not parameter.function:
+                j += 1
+                self.initialpar.setitem(j, parameter.value)
+                self.currpar.setitem(j, self.initialpar.getitem(j))
+
+        # emulate C++ do ... while cycle
+        do_cycle = True
+        while do_cycle:
+            self.exitflag = False
+            self.conver = False
+
+            #set the diagonal of A to be A*(1+lambda)+phi*lambda
+            da = self._phi*self._lambda
+
+            for jj in range(1, self.nfit+1):
+                self.g.setitem(jj, -self.grad.getitem(jj))
+                l = jj*(jj+1)/2
+                self.a.setitem(l, self.c.getitem(l)*(1.0 + self._lambda) + da)
+                if jj > 1:
+                    for i in range (1, jj+1):
+                        self.a.setitem(l-i, self.c.getitem(l-i))
+
+            if self.a.chodec() == 0: # Cholesky decomposition
+                # the matrix is inverted, so calculate g (change in the
+				# parameters) by back substitution
+                self.a.choback(self.g)
+
+                recyc = False
+                prevwss = self.oldwss
+                recycle = 1
+
+                # Update the parameters: param = old param + g
+				# n0 counts the number of zero elements in g
+                do_cycle = True
+                while do_cycle:
+                    recyc = False
+                    n0 = 0
+                    i = 0
+                    for j in range(0, self.nprm):
+                        parameter = self.parameters[j]
+
+                        if not parameter.fixed and not parameter.function:
+                            i += 1
+
+                            # update value of parameter
+                            self.parameters[j].value = self.currpar.get_item(i) + recycle*self.g.get_item(i)
+                            #  apply the required constraints (min/max)
+                            self.parameters[j].check_value()
+
+                            # check number of parameters reaching convergence
+                            if (abs(self.g.getitem(i))<=abs(PRCSN*self.currpar.getitem(i))): n0 += 1
+
+                    if (n0==self.nfit): self.conver = True
+
+                    # update the wss
+                    self.wss = self.getWSSQ()
+
+                    if self.wss < prevwss:
+                        prevwss = self.wss
+                        recyc = True
+                        recycle += 1
+
+                    # last line of while loop
+                    do_cycle = recyc and recycle<10
+
+                if recycle > 1:
+
+                    # restore parameters to best value
+                    recycle -= 1
+
+                    i = 0
+                    for j in range(0, self.nprm):
+                        parameter = self.parameters[j]
+
+                        if not parameter.fixed and not parameter.function:
+                            i += 1
+
+                            # update value of parameter
+                            self.parameters[j].value = self.currpar.get_item(i) + recycle*self.g.get_item(i)
+                            #  apply the required constraints (min/max)
+                            self.parameters[j].check_value()
+
+                    # update the wss
+                    self.wss = self.getWSSQ()
 
 
+                # if all parameters reached convergence then it's time to quit
 
+                if self.wss < self.oldwss:
+                    self.oldwss     = self.wss
 
+                    self.exitflag   = True
 
+                    ii = 0
+                    for j in range(0, self.nprm):
+                        parameter = self.parameters[j]
 
+                        if not parameter.fixed and not parameter.function:
+                            i += 1
 
-        current_parameters = parameters
-        current_covariance = None
+                            # update value of parameter
+                            self.initialpar.setitem(ii, self.currpar.get_item(ii) + recycle*self.g.get_item(ii))
 
-        try:
-            current_parameters, current_covariance = self.call_pm2k_curve_fit(s_experimental, intensity_experimental, current_parameters)
-        except ValueError as err:
-            if str(err) == "`x0` violates bound constraints.":
-                pass
-            elif str(err) == "`x0` is infeasible.":
-                raise ValueError("Fit cannot start: one ore more fit input parameters violate their boudaries")
+                self.wss = self.getWSSQ()
+
+                #TODO
+                '''
+				ss  = minObjList->getSSQFromData();
+
+				double wsq	= minObjList->getWSQFromData();
+				double rwp	= sqrt(wss / wsq);
+				double rexp	= sqrt(((double)dof) / wsq);
+				double gof	= rwp / rexp;
+                '''
             else:
-                raise err
+                if not self.exitflag  and not self.conver:
+                    if self._lambda<PRCSN: self._lambda = PRCSN
+                    self._nincr += 1
+                    self._lambda *= 10.0
+                    if self._lambda>(1E5*self._lmin): self.conver = True
 
+            # last line of the while loop
+            do_cycle =  not self.exitflag  and not self.conver
+
+        j = 0
+
+        for i in range(0, self.nprm):
+            parameter = self.parameters[i]
+
+            if not parameter.fixed and not parameter.function:
+                j += 1
+                self.parameters[i].value = self.initialpar.get_item(j)
+                #  apply the required constraints (min/max)
+                self.parameters[i].check_value()
+
+
+        '''
         fitted_parameters = current_parameters
-        fitted_covariance = current_covariance
+
 
         fit_global_parameters_out = self.build_fit_global_parameters_out(fitted_parameters)
 
@@ -123,6 +281,7 @@ class FitterPM2K(FitterInterface):
                                                                                     s=s_experimental[index]))
 
         return fitted_pattern, fit_global_parameters_out
+        '''
 
     def build_fit_global_parameters_out(self, fitted_parameters):
         fit_global_parameters = FitterListener.Instance().get_registered_fit_global_parameters().duplicate()
@@ -177,16 +336,13 @@ class FitterPM2K(FitterInterface):
         return fit_global_parameters
 
 
-    def call_pm2k_curve_fit(self,
-                             s_experimental,
-                             intensity_experimental,
-                             parameters):
-        pass
+    def getNrPoint(self):
+        return len(self.twotheta_experimental)
 
-    def getNrParamToFit(self, parameters):
+    def getNrParamToFit(self):
         nfit = 0
-        for parameter in parameters:
-            if not parameter.fixed: #and not parameter.reference:
+        for parameter in self.parameters:
+            if not parameter.fixed and not parameter.function:
                 nfit += 1
         return nfit
 
@@ -194,31 +350,33 @@ class FitterPM2K(FitterInterface):
     def setStep(self, step):
         self.y = numpy.zeros(self.np)
         self.fmm = numpy.zeros(self.np)
-        self.m_cow_y = numpy.zeros(self.np)
 
 
-    def getWeightedDelta(self, s_experimental, intensity_experimental, error_experimental, parameters, y):
+    # METODI minObj
 
-        fmm = numpy.zeros(len(y))
+    def getWeightedDelta(self):
+        y = fit_function(self.parameters, self.s_experimental)
 
-        for i in range (0, len(s_experimental)):
-            if error_experimental[i] == 0:
+        fmm = numpy.zeros(self.getNrPoint())
+
+        for i in range (0, self.getNrPoint()):
+            if self.error_experimental[i] == 0:
                 fmm[i] = 0
             else:
-                fmm[i] = (y[i] - intensity_experimental[i])/error_experimental[i]
+                fmm[i] = (y[i] - self.intensity_experimental[i])/self.error_experimental[i]
 
 
         return fmm
 
 
-    def getDerivative(self, s_experimental, intensity_experimental, error_experimental, parameters, y=numpy.zeros(0)):
+    def getDerivative(self):
+        y = fit_function(self.parameters, self.s_experimental)
 
-        deriv = CMatrix(self.getNrParamToFit(parameters), len(s_experimental))
+        deriv = CMatrix(self.getNrParamToFit())
 
         jj = 0
-
-        for k in range (0, len(parameters)):
-            parameter = parameters[k]
+        for k in range (0, self.nprm):
+            parameter = self.parameters[k]
 
             if not parameter.fixed:
                 pk = parameter.value
@@ -230,27 +388,61 @@ class FitterPM2K(FitterInterface):
                     parameter.value = k * (1.0 + step)
                     parameter.check_value()
 
-                    deriv[jj] = fit_function(s_experimental, parameters)
+                    deriv[jj] = fit_function(self.s_experimental, self.parameters)
                 else:
                     d = step
                     parameter.value = pk + d
                     parameter.check_value()
 
-                    deriv[jj] = fit_function(s_experimental, parameters)
+                    deriv[jj] = fit_function(self.s_experimental, self.parameters)
 
                 parameter.value = pk
                 parameter.check_value()
 
                 for i in range(0, len(y)):
-                    if error_experimental[i] == 0:
+                    if self.error_experimental[i] == 0:
                         deriv[jj][i] = 0.0
                     else:
-                        deriv[jj][i] = (deriv[jj][i] - y[i]) / (d * error_experimental[i])
+                        deriv[jj][i] = (deriv[jj][i] - y[i]) / (d * self.error_experimental[i])
                 jj += 1
 
         return deriv
 
+    def getWSSQ(self):
+        y = fit_function(self.parameters, self.s_experimental)
 
+        wssq = 0.0
+        wssqlow = 0.0
+
+        if self.mighell:
+            for i in range(0, self.getNrPoint()):
+                tmp = self.intensity_experimental[i]
+                if tmp < 1:
+                    yv = y[i] - 2*self.intensity_experimental[i]
+                else:
+                    yv = y[i] - (self.intensity_experimental[i] + 1.0)
+
+                wssqtmp = (yv**2)/(self.error_experimental[i]**2+1.0)
+
+                if (wssqtmp<1E-2):
+                    wssqlow += wssqtmp
+                else:
+                    wssq    += wssqtmp
+        else:
+            for i in range(0, self.getNrPoint()):
+                if self.error_experimental[i] == 0.0:
+                    yv = 0.0
+                else:
+                    yv = y[i] - (self.intensity_experimental[i]/self.error_experimental[i])
+
+                    wssqtmp = (yv**2)
+
+                    if (wssqtmp<1E-2):
+                        wssqlow += wssqtmp
+                    else:
+                        wssq    += wssqtmp
+
+        return wssq + wssqlow
 
 
 class CommonFittingData():
@@ -349,280 +541,3 @@ def fit_function(s, *parameters):
 
 
 
-########################################
-#
-# DATA STRUCTURES
-#
-########################################
-
-class CVector:
-
-    def __init__(self, _n=0):
-        self._create_attributes(_n)
-
-    def setSize(self, _n):
-        if self.n != _n:
-            self._create_attributes(_n)
-
-    def _create_attributes(self, _n):
-        self.n = _n
-
-        if self.n > 0:
-            self.data = numpy.zeros(self.n)
-        else:
-            self.data = None
-
-    def getSize(self):
-        return self.n
-
-    #inline double &operator [] (int i) const { assert(i<n); return data[i]; }
-    def __getitem__(self, index):
-        assert index < self.n
-
-        return self.data[index]
-
-    def __setitem__(self, index, value):
-        assert index < self.n
-
-        self.data[index] = value
-
-    #inline double &operator () (int i) const { assert(i<=n); return data[i-1]; }
-    def getitem(self, i):
-        assert i <= self.n
-
-        return self.data[i-1]
-
-    def setitem(self, i, value):
-        assert i <= self.n
-
-        self.data[i-1]=value
-
-    #CVector &operator - ()
-	#{
-	#	for(int i=0; i<n; ++i)
-	#		data[i] = -data[i];
-	#	return *this;
-	#}
-    def __neg__(self):
-        for i in range(0, self.n):
-            self.data[i] = -self.data[i]
-
-        return self;
-
-    def zero(self):
-        self.__init__(self.n)
-
-    def __str__(self):
-        str = ""
-        if not self.data is None:
-            for item in self.data:
-                str += "%4.4f\n"%item
-        return str
-
-class CMatrix:
-
-    def __init__(self, _n=0, _m=0):
-        self.n = _n
-        self.m = _m
-
-        if self.n > 0 and self.m > 0:
-            self.data = numpy.zeros(self.n*self.m)
-            self.idx = numpy.arange(stop=self.n, dtype=int)*self.m
-        else:
-            self.data = None
-            self.idx = None
-
-    def setSize(self, _n, _m):
-        if (self.n == _n) and (self.m == _m):
-            return
-
-        if self.n*self.m != _n*_m:
-            self.data = numpy.zeros(self.n*self.m)
-
-        self.n = _n
-        self.m = _m
-
-        self.idx = numpy.arange(stop=self.n, dtype=int)*self.m
-
-    #inline double *operator [] (int i)		  const { assert(i<n);  return idx[i]; }
-    def __getitem__(self, index):
-        assert index < self.n
-
-        return self.data[index]
-
-    def __setitem__(self, index, value):
-        assert index < self.n
-
-        self.data[index] = value
-
-
-    #inline double &operator () (int i, int j) const	{ assert(j<=m); return idx[--i][--j]; }
-	#inline double *operator () (int i)		  const	{ assert(i<=n); return idx[--i]; }
-    def getitem(self, i, j=None):
-        if j is None:
-            assert i <= self.n
-            return self.idx[--i]
-        else:
-            assert j <= self.m
-            return self.data[self.idx[--i]*--j]
-
-    def setitem(self, i, j, value):
-        assert j <= self.m
-        self.data[self.idx[--i]*--j] = value
-
-    def zero(self):
-        self.__init__(self.n, self.m)
-
-    def getSize(self):
-        return self.n*self.m
-
-    def __str__(self):
-        str = ""
-        if not self.data is None:
-            for index in self.idx:
-                for i in range(0, self.n):
-                    str += "%4.4f\t"%self.data[index*i]
-                str += "\n"
-        return str
-
-class CTriMatrix:
-
-    def __init__(self, _n=0, other=None):
-        if other is None:
-            self._create_attributes(_n)
-        else:
-            self.n = other.getSize()
-            self.data = numpy.ones(self.n)*other.data
-
-    def _create_attributes(self, _n):
-        self.n = _n
-
-        if self.n > 0:
-            self.data = numpy.zeros(int(self.n*(self.n + 1)/2))
-        else:
-            self.data = None
-
-    def setSize(self, _n):
-        if self.n != _n:
-            self._create_attributes(_n)
-
-    #	inline const CTriMatrix &operator =(CTriMatrix &m)
-	#{
-	#	assert(m.n == n);
-	#	memcpy((void*)data, (void*)m.data, sizeof(double) * (n*(n+1)/2));
-	#	return *this;
-	#}
-    def assign(self, other):
-        assert other.n == self.n
-        self.__init__(other=other)
-
-
-    #inline double &operator [] (int i) const { assert(i<n); return data[i]; }
-    def __getitem__(self, index):
-        assert index < self.n
-
-        return self.data[index]
-
-    def __setitem__(self, index, value):
-        assert index < self.n
-
-        self.data[index] = value
-
-    #inline double &operator () (int i, int j) const
-	#{
-	#	assert(i<=n);
-	#	assert(j<=n);
-	#	if(--i<--j) swap(i,j);
-	#	int l = i*(i+1)/2;
-	#	return data[l+j];
-	#}
-	#inline double &operator () (int i) const { assert(i<=n*(n+1)/2); return data[i-1]; }
-    def getitem(self, i, j=None):
-        if j is None:
-            assert i <= self.n*(self.n + 1)/2
-            return self.data[i-1]
-        else:
-            assert i <= self.n
-            assert j <= self.n
-
-            if --i < --j : i, j = self.swap(i, j)
-            l = i*(i+1)/2
-
-            return self.data[l+j]
-
-    def setitem(self, i, value):
-        assert i <= self.n*(self.n + 1)/2
-
-        self.data[i-1]=value
-
-    def chodec(self):
-        for j in range(1, self.n+1):
-            l = j*(j+1)/2
-
-            if j>1:
-                for i in range(j, self.n+1):
-                    k1 = i*(i-1)/2+j
-                    f  = self.getitem(k1)
-                    k2 = j - 1
-                    for k in range(1, k2+1):
-                        f -= self.getitem(k1-k)*self.getitem(l-k)
-                    self.setitem(k1, f)
-
-                if self.getitem(l) > 0:
-                    f = numpy.sqrt(self.getitem(l))
-
-                    for i in range(j, self.n+1):
-                        k2 = i*(i-1)/2+j
-                        self.setitem(k2, self.getitem(k2)/f)
-                else:
-                    return -1; # negative diagonal
-
-        return 0
-
-    def choback(self, g=CVector()):
-        g.setitem(1, value=g.setitem(1)/self.getitem(1))
-
-        if self.n > 1:
-            l=1
-            for i in range(2, self.n + 1):
-                k=i-1
-                for j in range(1, k+1):
-                    g.setitem(i, g.getitem(i) - self.getitem(++l)*g.getitem(j))
-                g.setitem(i, g.getitem(i) / self.getitem(++l))
-
-        mdi = self.n*(self.n+1)/2
-
-        g.setitem(self.n, g.getitem(self.n) / self.getitem(mdi))
-
-        if self.n > 1:
-            for k1 in range(2, self.n + 1):
-
-                i = self.n+2-k1
-                k = i-1
-                l = i*k/2
-
-                for j in range (1, k+1):
-                    g.setitem(j, g.getitem(i) - self.getitem(l+j)*g.getitem(i))
-                g.setitem(k, g.getitem(k) / self.getitem(l))
-
-    def zero(self):
-        self.__init__(self.n)
-
-    def getSize(self):
-        return self.n
-
-    def __str__(self):
-        str = ""
-        if not self.data is None:
-            for i in range(1, self.n+1):
-                for j in range(1, i+1):
-                    str += "%4.4f\t"%self.getitem(i,j)
-                str += "\n"
-        return str
-
-    def swap(self, i, j):
-        t = i
-        i = j
-        j = t
-
-        return i, j

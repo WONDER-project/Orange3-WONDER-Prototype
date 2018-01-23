@@ -60,12 +60,30 @@ class FitParameter(PM2KParameter):
     value = 0.0
     boundary = None
     fixed = False
+    function = False
+    function_value = ""
     step = PARAM_ERR
 
-    def __init__(self, value, parameter_name=None, boundary=None, fixed=False, step=PARAM_ERR):
+    def __init__(self,
+                 value,
+                 parameter_name=None,
+                 boundary=None,
+                 fixed=False,
+                 function = False,
+                 function_value = "",
+                 step=PARAM_ERR):
         super().__init__(parameter_name=parameter_name)
         self.value = value
         self.fixed = fixed
+        self.function = function
+        self.function_value = function_value
+
+        if self.function:
+            if self.function_value is None: raise ValueError("Function Value cannot be None")
+            if self.function_value.strip() == "": raise ValueError("Function Value cannot be an empty string")
+
+            self.fixed = False
+            self.boundary = None
 
         if self.fixed:
             self.boundary = Boundary(min_value=self.value, max_value=self.value + 1e-12) # just a trick, to be done in a better way
@@ -80,17 +98,19 @@ class FitParameter(PM2KParameter):
 
     def check_value(self):
         if self.value is None: raise ValueError("Parameter Value cannot be None")
-        if not self.fixed:
-            if self.boundary is None: self.boundary = Boundary()
-
-            if self.value > self.boundary.max_value:
-                self.value = self.boundary.max_value
-            elif self.value < self.boundary.min_value:
-                self.value = self.boundary.min_value
+        if self.function:
+            if self.function_value is None: raise ValueError("Function Value cannot be None")
+            if self.function_value.strip() == "": raise ValueError("Function Value cannot be an empty string")
         else:
-            if self.boundary is None: self.boundary = Boundary(min_value=self.value, max_value=self.value + 1e-12)
+            if not self.fixed:
+                if self.boundary is None: self.boundary = Boundary()
 
-
+                if self.value > self.boundary.max_value:
+                    self.value = self.boundary.max_value
+                elif self.value < self.boundary.min_value:
+                    self.value = self.boundary.min_value
+            else:
+                if self.boundary is None: self.boundary = Boundary(min_value=self.value, max_value=self.value + 1e-12)
 
     def to_PM2K(self, type=PM2KParameter.GLOBAL_PARAMETER):
         text = self.get_type_name(type) + self.get_parameter_name(fixed=self.fixed) + " " + str(self.value)
