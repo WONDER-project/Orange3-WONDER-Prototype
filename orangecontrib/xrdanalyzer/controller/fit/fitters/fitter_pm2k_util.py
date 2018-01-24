@@ -86,7 +86,7 @@ class CMatrix:
             return
 
         if self.n*self.m != _n*_m:
-            self.data = numpy.zeros(self.n*self.m).reshape((self.n, self.m))
+            self.data = numpy.zeros(_n*_m).reshape((_n, _m))
 
         self.n = _n
         self.m = _m
@@ -106,8 +106,9 @@ class CMatrix:
     #inline double &operator () (int i, int j) const	{ assert(j<=m); return idx[--i][--j]; }
 	#inline double *operator () (int i)		  const	{ assert(i<=n); return idx[--i]; }
     def getitem(self, i, j=None):
+        assert i <= self.n
+
         if j is None:
-            assert i <= self.n
             return self.data[i-1, :]
         else:
             assert j <= self.m
@@ -133,7 +134,9 @@ class CMatrix:
                     str += "%4.4f\t"%self.data[i, j]
                 str += "\n"
         return str
+
 import copy
+
 class CTriMatrix:
 
     def __init__(self, _n=0, other=None):
@@ -192,7 +195,7 @@ class CTriMatrix:
     def getitem(self, i, j=None):
         if j is None:
             assert i <= self.n*(self.n + 1)/2
-            return self.data[i-1]
+            return self.data[int(i-1)]
         else:
             assert i <= self.n
             assert j <= self.n
@@ -208,7 +211,7 @@ class CTriMatrix:
     def setitem(self, i, value):
         assert i <= self.n*(self.n + 1)/2
 
-        self.data[i-1]=value
+        self.data[int(i-1)]=value
 
     def chodec(self):
         for j in range(1, self.n+1):
@@ -235,15 +238,17 @@ class CTriMatrix:
         return 0
 
     def choback(self, g=CVector()):
-        g.setitem(1, value=g.setitem(1)/self.getitem(1))
+        g.setitem(1, value=g.getitem(1)/self.getitem(1))
 
         if self.n > 1:
             l=1
             for i in range(2, self.n + 1):
                 k=i-1
                 for j in range(1, k+1):
-                    g.setitem(i, g.getitem(i) - self.getitem(++l)*g.getitem(j))
-                g.setitem(i, g.getitem(i) / self.getitem(++l))
+                    l += 1
+                    g.setitem(i, g.getitem(i) - self.getitem(l)*g.getitem(j))
+                l += 1
+                g.setitem(i, g.getitem(i) / self.getitem(l))
 
         mdi = self.n*(self.n+1)/2
 
@@ -257,7 +262,7 @@ class CTriMatrix:
                 l = int(i*k/2)
 
                 for j in range (1, k+1):
-                    g.setitem(j, g.getitem(i) - self.getitem(l+j)*g.getitem(i))
+                    g.setitem(j, g.getitem(j) - g.getitem(i)*self.getitem(l+j))
                 g.setitem(k, g.getitem(k) / self.getitem(l))
 
     def zero(self):

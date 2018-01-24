@@ -40,14 +40,6 @@ class PM2KParameter:
             return ""
 
 
-class Boundary:
-    def __init__(self, min_value = -numpy.inf, max_value = numpy.inf):
-        congruence.checkGreaterOrEqualThan(max_value, min_value, "Max Value", "Min Value")
-
-        self.min_value = min_value
-        self.max_value = max_value
-
-
 
 PARAM_FIX		= 1 << 0
 PARAM_SYS		= 1 << 1
@@ -55,6 +47,13 @@ PARAM_REF		= 1 << 2
 PARAM_HWMIN		= -numpy.finfo('d').max
 PARAM_HWMAX		= numpy.finfo('d').max
 PARAM_ERR		= numpy.finfo('d').max
+
+class Boundary:
+    def __init__(self, min_value = PARAM_HWMIN, max_value = PARAM_HWMAX):
+        congruence.checkGreaterOrEqualThan(max_value, min_value, "Max Value", "Min Value")
+
+        self.min_value = min_value
+        self.max_value = max_value
 
 class FitParameter(PM2KParameter):
     value = 0.0
@@ -96,6 +95,10 @@ class FitParameter(PM2KParameter):
         else:
             self.step = step
 
+    def set_value(self, value):
+        self.value = value
+        self.check_value()
+
     def check_value(self):
         if self.value is None: raise ValueError("Parameter Value cannot be None")
         if self.function:
@@ -105,10 +108,13 @@ class FitParameter(PM2KParameter):
             if not self.fixed:
                 if self.boundary is None: self.boundary = Boundary()
 
-                if self.value > self.boundary.max_value:
-                    self.value = self.boundary.max_value
-                elif self.value < self.boundary.min_value:
-                    self.value = self.boundary.min_value
+                if self.boundary.min_value != PARAM_HWMIN:
+                    if self.value < self.boundary.min_value:
+                        self.value = self.boundary.min_value + (self.value - self.boundary.min_value)/2
+
+                if self.boundary.max_value != PARAM_HWMAX:
+                    if self.value > self.boundary.max_value:
+                        self.value = self.boundary.max_value - (self.boundary.max_value - self.value)/2
             else:
                 if self.boundary is None: self.boundary = Boundary(min_value=self.value, max_value=self.value + 1e-12)
 

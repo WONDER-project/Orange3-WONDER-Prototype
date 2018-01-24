@@ -22,17 +22,17 @@ class FitterInterface:
         pass
 
     def init_fitter(self, fit_global_parameters=None):
-        raise NotImplementedError("Abstract")
-
-    def do_fit(self, fit_global_parameters=None, current_iteration=0):
         FitterListener.Instance().register_fit_global_parameters(fit_global_parameters)
 
-        return self.do_specific_fit(fit_global_parameters, current_iteration)
+        self.specific_init_fitter(fit_global_parameters)
 
-    def do_specific_fit(self, fit_global_parameters, current_iteration):
+    def specific_init_fitter(self, fit_global_parameters):
+        pass
+
+    def do_fit(self, fit_global_parameters=None, current_iteration=0):
         raise NotImplementedError("Abstract")
 
     def finalize_fit(self):
-        raise NotImplementedError("Abstract")
+        pass
 
 

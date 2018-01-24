@@ -30,13 +30,12 @@ class FitterPM2K(FitterInterface):
     def __init__(self):
         super().__init__()
 
-    def init_fitter(self, fit_global_parameters):
+    def specific_init_fitter(self, fit_global_parameters):
         self.totalWeight = 0.0
 
         self._lambda	= .001
         self._lmin	= 1E20
         self._totIter	= 0
-        self._iter = 0
         self._nincr = 0
         self._phi = 1.2 # relaxation factor
 
@@ -53,27 +52,26 @@ class FitterPM2K(FitterInterface):
 
         self.nprm = len(self.parameters)
         self.nfit = self.getNrParamToFit()
-        self.nobs = self.getNrPoint()
-        #weight = minObjList->getTotalWeight();
+        self.nobs = self.getNrPoints()
 
         self.a = CTriMatrix()
         self.c = CTriMatrix()
         self.g = CVector()
         self.grad = CVector()
+        self.currpar = CVector()
+        self.initialpar = CVector()
 
         self.a.setSize(self.nfit)
         self.c.setSize(self.nfit)
         self.g.setSize(self.nfit)
         self.grad.setSize(self.nfit)
-
-        self.currpar = CVector()
-        self.initialpar = CVector()
-
         self.initialpar.setSize(self.nfit)
         self.currpar.setSize(self.nfit)
 
+        self.mighell = False
+
         self.nincr	= 0 # number of increments in lambda
-        self.wss = 0
+        self.wss = self.getWSSQ()
         self.oldwss  = self.wss
 
         self.conver = False
@@ -87,12 +85,10 @@ class FitterPM2K(FitterInterface):
                 j += 1
                 self.initialpar.setitem(j, parameter.value)
 
-        self.mighell = False
 
-    def do_specific_fit(self, fit_global_parameters, current_iteration):
+    def do_fit(self, fit_global_parameters, current_iteration):
 
         if not self.conver:
-
             # check values of lambda for large number of iterations
             if (self._totIter > 4 and self._lambda < self._lmin): self._lmin = self._lambda
 
@@ -109,17 +105,7 @@ class FitterPM2K(FitterInterface):
             self.a.zero()
             self.grad.zero()
 
-            fmm = self.getWeightedDelta()
-            deriv = self.getDerivative()
-
-            for i in range(1, self.getNrPoint() + 1):
-                for jj in range(1, self.nfit + 1):
-
-                    l = int(jj*(jj-1)/2)
-                    self.grad.setitem(jj, self.grad.getitem(jj) + deriv.getitem(jj, i)*fmm[i-1])
-
-                    for k in range(1, jj+1):
-                        self.a.setitem(l+k, self.a.getitem(l+k) + deriv.getitem(jj, i)*deriv.getitem(k, i))
+            self.set()
 
             self.c.assign(self.a) #save the matrix A and the current value of the parameters
 
@@ -146,7 +132,7 @@ class FitterPM2K(FitterInterface):
                     l = int(jj*(jj+1)/2)
                     self.a.setitem(l, self.c.getitem(l)*(1.0 + self._lambda) + da)
                     if jj > 1:
-                        for i in range (1, jj+1):
+                        for i in range (1, jj):
                             self.a.setitem(l-i, self.c.getitem(l-i))
 
                 if self.a.chodec() == 0: # Cholesky decomposition
@@ -154,14 +140,14 @@ class FitterPM2K(FitterInterface):
                     # parameters) by back substitution
                     self.a.choback(self.g)
 
-                    recyc = False
+                    #recyc = False
                     prevwss = self.oldwss
                     recycle = 1
 
                     # Update the parameters: param = old param + g
                     # n0 counts the number of zero elements in g
-                    do_cycle = True
-                    while do_cycle:
+                    do_cycle_2 = True
+                    while do_cycle_2:
                         recyc = False
                         n0 = 0
                         i = 0
@@ -172,9 +158,8 @@ class FitterPM2K(FitterInterface):
                                 i += 1
 
                                 # update value of parameter
-                                self.parameters[j].value = self.currpar.get_item(i) + recycle*self.g.get_item(i)
                                 #  apply the required constraints (min/max)
-                                self.parameters[j].check_value()
+                                parameter.set_value(self.currpar.getitem(i) + recycle*self.g.getitem(i))
 
                                 # check number of parameters reaching convergence
                                 if (abs(self.g.getitem(i))<=abs(PRCSN*self.currpar.getitem(i))): n0 += 1
@@ -190,7 +175,7 @@ class FitterPM2K(FitterInterface):
                             recycle += 1
 
                         # last line of while loop
-                        do_cycle = recyc and recycle<10
+                        do_cycle_2 = recyc and recycle<10
 
                     if recycle > 1:
 
@@ -205,9 +190,8 @@ class FitterPM2K(FitterInterface):
                                 i += 1
 
                                 # update value of parameter
-                                self.parameters[j].value = self.currpar.get_item(i) + recycle*self.g.get_item(i)
                                 #  apply the required constraints (min/max)
-                                self.parameters[j].check_value()
+                                parameter.set_value(self.currpar.getitem(i) + recycle*self.g.getitem(i))
 
                         # update the wss
                         self.wss = self.getWSSQ()
@@ -217,7 +201,6 @@ class FitterPM2K(FitterInterface):
 
                     if self.wss < self.oldwss:
                         self.oldwss     = self.wss
-
                         self.exitflag   = True
 
                         ii = 0
@@ -228,7 +211,7 @@ class FitterPM2K(FitterInterface):
                                 i += 1
 
                                 # update value of parameter
-                                self.initialpar.setitem(ii, self.currpar.get_item(ii) + recycle*self.g.get_item(ii))
+                                self.initialpar.setitem(ii, self.currpar.getitem(ii) + recycle*self.g.getitem(ii))
 
                     self.wss = self.getWSSQ()
 
@@ -249,7 +232,7 @@ class FitterPM2K(FitterInterface):
                         if self._lambda>(1E5*self._lmin): self.conver = True
 
                 # last line of the while loop
-                do_cycle =  not self.exitflag  and not self.conver
+                do_cycle =  not self.exitflag and not self.conver
 
             j = 0
 
@@ -258,9 +241,7 @@ class FitterPM2K(FitterInterface):
 
                 if not parameter.fixed and not parameter.function:
                     j += 1
-                    self.parameters[i].value = self.initialpar.getitem(j)
-                    #  apply the required constraints (min/max)
-                    self.parameters[i].check_value()
+                    parameter.set_value(self.initialpar.getitem(j))
 
         fitted_parameters = self.parameters
 
@@ -279,6 +260,18 @@ class FitterPM2K(FitterInterface):
 
         return fitted_pattern, fit_global_parameters_out
 
+    def set(self):
+        fmm = self.getWeightedDelta()
+        deriv = self.getDerivative()
+
+        for i in range(1, self.getNrPoints() + 1):
+            for jj in range(1, self.nfit + 1):
+
+                l = int(jj * (jj - 1) / 2)
+                self.grad.setitem(jj, self.grad.getitem(jj) + deriv.getitem(jj, i) * fmm[i - 1])
+
+                for k in range(1, jj + 1):
+                    self.a.setitem(l + k, self.a.getitem(l + k) + deriv.getitem(jj, i) * deriv.getitem(k, i))
 
     def finalize_fit(self):
         pass
@@ -342,7 +335,7 @@ class FitterPM2K(FitterInterface):
     #
     ###############################################
 
-    def getNrPoint(self):
+    def getNrPoints(self):
         return len(self.twotheta_experimental)
 
     def getNrParamToFit(self):
@@ -355,9 +348,9 @@ class FitterPM2K(FitterInterface):
     def getWeightedDelta(self):
         y = fit_function(self.s_experimental, self.parameters)
 
-        fmm = numpy.zeros(self.getNrPoint())
+        fmm = numpy.zeros(self.getNrPoints())
 
-        for i in range (0, self.getNrPoint()):
+        for i in range (0, self.getNrPoints()):
             if self.error_experimental[i] == 0:
                 fmm[i] = 0
             else:
@@ -368,7 +361,7 @@ class FitterPM2K(FitterInterface):
     def getDerivative(self):
         y = fit_function(self.s_experimental, self.parameters)
 
-        deriv = CMatrix(self.getNrParamToFit(), self.getNrPoint())
+        deriv = CMatrix(self.getNrParamToFit(), self.getNrPoints())
 
         jj = 0
         for k in range (0, self.nprm):
@@ -381,7 +374,7 @@ class FitterPM2K(FitterInterface):
 
                 if abs(pk) > PRCSN:
                     d = pk*step
-                    parameter.value = k * (1.0 + step)
+                    parameter.value = pk * (1.0 + step)
                     parameter.check_value()
 
                     deriv[jj] = fit_function(self.s_experimental, self.parameters)
@@ -395,7 +388,7 @@ class FitterPM2K(FitterInterface):
                 parameter.value = pk
                 parameter.check_value()
 
-                for i in range(0, len(y)):
+                for i in range(0, self.getNrPoints()):
                     if self.error_experimental[i] == 0:
                         deriv[jj][i] = 0.0
                     else:
@@ -407,11 +400,11 @@ class FitterPM2K(FitterInterface):
     def getWSSQ(self):
         y = fit_function(self.s_experimental, self.parameters)
 
-        wssq = 0.0
         wssqlow = 0.0
+        wssq = 0.0
 
         if self.mighell:
-            for i in range(0, self.getNrPoint()):
+            for i in range(0, self.getNrPoints()):
                 tmp = self.intensity_experimental[i]
                 if tmp < 1:
                     yv = y[i] - 2*self.intensity_experimental[i]
@@ -425,7 +418,7 @@ class FitterPM2K(FitterInterface):
                 else:
                     wssq    += wssqtmp
         else:
-            for i in range(0, self.getNrPoint()):
+            for i in range(0, self.getNrPoints()):
                 if self.error_experimental[i] == 0.0:
                     yv = 0.0
                 else:
