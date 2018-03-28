@@ -135,7 +135,7 @@ def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a
     return (1-k)*numpy.exp(exponent_1) + k*numpy.exp(exponent_2)
 
 
-def add_chebyshev(s, I, parameters=[0, 0, 0, 0, 0, 0]):
+def add_chebyshev_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
     n = len(parameters)
     T = numpy.zeros(n)
 
@@ -153,3 +153,39 @@ def add_chebyshev(s, I, parameters=[0, 0, 0, 0, 0, 0]):
             I[i] += parameters[j]*T[j]
 
 
+def add_polynomial_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
+    n = len(parameters)
+
+    for i in range(0, len(s)):
+        for j in range(0, n):
+            I[i] += parameters[j]*numpy.pow(s[i], j)
+
+def add_polynomial_N_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
+    n = len(parameters)
+
+    for i in range(0, len(s)):
+        for j in range(1, n/2, step=2):
+            p = parameters[j]
+            q = parameters[j+1]
+
+            I[i] += p*numpy.pow(s[i], q)
+
+def add_polynomial_0N_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
+    n = len(parameters)
+
+    for i in range(0, len(s)):
+        for j in range(1, n/2, step=2):
+            p = parameters[j]
+            q = parameters[j+1]
+
+            I[i] += p*numpy.pow((s[i]-parameters[0]), q)
+
+def add_expdecay_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
+    n = len(parameters)
+
+    for i in range(0, len(s)):
+        for j in range(1, 2*(n-2), step=2):
+            p = parameters[j]
+            q = parameters[j+1]
+
+            I[i] += p*numpy.exp(-numpy.abs(s[i]-parameters[0])*q)

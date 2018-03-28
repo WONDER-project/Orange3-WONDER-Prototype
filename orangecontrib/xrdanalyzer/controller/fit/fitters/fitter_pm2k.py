@@ -12,7 +12,7 @@ from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import Crys
 
 from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener
 from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_pm2k_util import *
-from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_peak, add_chebyshev
+from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_peak, add_chebyshev_background
 
 
 PRCSN = 2.5E-7
@@ -498,9 +498,9 @@ def fit_function(s, parameters):
                                                      fit_global_parameter.fit_initialization.fft_parameters.n_step)
 
         if not fit_global_parameter.background_parameters is None:
-            add_chebyshev(s_large,
-                          I_large,
-                          parameters=[common_fitting_data.c0,
+            add_chebyshev_background(s_large,
+                                     I_large,
+                                     parameters=[common_fitting_data.c0,
                                       common_fitting_data.c1,
                                       common_fitting_data.c2,
                                       common_fitting_data.c3,
