@@ -17,6 +17,7 @@ class FitInitialization:
         parameters = []
 
         # ADESSO WL e fissa, dovra diventare un parametro di fit
+
         #if not self.diffraction_pattern is None:
         #    for parameter in self.diffraction_pattern.get_parameters():
         #        parameters.append(parameter)

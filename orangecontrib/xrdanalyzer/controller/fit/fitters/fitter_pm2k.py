@@ -1,25 +1,18 @@
 
 import numpy
 
-from orangecontrib.xrdanalyzer import Singleton, synchronized_method
 
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Simmetry, Reflection
-from orangecontrib.xrdanalyzer.util.general_functions import fft
 
 from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PARAM_ERR
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_ERR
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection
-from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
-from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
-from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import SizeParameters, Shape, Distribution
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
 
 from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener
 from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_pm2k_util import *
-from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_peak
+from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_peak, add_chebyshev
 
 
 PRCSN = 2.5E-7
@@ -504,13 +497,17 @@ def fit_function(s, parameters):
                                                      fit_global_parameter.fit_initialization.fft_parameters.s_max,
                                                      fit_global_parameter.fit_initialization.fft_parameters.n_step)
 
-        # TEMPORARY BACKGROUND - to be replaced with proper Chebyshev
         if not fit_global_parameter.background_parameters is None:
-            background = numpy.array([common_fitting_data.c0] * len(s_large))
-        else:
-            background = numpy.zeros(s_large.size)
+            add_chebyshev(s_large,
+                          I_large,
+                          parameters=[common_fitting_data.c0,
+                                      common_fitting_data.c1,
+                                      common_fitting_data.c2,
+                                      common_fitting_data.c3,
+                                      common_fitting_data.c4,
+                                      common_fitting_data.c5])
 
-        return numpy.interp(s, s_large, background + I_large)
+        return numpy.interp(s, s_large, I_large)
     else:
         raise NotImplementedError("Only Cubic structures are supported by fit")
 

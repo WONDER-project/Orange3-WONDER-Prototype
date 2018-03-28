@@ -110,11 +110,11 @@ class FitParameter(PM2KParameter):
 
                 if self.boundary.min_value != PARAM_HWMIN:
                     if self.value < self.boundary.min_value:
-                        self.value = self.boundary.min_value + (self.value - self.boundary.min_value)/2
+                        self.value = self.boundary.min_value + (self.boundary.min_value - self.value)/2
 
                 if self.boundary.max_value != PARAM_HWMAX:
                     if self.value > self.boundary.max_value:
-                        self.value = self.boundary.max_value - (self.boundary.max_value - self.value)/2
+                        self.value = self.boundary.max_value - (self.value - self.boundary.max_value)/2
             else:
                 if self.boundary is None: self.boundary = Boundary(min_value=self.value, max_value=self.value + 1e-12)
 

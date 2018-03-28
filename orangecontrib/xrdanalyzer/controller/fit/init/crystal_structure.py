@@ -220,6 +220,7 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
                                                                         fixed=fixed,
                                                                         boundary=boundary))
                 reflections.append(reflection)
+
                 super().add_parameter(reflection.intensity)
 
         self.reflections = reflections

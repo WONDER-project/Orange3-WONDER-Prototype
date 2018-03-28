@@ -133,3 +133,23 @@ def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a
     exponent_2 = -2*numpy.pi*sigma*L
 
     return (1-k)*numpy.exp(exponent_1) + k*numpy.exp(exponent_2)
+
+
+def add_chebyshev(s, I, parameters=[0, 0, 0, 0, 0, 0]):
+    n = len(parameters)
+    T = numpy.zeros(n)
+
+    for i in range(0, len(s)):
+        x = s[i]
+
+        for j in range(0, n):
+            if j==0:
+                T[j] = 1
+            elif j==1:
+                T[j] = x
+            else:
+                T[j] = 2*x*T[j-1] - T[j-2]
+
+            I[i] += parameters[j]*T[j]
+
+
