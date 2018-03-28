@@ -24,7 +24,7 @@ class Reflection(PM2KParameter):
     intensity = None
 
     def __init__(self, h, k, l, intensity):
-        congruence.checkPositiveNumber(intensity.value, "Intensity")
+        #congruence.checkPositiveNumber(intensity.value, "Intensity")
 
         self.h = h
         self.k = k

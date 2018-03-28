@@ -29,7 +29,7 @@ class FitInitialization:
 
     def append_to_scipy_tuple(self, parameters, boundaries):
 
-        # ADESSO WL e fissa, dovra diventare un parametro di fit
+        # ADESSO WL e' fissa, dovra diventare un parametro di fit
         #parameters, boundaries = self.diffraction_pattern.append_to_scipy_tuple(parameters, boundaries)
 
         if not self.crystal_structure is None:

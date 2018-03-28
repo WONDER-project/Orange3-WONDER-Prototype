@@ -10,6 +10,7 @@ class FitGlobalParameters(FitParametersList):
     size_parameters = None
     strain_parameters = None
 
+    n_max_iterations = 10
     convergence_reached = False
 
     def __init__(self,
@@ -37,8 +38,14 @@ class FitGlobalParameters(FitParametersList):
         if not self.strain_parameters is None:
             self.append(self.strain_parameters.get_parameters())
 
-
+        self.n_max_iterations = 10
         self.convergence_reached = False
+
+    def set_n_max_iterations(self, value=10):
+        self.n_max_iterations = value
+
+    def get_n_max_iterations(self):
+        return self.n_max_iterations
 
     def set_convergence_reached(self, value=True):
         self.convergence_reached = value

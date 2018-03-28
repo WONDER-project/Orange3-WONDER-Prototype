@@ -226,14 +226,14 @@ class CTriMatrix:
                         f -= self.getitem(k1-k)*self.getitem(l-k)
                     self.setitem(k1, f)
 
-                if self.getitem(l) > 0:
-                    f = numpy.sqrt(self.getitem(l))
+            if self.getitem(l) > 0:
+                f = numpy.sqrt(self.getitem(l))
 
-                    for i in range(j, self.n+1):
-                        k2 = int(i*(i-1)/2+j)
-                        self.setitem(k2, self.getitem(k2)/f)
-                else:
-                    return -1; # negative diagonal
+                for i in range(j, self.n+1):
+                    k2 = int(i*(i-1)/2+j)
+                    self.setitem(k2, self.getitem(k2)/f)
+            else:
+                return -1; # negative diagonal
 
         return 0
 
@@ -242,7 +242,7 @@ class CTriMatrix:
 
         if self.n > 1:
             l=1
-            for i in range(2, self.n + 1):
+            for i in range(2, self.n+1):
                 k=i-1
                 for j in range(1, k+1):
                     l += 1

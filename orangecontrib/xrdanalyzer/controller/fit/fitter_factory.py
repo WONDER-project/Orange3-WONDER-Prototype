@@ -7,11 +7,11 @@ import orangecontrib.xrdanalyzer.util.congruence as congruence
 class FitterName:
     SCIPY = "scipy"
     LMFIT = "lmfit"
-    PM2K  = "pm2k"
+    MINPACK  = "minpack"
 
     @classmethod
     def tuple(cls):
-        return [cls.PM2K, cls.SCIPY, cls.LMFIT]
+        return [cls.MINPACK, cls.SCIPY, cls.LMFIT]
 
 class FitterFactory():
 
@@ -19,7 +19,7 @@ class FitterFactory():
     def create_fitter(cls, fitter_name=FitterName.LMFIT, fitting_method=None):
         congruence.checkEmptyString(fitter_name, "Fitter Name")
 
-        if fitter_name == FitterName.PM2K:
+        if fitter_name == FitterName.MINPACK:
             return FitterPM2K()
         elif fitter_name == FitterName.SCIPY:
             return FitterScipy()

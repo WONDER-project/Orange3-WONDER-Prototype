@@ -157,6 +157,9 @@ class OWFitter(OWGenericWidget):
             if not self.fit_global_parameters is None:
                 congruence.checkStrictlyPositiveNumber(self.n_iterations, "Nr. Iterations")
 
+                self.fit_global_parameters.set_n_max_iterations(self.n_iterations)
+                self.fit_global_parameters.set_convergence_reached(False)
+
                 self.progressBarInit()
 
                 fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
@@ -181,6 +184,8 @@ class OWFitter(OWGenericWidget):
                     self.tabs.setCurrentIndex(1)
 
                     self.current_iteration = iteration
+
+                    if fitted_fit_global_parameters.is_convergence_reached(): break
 
                 fitter.finalize_fit()
 
@@ -238,7 +243,7 @@ class OWFitter(OWGenericWidget):
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)
-    ow = OWDiffractionPattern()
+    ow = OWFitter()
     ow.show()
     a.exec_()
     ow.saveSettings()

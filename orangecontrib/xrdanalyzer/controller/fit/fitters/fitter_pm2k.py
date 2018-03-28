@@ -88,7 +88,7 @@ class FitterPM2K(FitterInterface):
 
     def do_fit(self, fit_global_parameters, current_iteration):
 
-        if not self.conver:
+        if current_iteration <= fit_global_parameters.get_n_max_iterations() and not self.conver:
             # check values of lambda for large number of iterations
             if (self._totIter > 4 and self._lambda < self._lmin): self._lmin = self._lambda
 
@@ -110,16 +110,15 @@ class FitterPM2K(FitterInterface):
             self.c.assign(self.a) #save the matrix A and the current value of the parameters
 
             j = 0
-            for  i in range (0, self.nprm):
-                parameter = self.parameters[i]
-
-                if not parameter.fixed and not parameter.function:
+            for i in range(0, self.nprm):
+                if not self.parameters[i].fixed and not self.parameters[i].function:
                     j += 1
-                    self.initialpar.setitem(j, parameter.value)
+                    self.initialpar.setitem(j, self.parameters[i].value)
                     self.currpar.setitem(j, self.initialpar.getitem(j))
 
             # emulate C++ do ... while cycle
             do_cycle = True
+
             while do_cycle:
                 self.exitflag = False
                 self.conver = False
@@ -138,9 +137,10 @@ class FitterPM2K(FitterInterface):
                 if self.a.chodec() == 0: # Cholesky decomposition
                     # the matrix is inverted, so calculate g (change in the
                     # parameters) by back substitution
+
                     self.a.choback(self.g)
 
-                    #recyc = False
+                    recyc = False
                     prevwss = self.oldwss
                     recycle = 1
 
@@ -152,19 +152,18 @@ class FitterPM2K(FitterInterface):
                         n0 = 0
                         i = 0
                         for j in range(0, self.nprm):
-                            parameter = self.parameters[j]
-
-                            if not parameter.fixed and not parameter.function:
+                            if not self.parameters[j].fixed and not self.parameters[j].function:
                                 i += 1
 
                                 # update value of parameter
                                 #  apply the required constraints (min/max)
-                                parameter.set_value(self.currpar.getitem(i) + recycle*self.g.getitem(i))
+                                self.parameters[j].set_value(self.currpar.getitem(i) + recycle*self.g.getitem(i))
 
                                 # check number of parameters reaching convergence
                                 if (abs(self.g.getitem(i))<=abs(PRCSN*self.currpar.getitem(i))): n0 += 1
 
-                        if (n0==self.nfit): self.conver = True
+                        if (n0==self.nfit):
+                            self.conver = True
 
                         # update the wss
                         self.wss = self.getWSSQ()
@@ -184,14 +183,12 @@ class FitterPM2K(FitterInterface):
 
                         i = 0
                         for j in range(0, self.nprm):
-                            parameter = self.parameters[j]
-
-                            if not parameter.fixed and not parameter.function:
+                            if not self.parameters[j].fixed and not self.parameters[j].function:
                                 i += 1
 
                                 # update value of parameter
                                 #  apply the required constraints (min/max)
-                                parameter.set_value(self.currpar.getitem(i) + recycle*self.g.getitem(i))
+                                self.parameters[j].set_value(self.currpar.getitem(i) + recycle*self.g.getitem(i))
 
                         # update the wss
                         self.wss = self.getWSSQ()
@@ -205,10 +202,8 @@ class FitterPM2K(FitterInterface):
 
                         ii = 0
                         for j in range(0, self.nprm):
-                            parameter = self.parameters[j]
-
-                            if not parameter.fixed and not parameter.function:
-                                i += 1
+                            if not self.parameters[j].fixed and not self.parameters[j].function:
+                                ii += 1
 
                                 # update value of parameter
                                 self.initialpar.setitem(ii, self.currpar.getitem(ii) + recycle*self.g.getitem(ii))
@@ -225,27 +220,27 @@ class FitterPM2K(FitterInterface):
                     double gof	= rwp / rexp;
                     '''
                 else:
-                    if not self.exitflag  and not self.conver:
-                        if self._lambda<PRCSN: self._lambda = PRCSN
-                        self._nincr += 1
-                        self._lambda *= 10.0
-                        if self._lambda>(1E5*self._lmin): self.conver = True
+                    print("Chlolesky decomposition failed")
+
+                if not self.exitflag  and not self.conver:
+                    if self._lambda<PRCSN: self._lambda = PRCSN
+                    self._nincr += 1
+                    self._lambda *= 10.0
+                    if self._lambda>(1E5*self._lmin): self.conver = True
 
                 # last line of the while loop
                 do_cycle =  not self.exitflag and not self.conver
 
             j = 0
-
             for i in range(0, self.nprm):
-                parameter = self.parameters[i]
-
-                if not parameter.fixed and not parameter.function:
+                if not self.parameters[i].fixed and not self.parameters[i].function:
                     j += 1
-                    parameter.set_value(self.initialpar.getitem(j))
+                    self.parameters[i].set_value(self.initialpar.getitem(j))
 
         fitted_parameters = self.parameters
 
         fit_global_parameters_out = self.build_fit_global_parameters_out(fitted_parameters)
+        fit_global_parameters_out.set_convergence_reached(self.conver)
 
         fitted_pattern = DiffractionPattern()
         fitted_pattern.wavelength = fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
@@ -257,6 +252,8 @@ class FitterPM2K(FitterInterface):
                                                                                     intensity=fitted_intensity[index],
                                                                                     error=0.0,
                                                                                     s=self.s_experimental[index]))
+
+        self.conver = False
 
         return fitted_pattern, fit_global_parameters_out
 
@@ -405,8 +402,7 @@ class FitterPM2K(FitterInterface):
 
         if self.mighell:
             for i in range(0, self.getNrPoints()):
-                tmp = self.intensity_experimental[i]
-                if tmp < 1:
+                if self.intensity_experimental[i] < 1:
                     yv = y[i] - 2*self.intensity_experimental[i]
                 else:
                     yv = y[i] - (self.intensity_experimental[i] + 1.0)
@@ -422,7 +418,7 @@ class FitterPM2K(FitterInterface):
                 if self.error_experimental[i] == 0.0:
                     yv = 0.0
                 else:
-                    yv = y[i] - (self.intensity_experimental[i]/self.error_experimental[i])
+                    yv = (y[i] - self.intensity_experimental[i])/self.error_experimental[i]
 
                     wssqtmp = (yv**2)
 
