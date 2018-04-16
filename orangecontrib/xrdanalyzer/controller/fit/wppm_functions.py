@@ -117,54 +117,46 @@ def strain_function (L, h, k, l, lattice_parameter, a, b, A, B):
     return numpy.exp(exponent)
 
 def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a, b, c):
-    ln2 = numpy.log(2)
-
     theta = Utilities.theta_hkl(lattice_parameter, h,k,l,wavelength)
 
     eta = a + b * theta + c * theta**2
     hwhm = 0.5 * numpy.sqrt(U * (numpy.tan(theta))**2
                             + V * numpy.tan(theta) + W)
 
-    k = (1 + (1 - eta)/(eta * numpy.sqrt(numpy.pi*ln2)))**(-1)
+    k = (1 + (1 - eta)/(eta * numpy.sqrt(numpy.pi*numpy.log(2))))**(-1)
 
     sigma = hwhm*numpy.cos(theta/wavelength)
 
-    exponent_1 = -((numpy.pi*sigma*L)**2)/ ln2
+    exponent_1 = -((numpy.pi*sigma*L)**2)/numpy.log(2)
     exponent_2 = -2*numpy.pi*sigma*L
 
     return (1-k)*numpy.exp(exponent_1) + k*numpy.exp(exponent_2)
 
+######################################################################
+# BACKGROUND
+######################################################################
 
 def add_chebyshev_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    n = len(parameters)
-    T = numpy.zeros(n)
-
+    T = numpy.zeros(len(parameters))
     for i in range(0, len(s)):
-        x = s[i]
-
-        for j in range(0, n):
+        for j in range(0, len(parameters)):
             if j==0:
                 T[j] = 1
             elif j==1:
-                T[j] = x
+                T[j] = s[i]
             else:
-                T[j] = 2*x*T[j-1] - T[j-2]
+                T[j] = 2*s[i]*T[j-1] - T[j-2]
 
             I[i] += parameters[j]*T[j]
 
-
 def add_polynomial_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    n = len(parameters)
-
     for i in range(0, len(s)):
-        for j in range(0, n):
+        for j in range(0, len(parameters)):
             I[i] += parameters[j]*numpy.pow(s[i], j)
 
 def add_polynomial_N_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    n = len(parameters)
-
     for i in range(0, len(s)):
-        for j in range(1, n/2, step=2):
+        for j in range(1, len(parameters)/2, step=2):
             p = parameters[j]
             q = parameters[j+1]
 
@@ -181,10 +173,8 @@ def add_polynomial_0N_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
             I[i] += p*numpy.pow((s[i]-parameters[0]), q)
 
 def add_expdecay_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    n = len(parameters)
-
     for i in range(0, len(s)):
-        for j in range(1, 2*(n-2), step=2):
+        for j in range(1, 2*(len(parameters)-2), step=2):
             p = parameters[j]
             q = parameters[j+1]
 
