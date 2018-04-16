@@ -69,7 +69,7 @@ class OWGenericWidget(widget.OWWidget):
         gui.lineEdit(box, self, var + "_max", "", labelWidth=5, valueType=float)
 
 
-    def populate_parameter(self, parameter_name):
+    def populate_parameter(self, parameter_name, parameter_prefix):
         if getattr(self, parameter_name + "_fixed") == 0:
             boundary = None
 
@@ -82,9 +82,9 @@ class OWGenericWidget(widget.OWWidget):
             if min_value != -numpy.inf or max_value != numpy.inf:
                 boundary = Boundary(min_value=min_value, max_value=max_value)
 
-            return FitParameter(parameter_name=parameter_name, value=getattr(self, parameter_name), boundary=boundary)
+            return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(self, parameter_name), boundary=boundary)
         else:
-            return FitParameter(parameter_name=parameter_name, value=getattr(self, parameter_name), fixed=True)
+            return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(self, parameter_name), fixed=True)
 
 
 

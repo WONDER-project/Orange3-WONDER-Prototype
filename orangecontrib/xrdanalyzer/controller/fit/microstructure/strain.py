@@ -1,5 +1,5 @@
 import numpy
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PM2KParametersList, FitParametersList, FitParameter, Boundary
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter
 
 class LaueGroup:
 
@@ -34,7 +34,7 @@ class LaueGroup:
         return ["-1", "2/m", "2/mmm", "4/m", "4/mmm", "-3R", "-31mR", "-3", "-3m1", "-31m", "6/m", "6/mmm", "m3", "m3m"]
 
 
-class InvariantPAH(FitParametersList, PM2KParametersList):
+class InvariantPAH(FitParametersList):
     aa = None
     bb = None
     laue_id = 1
@@ -53,6 +53,9 @@ class InvariantPAH(FitParametersList, PM2KParametersList):
     e13 = None
     e14 = None
     e15 = None
+
+    def get_parameters_prefix(cls):
+        return "strain."
 
     def __init__(self,
                  aa,
@@ -133,9 +136,6 @@ class InvariantPAH(FitParametersList, PM2KParametersList):
         if not self.e15 is None: invariant += 4*(self.e15.value*(l**2)*h*k)
 
         return invariant
-
-    def to_PM2K(self):
-        return "TODO!!!!!"
 
     def to_text(self):
         text = "STRAIN - INVARIANT PAH\n"

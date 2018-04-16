@@ -17,7 +17,7 @@ def fitterScipyCurveFit(function_to_fit,
                         intensity_experimental,
                         listparameters):
 
-    parameters, boundaries = listparameters.to_scipy_tuple()
+    parameters, boundaries = listparameters.tuple()
 
     print(parameters)
 

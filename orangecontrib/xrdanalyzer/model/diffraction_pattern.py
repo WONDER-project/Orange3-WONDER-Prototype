@@ -138,6 +138,9 @@ class DiffractionPattern:
 
         return text
 
+    def get_available_parameters(self):
+        return "diffraction_pattern.wavelength = " + str(self.get_wavelength()) + "\n"
+
     # "PRIVATE METHODS"
     def _check_diffraction_pattern(self):
         if self.diffraction_pattern is None:

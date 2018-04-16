@@ -123,12 +123,12 @@ class OWInstrumentalProfile(OWGenericWidget):
         try:
             if not self.fit_global_parameters is None:
 
-                self.fit_global_parameters.instrumental_parameters = Caglioti(U=self.populate_parameter("U"),
-                                                                              V=self.populate_parameter("V"),
-                                                                              W=self.populate_parameter("W"),
-                                                                              a=self.populate_parameter("a"),
-                                                                              b=self.populate_parameter("b"),
-                                                                              c=self.populate_parameter("c"))
+                self.fit_global_parameters.instrumental_parameters = Caglioti(U=self.populate_parameter("U", Caglioti.get_parameters_prefix()),
+                                                                              V=self.populate_parameter("V", Caglioti.get_parameters_prefix()),
+                                                                              W=self.populate_parameter("W", Caglioti.get_parameters_prefix()),
+                                                                              a=self.populate_parameter("a", Caglioti.get_parameters_prefix()),
+                                                                              b=self.populate_parameter("b", Caglioti.get_parameters_prefix()),
+                                                                              c=self.populate_parameter("c", Caglioti.get_parameters_prefix()))
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -159,7 +159,7 @@ class OWInstrumentalProfile(OWGenericWidget):
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)
-    ow = OWDiffractionPattern()
+    ow = OWInstrumentalProfile()
     ow.show()
     a.exec_()
     ow.saveSettings()

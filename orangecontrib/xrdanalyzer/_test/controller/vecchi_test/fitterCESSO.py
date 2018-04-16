@@ -32,7 +32,7 @@ def fitterScipyCurveFit(function_to_fit,
     #minimization method, or other
     #the s_experimental has variable step, we construct the
 
-    parameters, boundaries = listparameters.to_scipy_tuple()
+    parameters, boundaries = listparameters.tuple()
 
 
     popt, pcov = curve_fit(f=function_to_fit,

@@ -1,6 +1,6 @@
 import numpy
 import orangecontrib.xrdanalyzer.util.congruence as congruence
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PM2KParametersList, PM2KParameter
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary
 
 class Simmetry:
     NONE = "none"
@@ -13,7 +13,7 @@ class Simmetry:
     def tuple(cls):
         return [cls.NONE, cls.FCC, cls.BCC, cls.HCP, cls.CUBIC]
 
-class Reflection(PM2KParameter):
+class Reflection():
 
     h = 0
     k = 0
@@ -32,9 +32,6 @@ class Reflection(PM2KParameter):
 
         self.intensity = intensity
 
-    def to_PM2K(self):
-        return "addPeak(" + str(self.h) + "," + str(self.k) + "," + str(self.l) + ","  + self.intensity.to_PM2K(type=PM2KParameter.FUNCTION_PARAMETER) + ")"
-
     def to_text(self):
         return str(self.h) + ", " + str(self.k) + ", " + str(self.l) + ", "  + self.intensity.to_text()
 
@@ -47,7 +44,7 @@ class Reflection(PM2KParameter):
     def get_s_hkl(self, wavelength):
         return self.get_q_hkl(wavelength)/(2*numpy.pi)
 
-class CrystalStructure(FitParametersList, PM2KParametersList):
+class CrystalStructure(FitParametersList):
 
     a = None
     b = None
@@ -60,6 +57,11 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
     simmetry = Simmetry.NONE
 
     reflections = []
+
+    @classmethod
+    def get_parameters_prefix(cls):
+        return "crystal_structure."
+
 
     def __init__(self, a, b, c, alpha, beta, gamma, simmetry=Simmetry.NONE):
         super(CrystalStructure, self).__init__()
@@ -88,12 +90,12 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
     def init_cube(cls, a0, simmetry=Simmetry.FCC):
         if not cls.is_cube(simmetry): raise ValueError("Simmetry doesn't belong to a cubic crystal cell")
 
-        a = FitParameter(parameter_name="cp_a", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
-        b = FitParameter(parameter_name="cp_b", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
-        c = FitParameter(parameter_name="cp_c", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
-        alpha = FitParameter(parameter_name="alpha", value=90, fixed=True)
-        beta = FitParameter(parameter_name="beta",   value=90, fixed=True)
-        gamma = FitParameter(parameter_name="gamma", value=90, fixed=True)
+        a = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "a", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+        b = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "b", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+        c = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "c", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+        alpha = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "alpha", value=90, fixed=True)
+        beta = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "beta",   value=90, fixed=True)
+        gamma = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "gamma", value=90, fixed=True)
 
         return CrystalStructure(a,
                                 b,
@@ -146,24 +148,6 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
         else:
             NotImplementedError("Only Cubic and Hexagonal supported: TODO!!!!!!")
 
-    def to_PM2K(self):
-
-        text = ""
-        if self.is_cube(self.simmetry):
-            text += "addPhase(" + self.a.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + ", " + self.a.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + ", " + self.a.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + ", 90, 90, 90, “" + self.simmetry + "”)"
-        else:
-            text += "addPhase(" + self.a.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + \
-                    ", " + self.b.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + \
-                    ", " + self.c.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + \
-                    ", " + self.alpha.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + \
-                    ", " + self.beta.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + \
-                    ", " + self.gamma.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + ", “" + self.simmetry + "”)"
-
-        for reflection in self.reflections:
-            text += "\n" + reflection.to_PM2K()
-
-        return text
-
     def parse_reflections(self, text):
         congruence.checkEmptyString(text, "Reflections")
 
@@ -215,6 +199,9 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
                         else:
                             boundary = Boundary()
 
+                if not intensity_name.startswith(CrystalStructure.get_parameters_prefix()):
+                    intensity_name = CrystalStructure.get_parameters_prefix() + intensity_name
+
                 reflection = Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
                                                                         value=intensity_value,
                                                                         fixed=fixed,
@@ -225,7 +212,6 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
 
         self.reflections = reflections
         self.update_reflections()
-
 
     def duplicate(self):
         crystal_structure = CrystalStructure(a=None if self.a is None else self.a.duplicate(),
@@ -266,10 +252,9 @@ class CrystalStructure(FitParametersList, PM2KParametersList):
 
         return text
 
+
 if __name__=="__main__":
     test = CrystalStructure.init_cube(a0=FitParameter(value=0.55, fixed=True), simmetry=Simmetry.BCC)
-
-    print(test.to_PM2K())
 
     test = CrystalStructure(a=FitParameter(value=0.55), b=FitParameter(value=0.66), c=FitParameter(value=0.77),
                             alpha=FitParameter(value=10), beta=FitParameter(value=20), gamma=FitParameter(value=30),
@@ -278,8 +263,6 @@ if __name__=="__main__":
     test.add_reflection(Reflection(1, 0, 3, intensity=FitParameter(value=200, boundary=Boundary(min_value=10, max_value=100000))))
     test.add_reflection(Reflection(2, 0, 0, intensity=FitParameter(value=300, boundary=Boundary(min_value=10, max_value=100000))))
     test.add_reflection(Reflection(2, 1, 1, intensity=FitParameter(value=400)))
-
-    print(test.to_PM2K())
 
     text = "1, 1, 0, I110 1000, min 10\n" + \
            "2, 0, 0, I200 2000, min 20, max 10000\n"  + \
@@ -290,4 +273,4 @@ if __name__=="__main__":
 
     test.parse_reflections(text)
 
-    print(test.to_PM2K())
+    print(test.to_text())

@@ -101,8 +101,8 @@ class OWSize(OWGenericWidget):
             if not self.fit_global_parameters is None:
                 self.fit_global_parameters.size_parameters = SizeParameters(shape=self.cb_shape.currentText(),
                                                                             distribution=self.cb_distribution.currentText(),
-                                                                            mu=self.populate_parameter("mu"),
-                                                                            sigma=self.populate_parameter("sigma"))
+                                                                            mu=self.populate_parameter("mu", SizeParameters.get_parameters_prefix()),
+                                                                            sigma=self.populate_parameter("sigma", SizeParameters.get_parameters_prefix()))
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 

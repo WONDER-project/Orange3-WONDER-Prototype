@@ -59,9 +59,12 @@ orangecontrib/xrdanalyzer/controller/fit/fit_global_parameters.py
 orangecontrib/xrdanalyzer/controller/fit/fit_parameter.py
 orangecontrib/xrdanalyzer/controller/fit/fitter.py
 orangecontrib/xrdanalyzer/controller/fit/fitter_factory.py
-orangecontrib/xrdanalyzer/controller/fit/fitter_lmfit.py
-orangecontrib/xrdanalyzer/controller/fit/fitter_scipy.py
 orangecontrib/xrdanalyzer/controller/fit/wppm_functions.py
+orangecontrib/xrdanalyzer/controller/fit/fitters/__init__.py
+orangecontrib/xrdanalyzer/controller/fit/fitters/fitter_lmfit.py
+orangecontrib/xrdanalyzer/controller/fit/fitters/fitter_pm2k.py
+orangecontrib/xrdanalyzer/controller/fit/fitters/fitter_pm2k_util.py
+orangecontrib/xrdanalyzer/controller/fit/fitters/fitter_scipy.py
 orangecontrib/xrdanalyzer/controller/fit/init/__init__.py
 orangecontrib/xrdanalyzer/controller/fit/init/crystal_structure.py
 orangecontrib/xrdanalyzer/controller/fit/init/fft_parameters.py

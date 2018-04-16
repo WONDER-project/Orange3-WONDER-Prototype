@@ -1,6 +1,6 @@
 import numpy
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FreeInputParameters, FreeOutputParameters
 
 class FitGlobalParameters(FitParametersList):
 
@@ -9,6 +9,8 @@ class FitGlobalParameters(FitParametersList):
     instrumental_parameters = None
     size_parameters = None
     strain_parameters = None
+    free_input_parameters = None
+    free_output_parameters = None
 
     n_max_iterations = 10
     convergence_reached = False
@@ -26,6 +28,8 @@ class FitGlobalParameters(FitParametersList):
         self.instrumental_parameters = instrumental_parameters
         self.size_parameters = size_parameters
         self.strain_parameters = strain_parameters
+        self.free_input_parameters = FreeInputParameters()
+        self.free_output_parameters = FreeOutputParameters()
 
         if not self.fit_initialization is None:
             self.append(self.fit_initialization.get_parameters())
@@ -52,27 +56,6 @@ class FitGlobalParameters(FitParametersList):
 
     def is_convergence_reached(self):
         return self.convergence_reached == True
-
-    def to_scipy_tuple(self):
-        fit_global_parameters = []
-        fit_global_boundaries = [[],[]]
-
-        if not self.fit_initialization is None:
-            fit_global_parameters, fit_global_boundaries = self.fit_initialization.append_to_scipy_tuple(fit_global_parameters, fit_global_boundaries)
-
-        if not self.background_parameters is None:
-            fit_global_parameters, fit_global_boundaries = self.background_parameters.append_to_scipy_tuple(fit_global_parameters, fit_global_boundaries)
-
-        if not self.instrumental_parameters is None:
-            fit_global_parameters, fit_global_boundaries = self.instrumental_parameters.append_to_scipy_tuple(fit_global_parameters, fit_global_boundaries)
-
-        if not self.size_parameters is None:
-            fit_global_parameters, fit_global_boundaries = self.size_parameters.append_to_scipy_tuple(fit_global_parameters, fit_global_boundaries)
-
-        if not self.strain_parameters is None:
-            fit_global_parameters, fit_global_boundaries = self.strain_parameters.append_to_scipy_tuple(fit_global_parameters, fit_global_boundaries)
-
-        return fit_global_parameters, fit_global_boundaries
 
     def space_parameters(self):
         return FitSpaceParameters(self)
@@ -107,7 +90,25 @@ class FitGlobalParameters(FitParametersList):
         text += "\n###################################\n"
 
         return text
+
+    def evaluate_functions(self):
+        if self.has_functions():
+            python_code = "import numpy\n\n"
+
+            python_code += self.free_input_parameters.to_python_code()
+            python_code += self.get_available_parameters()
+
+            parameters_dictionary, code = self.get_functions_data()
+
+            python_code += code
+
+            exec(python_code, parameters_dictionary)
+
+            self.set_functions_values(parameters_dictionary)
         
+        #TODO: output parameters
+
+
 class FitSpaceParameters:
     def __init__(self, fit_global_parameters):
         s_max   = fit_global_parameters.fit_initialization.fft_parameters.s_max

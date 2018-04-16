@@ -1,13 +1,16 @@
 import numpy
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PM2KParametersList, FitParametersList, FitParameter, Boundary
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary
 
-class ChebyshevBackground(FitParametersList, PM2KParametersList):
+class ChebyshevBackground(FitParametersList):
     c0 = None
     c1 = None
     c2 = None
     c3 = None
     c4 = None
     c5 = None
+
+    def get_parameters_prefix(cls):
+        return "chebyshev."
 
     def __init__(self, c0, c1, c2, c3, c4, c5):
         super(ChebyshevBackground, self).__init__()
@@ -26,26 +29,6 @@ class ChebyshevBackground(FitParametersList, PM2KParametersList):
         super().add_parameter(self.c4)
         super().add_parameter(self.c5)
 
-    def to_PM2K(self):
-        text = ""
-
-        text += self.c0.to_PM2K() + "\n"
-        text += self.c1.to_PM2K() + "\n"
-        text += self.c2.to_PM2K() + "\n"
-        text += self.c3.to_PM2K() + "\n"
-        text += self.c4.to_PM2K() + "\n"
-        text += self.c5.to_PM2K() + "\n\n"
-
-        text += "add(Chebyshev(" + \
-                self.c0.parameter_name + ", " + \
-                self.c1.parameter_name + ", " + \
-                self.c2.parameter_name + ", " + \
-                self.c3.parameter_name + ", " + \
-                self.c4.parameter_name + ", " + \
-                self.c5.parameter_name + "))"
-
-        return text
-
     def to_text(self):
         text = "BACKGROUND PARAMETERS\n"
         text += "-----------------------------------\n"
@@ -60,7 +43,6 @@ class ChebyshevBackground(FitParametersList, PM2KParametersList):
         text += "-----------------------------------\n"
         
         return text       
-
 
     def duplicate(self):
         return ChebyshevBackground(c0=None if self.c0 is None else self.c0.duplicate(),

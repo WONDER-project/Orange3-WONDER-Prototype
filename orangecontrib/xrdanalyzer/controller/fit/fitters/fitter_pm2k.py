@@ -17,7 +17,7 @@ from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_p
 
 PRCSN = 2.5E-7
 
-class FitterPM2K(FitterInterface):
+class FitterMinpack(FitterInterface):
 
 
     def __init__(self):
@@ -34,6 +34,10 @@ class FitterPM2K(FitterInterface):
 
         self.currpar = CVector()
         self.initialpar = CVector()
+
+        # INITIALIZATION OF FUNCTION VALUES
+
+        fit_global_parameters.evaluate_functions()
 
         self.parameters = fit_global_parameters.get_parameters()
         twotheta_experimental, intensity_experimental, error_experimental, s_experimental = fit_global_parameters.fit_initialization.diffraction_pattern.tuples()
@@ -74,13 +78,11 @@ class FitterPM2K(FitterInterface):
         for  i in range (0, self.nprm):
             parameter = self.parameters[i]
 
-            if not parameter.fixed and not parameter.function:
+            if parameter.is_variable():
                 j += 1
                 self.initialpar.setitem(j, parameter.value)
 
-
     def do_fit(self, fit_global_parameters, current_iteration):
-
         if current_iteration <= fit_global_parameters.get_n_max_iterations() and not self.conver:
             # check values of lambda for large number of iterations
             if (self._totIter > 4 and self._lambda < self._lmin): self._lmin = self._lambda
@@ -104,7 +106,7 @@ class FitterPM2K(FitterInterface):
 
             j = 0
             for i in range(0, self.nprm):
-                if not self.parameters[i].fixed and not self.parameters[i].function:
+                if self.parameters[i].is_variable():
                     j += 1
                     self.initialpar.setitem(j, self.parameters[i].value)
                     self.currpar.setitem(j, self.initialpar.getitem(j))
@@ -145,7 +147,7 @@ class FitterPM2K(FitterInterface):
                         n0 = 0
                         i = 0
                         for j in range(0, self.nprm):
-                            if not self.parameters[j].fixed and not self.parameters[j].function:
+                            if self.parameters[j].is_variable():
                                 i += 1
 
                                 # update value of parameter
@@ -154,6 +156,13 @@ class FitterPM2K(FitterInterface):
 
                                 # check number of parameters reaching convergence
                                 if (abs(self.g.getitem(i))<=abs(PRCSN*self.currpar.getitem(i))): n0 += 1
+
+                        #CALCOLO DELLE FUNZIONI
+                        if fit_global_parameters.has_functions():
+                            fit_global_parameters_out = self.build_fit_global_parameters_out(self.parameters)
+                            fit_global_parameters_out.evaluate_functions()
+
+                            self.parameters = fit_global_parameters_out.get_parameters()
 
                         if (n0==self.nfit):
                             self.conver = True
@@ -176,12 +185,18 @@ class FitterPM2K(FitterInterface):
 
                         i = 0
                         for j in range(0, self.nprm):
-                            if not self.parameters[j].fixed and not self.parameters[j].function:
+                            if self.parameters[j].is_variable():
                                 i += 1
 
                                 # update value of parameter
                                 #  apply the required constraints (min/max)
                                 self.parameters[j].set_value(self.currpar.getitem(i) + recycle*self.g.getitem(i))
+
+                        if fit_global_parameters.has_functions():
+                            fit_global_parameters_out = self.build_fit_global_parameters_out(self.parameters)
+                            fit_global_parameters_out.evaluate_functions()
+
+                            self.parameters = fit_global_parameters_out.get_parameters()
 
                         # update the wss
                         self.wss = self.getWSSQ()
@@ -195,7 +210,7 @@ class FitterPM2K(FitterInterface):
 
                         ii = 0
                         for j in range(0, self.nprm):
-                            if not self.parameters[j].fixed and not self.parameters[j].function:
+                            if self.parameters[j].is_variable():
                                 ii += 1
 
                                 # update value of parameter
@@ -226,13 +241,16 @@ class FitterPM2K(FitterInterface):
 
             j = 0
             for i in range(0, self.nprm):
-                if not self.parameters[i].fixed and not self.parameters[i].function:
+                if self.parameters[i].is_variable():
                     j += 1
                     self.parameters[i].set_value(self.initialpar.getitem(j))
+
+
 
         fitted_parameters = self.parameters
 
         fit_global_parameters_out = self.build_fit_global_parameters_out(fitted_parameters)
+        if fit_global_parameters.has_functions(): fit_global_parameters_out.evaluate_functions()
         fit_global_parameters_out.set_convergence_reached(self.conver)
 
         fitted_pattern = DiffractionPattern()
@@ -271,7 +289,7 @@ class FitterPM2K(FitterInterface):
         fit_global_parameters = FitterListener.Instance().get_registered_fit_global_parameters().duplicate()
         crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
 
-        crystal_structure.a.value = fitted_parameters[0].value
+        if not crystal_structure.a.function: crystal_structure.a.value = fitted_parameters[0].value
         crystal_structure.b.value = fitted_parameters[1].value
         crystal_structure.c.value = fitted_parameters[2].value
         crystal_structure.alpha.value = fitted_parameters[3].value
@@ -319,6 +337,10 @@ class FitterPM2K(FitterInterface):
 
         return fit_global_parameters
 
+
+
+
+
     ###############################################
     #
     # METODI minObj
@@ -331,7 +353,7 @@ class FitterPM2K(FitterInterface):
     def getNrParamToFit(self):
         nfit = 0
         for parameter in self.parameters:
-            if not parameter.fixed and not parameter.function:
+            if parameter.is_variable():
                 nfit += 1
         return nfit
 
@@ -357,7 +379,7 @@ class FitterPM2K(FitterInterface):
         for k in range (0, self.nprm):
             parameter = self.parameters[k]
 
-            if not parameter.fixed:
+            if parameter.is_variable():
                 pk = parameter.value
                 if parameter.step == PARAM_ERR: step = 0.001
                 else: step = parameter.step
@@ -512,7 +534,26 @@ def fit_function(s, parameters):
         raise NotImplementedError("Only Cubic structures are supported by fit")
 
 
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, FreeInputParameters, FreeOutputParameters
 
+if __name__ == "__main__":
+
+    free_p = FreeInputParameters()
+
+    free_p.set_parameter("A", 10)
+    free_p.set_parameter("C", 20)
+
+    free_parameters_python_text = free_p.to_python_code()
+
+    parameter = FitParameter(parameter_name="param1", function=True, function_value="numpy.exp(A +C)")
+
+    out = {parameter.parameter_name : numpy.nan}
+
+    exec("import numpy\n\n" + free_parameters_python_text + parameter.to_python_code(), out)
+
+    parameter.set_value(float(out[parameter.parameter_name]))
+
+    print("OUTPUT", parameter.value)
 
 
 

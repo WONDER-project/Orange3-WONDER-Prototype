@@ -1,9 +1,6 @@
 import os, sys, numpy
 
-from PyQt5.QtWidgets import QMessageBox, QScrollArea, QTableWidget, QApplication
-from PyQt5.QtCore import Qt
-
-from silx.gui.plot.PlotWindow import PlotWindow
+from PyQt5.QtWidgets import QMessageBox, QApplication
 
 from Orange.widgets.settings import Setting
 from Orange.widgets import gui as orangegui
@@ -12,12 +9,8 @@ from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWi
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ShowTextDialog
 from orangecontrib.xrdanalyzer.util import congruence
 
-from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPatternFactory
-
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
-from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAHLaueGroup14, LaueGroup
+from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, InvariantPAHLaueGroup14, LaueGroup
 
 class OWStrain(OWGenericWidget):
 
@@ -108,12 +101,10 @@ class OWStrain(OWGenericWidget):
     def send_strain(self):
         try:
             if not self.fit_global_parameters is None:
-                self.fit_global_parameters.strain_parameters = InvariantPAHLaueGroup14(aa=self.populate_parameter("aa"),
-                                                                                       bb=self.populate_parameter("bb"),
-                                                                                       e1=self.populate_parameter("e1"),
-                                                                                       e6=self.populate_parameter("e6"))
-
-                #ShowTextDialog.show_text("Output", self.fit_global_parameters.strain_parameters.to_PM2K(), parent=self)
+                self.fit_global_parameters.strain_parameters = InvariantPAHLaueGroup14(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
+                                                                                       bb=self.populate_parameter("bb", InvariantPAH.get_parameters_prefix()),
+                                                                                       e1=self.populate_parameter("e1", InvariantPAH.get_parameters_prefix()),
+                                                                                       e6=self.populate_parameter("e6", InvariantPAH.get_parameters_prefix()))
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -141,8 +132,8 @@ class OWStrain(OWGenericWidget):
 
 
 if __name__ == "__main__":
-    a4 =  QApplication(sys.argv)
-    ow = OWDiffractionPattern()
+    a =  QApplication(sys.argv)
+    ow = OWStrain()
     ow.show()
     a.exec_()
     ow.saveSettings()

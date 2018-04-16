@@ -1,6 +1,6 @@
 
 import numpy
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PM2KParameter, PM2KParametersList, FitParametersList, FitParameter, Boundary
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList
 
 
 class Shape:
@@ -27,12 +27,16 @@ class Distribution:
         return [cls.DELTA, cls.LOGNORMAL, cls.GAMMA, cls.YORK]
 
 
-class SizeParameters(FitParametersList, PM2KParametersList):
+class SizeParameters(FitParametersList):
 
     shape = Shape.SPHERE
     distribution = Distribution.LOGNORMAL
     mu = None
     sigma = None
+
+    @classmethod
+    def get_parameters_prefix(cls):
+        return "size."
 
     def __init__(self, shape, distribution, mu, sigma):
         super(SizeParameters, self).__init__()
@@ -44,13 +48,6 @@ class SizeParameters(FitParametersList, PM2KParametersList):
 
         super().add_parameter(self.mu)
         super().add_parameter(self.sigma)
-
-    def to_PM2K(self):
-        return "convolveFourier(SizeDistribution(“" + \
-               self.shape + "”, ”" + \
-               self.distribution + "”, " + \
-               self.mu.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + ", " + \
-               self.sigma.to_PM2K(PM2KParameter.FUNCTION_PARAMETER) + "))"
 
     def to_text(self):
         text = "SIZE\n"
@@ -65,6 +62,7 @@ class SizeParameters(FitParametersList, PM2KParametersList):
         text += "-----------------------------------\n"
 
         return text
+
 
     def duplicate(self):
         return SizeParameters(shape=self.shape,

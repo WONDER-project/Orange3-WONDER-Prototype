@@ -1,8 +1,8 @@
 from orangecontrib.xrdanalyzer.util import congruence
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PM2KParametersList
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList
 
-class FFTInitParameters(PM2KParametersList):
+class FFTInitParameters(FitParametersList):
 
     s_max = 9.0
     n_step = 4096
@@ -18,6 +18,8 @@ class FFTInitParameters(PM2KParametersList):
         self.s_max = s_max
         self.n_step = n_step
 
+        # THESE PARAMETERS ARE FIXED BY DEFAULT, THEY ARE NOT PASSED TO THE LIST
+
     def duplicate(self):
         return FFTInitParameters(s_max=self.s_max, n_step=self.n_step)
 
@@ -27,13 +29,5 @@ class FFTInitParameters(PM2KParametersList):
         text += "fft steps: " + str(self.n_step) + "\n"
         text += "s max    : "  + str(self.s_max) + "\n"
         text += "-----------------------------------\n"
-
-        return text
-
-    def to_PM2K(self):
-        text  = "par !ftsteps " + str(self.n_step) + "\n"
-        text += "par !smax "  + str(self.s_max) + "\n\n"
-        text += "setFTSteps(ftsteps)" + "\n"
-        text += "setSMax(smax)"
 
         return text

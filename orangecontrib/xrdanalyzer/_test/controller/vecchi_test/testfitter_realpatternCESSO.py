@@ -62,7 +62,7 @@ guess_parameters.add_parameter(FitParameter(value = 0.0, parameter_name="A0", bo
 
 
 
-parameters, boundaries = guess_parameters.to_scipy_tuple()
+parameters, boundaries = guess_parameters.tuple()
 
 
 

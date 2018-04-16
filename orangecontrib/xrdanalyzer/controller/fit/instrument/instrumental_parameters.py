@@ -1,13 +1,17 @@
 import numpy
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PM2KParametersList, FitParametersList, FitParameter, Boundary
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary
 
-class Caglioti(FitParametersList, PM2KParametersList):
+class Caglioti(FitParametersList):
     U = None
     V = None
     W = None
     a = None
     b = None
     c = None
+
+    @classmethod
+    def get_parameters_prefix(cls):
+        return "caglioti."
 
     def __init__(self, U, V, W, a, b, c):
         super(Caglioti, self).__init__()
@@ -26,25 +30,6 @@ class Caglioti(FitParametersList, PM2KParametersList):
         super().add_parameter(self.b)
         super().add_parameter(self.c)
 
-    def to_PM2K(self):
-        text = ""
-
-        text += self.U.to_PM2K() + "\n"
-        text += self.V.to_PM2K() + "\n"
-        text += self.W.to_PM2K() + "\n"
-        text += self.a.to_PM2K() + "\n"
-        text += self.b.to_PM2K() + "\n"
-        text += self.c.to_PM2K() + "\n\n"
-
-        text += "convolveFourier(CagliotiUVWabc(" + \
-                self.U.parameter_name + ", " + \
-                self.V.parameter_name + ", " + \
-                self.W.parameter_name + ", " + \
-                self.a.parameter_name + ", " + \
-                self.b.parameter_name + ", " + \
-                self.c.parameter_name + "))"
-
-        return text
 
     def to_text(self):
         text = "INSTRUMENTAL PARAMETERS\n"
@@ -77,6 +62,6 @@ if __name__=="__main__":
                     b=FitParameter(parameter_name="b", value=5.0, boundary=Boundary(min_value=-10.0, max_value=10.0)),
                     c=FitParameter(parameter_name="c", value=6.0, boundary=Boundary(min_value=-10.0, max_value=10.0)))
 
-    print(test.to_scipy_tuple())
+    print(test.tuple())
     print("\n")
-    print(test.to_PM2K())
+    print(test.to_text())
