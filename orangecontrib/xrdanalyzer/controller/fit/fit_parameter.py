@@ -149,6 +149,8 @@ class FitParameter(PM2KParameter):
         return FitParameter(parameter_name=self.parameter_name,
                             value=self.value,
                             fixed=self.fixed,
+                            function=self.function,
+                            function_value=self.function_value,
                             boundary=None if self.boundary is None else Boundary(min_value=self.boundary.min_value,
                                                                                  max_value=self.boundary.max_value))
 
@@ -211,3 +213,67 @@ class FitParametersList:
         boundaries[1] = list(numpy.append(boundaries[1], my_boundaries[1]))
 
         return parameters, boundaries
+
+
+
+class FreeInputParameters:
+    def __init__(self):
+        self.__parameters_dictionary = {}
+    
+    def _check_hashmap(self):
+        if not hasattr(self, "__parameters_dictionary"):
+            self.__parameters_dictionary = {}
+
+    def get_parameters_count(self):
+        self._check_hashmap()
+        return len(self.__parameters_dictionary)
+
+    def set_parameter(self, name, value):
+        self._check_hashmap()
+        self.__parameters_dictionary[name] = value
+
+    def get_parameter(self, name):
+        self._check_hashmap()
+        return self.__parameters_dictionary[name]
+
+    def append(self,parameters_dictionary):
+        if not parameters_dictionary is None:
+            for name in parameters_dictionary.keys():
+                self.set_parameter(name, parameters_dictionary[name])
+    
+class FreeOutputParameters:
+    def __init__(self):
+        self.__parameters_dictionary = {}
+
+    def _check_hashmap(self):
+        if not hasattr(self, "__parameters_dictionary"):
+            self.__parameters_dictionary = {}
+
+    def get_parameters_count(self):
+        self._check_hashmap()
+        return len(self.__parameters_dictionary)
+
+    def set_parameter(self, name, expression):
+        self._check_hashmap()
+        self.__parameters_dictionary[name] = expression
+
+    def get_parameter(self, name):
+        self._check_hashmap()
+        return self.__parameters_dictionary[name]
+
+    def get_formula(self, name):
+        self._check_hashmap()
+        return name + " = " + self.__parameters_dictionary[name]
+
+    def set_formula(self, formula):
+        self._check_hashmap()
+        tokens = formula.split("=")
+        if len(tokens) != 2: raise ValueError("Formula format not recognized: <name> = <expression>")
+
+        self.set_parameter(tokens[0].strip(), tokens[1].strip())
+
+    def append(self, parameters_dictionary):
+        if not parameters_dictionary is None:
+            for name in parameters_dictionary.keys():
+                self.set_parameter(name, parameters_dictionary[name])
+
