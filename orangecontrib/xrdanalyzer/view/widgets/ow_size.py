@@ -49,6 +49,13 @@ class OWSize(OWGenericWidget):
     mu_max = Setting(0.0)
     sigma_max = Setting(1.0)
 
+    mu_function = Setting(0)
+    sigma_function = Setting(0)
+
+    mu_function_value = Setting("")
+    sigma_function_value = Setting("")
+
+
     fit_global_parameters = None
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]

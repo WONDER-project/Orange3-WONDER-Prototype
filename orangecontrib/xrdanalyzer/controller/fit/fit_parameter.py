@@ -80,17 +80,21 @@ class FitParameter:
                 if self.boundary is None: self.boundary = Boundary(min_value=self.value, max_value=self.value + 1e-12)
 
     def to_text(self):
-        text = self.parameter_name + " " + str(self.value)
 
-        if not self.fixed:
-            if not self.boundary is None:
-                if not self.boundary.min_value == -numpy.inf:
-                    text += ", min " + str(self.boundary.min_value)
-
-                if not self.boundary.max_value == numpy.inf:
-                    text += ", max " + str(self.boundary.max_value)
+        if self.function:
+            text = self.to_python_code() + " = " + str(self.value)
         else:
-            text += ", fixed"
+            text = self.parameter_name + " " + str(self.value)
+
+            if self.fixed:
+                text += ", fixed"
+            else:
+                if not self.boundary is None:
+                    if not self.boundary.min_value == -numpy.inf:
+                        text += ", min " + str(self.boundary.min_value)
+
+                    if not self.boundary.max_value == numpy.inf:
+                        text += ", max " + str(self.boundary.max_value)
 
         return text
 
@@ -245,11 +249,24 @@ class FreeInputParameters:
 
         return python_text
 
+    def duplicate(self):
+        new_free_input_parameters = FreeInputParameters()
+
+        if not self.parameters_dictionary is None:
+            for name in self.parameters_dictionary.keys():
+                new_free_input_parameters.set_parameter(name, self.parameters_dictionary[name])
+                
+        return new_free_input_parameters
+
+
 class FreeOutputParameter:
     def __init__(self, expression=None, value=None):
         self.expression = expression
         self.value = value
-
+    
+    def duplicate(self):
+        return FreeOutputParameter(expression=self.expression, value=self.value)
+    
 class FreeOutputParameters:
     def __init__(self):
         self.parameters_dictionary = {}
@@ -264,52 +281,52 @@ class FreeOutputParameters:
 
     def set_parameter(self, name, parameter=FreeOutputParameter()):
         self._check_dictionary()
-        if parameter is None():
+        if parameter is None:
             raise ValueError("Parameter object cannot be None")
 
         self.parameters_dictionary[name] = parameter
 
     def set_parameter_expression(self, name, expression):
         self._check_dictionary()
-        if self.parameters_dictionary[name] is None:
-            raise ValueError("Key " + name + " not found")
-
-        self.parameters_dictionary[name].expression = expression
+        try:
+            self.parameters_dictionary[name].expression = expression
+        except:
+            self.parameters_dictionary[name] = FreeOutputParameter(expression=expression)
 
     def set_parameter_value(self, name, value):
         self._check_dictionary()
-        if self.parameters_dictionary[name] is None:
-            raise ValueError("Key " + name + " not found")
-
-        self.parameters_dictionary[name].value = value
+        try:
+            self.parameters_dictionary[name].value = value
+        except:
+            self.parameters_dictionary[name] = FreeOutputParameter(value=value)
 
     def get_parameter_expression(self, name):
         self._check_dictionary()
-        if self.parameters_dictionary[name] is None:
+        try:
+            return self.parameters_dictionary[name].expression
+        except:
             raise ValueError("Key " + name + " not found")
-
-        return self.parameters_dictionary[name].expression
 
     def get_parameter_value(self, name):
         self._check_dictionary()
-        if self.parameters_dictionary[name] is None:
+        try:
+            return self.parameters_dictionary[name].value
+        except:
             raise ValueError("Key " + name + " not found")
-
-        return self.parameters_dictionary[name].value
 
     def get_parameter_formula(self, name):
         self._check_dictionary()
-        if self.parameters_dictionary[name] is None:
+        try:
+            return name + " = " + self.parameters_dictionary[name].expression
+        except:
             raise ValueError("Key " + name + " not found")
-
-        return name + " = " + self.parameters_dictionary[name].expression
 
     def get_parameter_full_text(self, name):
         self._check_dictionary()
-        if self.parameters_dictionary[name] is None:
+        try:
+            return name + " = " + self.parameters_dictionary[name].expression + " = " + str(self.parameters_dictionary[name].value)
+        except:
             raise ValueError("Key " + name + " not found")
-
-        return name + " = " + self.parameters_dictionary[name].expression + " = " + str(self.parameters_dictionary[name].value)
 
     def set_formula(self, formula):
         self._check_dictionary()
@@ -324,6 +341,43 @@ class FreeOutputParameters:
             for name in parameters_dictionary.keys():
                 self.set_parameter(name, parameters_dictionary[name])
 
+    def parse_formulas(self, text):
+        is_empty = False
+
+        try:
+            congruence.checkEmptyString(text, "")
+        except:
+            is_empty = True
+
+        if not is_empty:
+            lines = text.splitlines()
+
+            for i in range(len(lines)):
+                is_line_empty = False
+                try:
+                    congruence.checkEmptyString(lines[i], "")
+                except:
+                    is_line_empty = True
+
+                if not is_line_empty:
+                    data = lines[i].strip().split("=")
+
+                    if len(data) != 2: raise ValueError("Free Output Parameters, malformed line:" + str(i+1))
+
+                    name       = data[0].strip()
+                    expression = data[1].strip()
+
+                    self.set_parameter_expression(name, expression)
+
+    def to_formulas(self):
+        text = ""
+
+        if not self.parameters_dictionary is None:
+            for name in self.parameters_dictionary.keys():
+                text += self.get_parameter_formula(name) + "\n"
+
+        return text
+
 
     def to_text(self):
         text = "FREE OUTPUT PARAMETERS\n"
@@ -336,3 +390,28 @@ class FreeOutputParameters:
         text += "-----------------------------------\n"
 
         return text
+
+    def get_functions_data(self):
+        self._check_dictionary()
+
+        parameters_dictionary = {}
+        python_code = ""
+
+        for parameter_name in self.parameters_dictionary.keys():
+            parameters_dictionary[parameter_name] = numpy.nan
+            python_code += self.get_parameter_formula(parameter_name) + "\n"
+
+        return parameters_dictionary, python_code
+
+    def set_functions_values(self, parameters_dictionary):
+        for parameter_name in self.parameters_dictionary.keys():
+           self.set_parameter_value(parameter_name, float(parameters_dictionary[parameter_name]))
+
+    def duplicate(self):
+        new_free_ouput_parameters = FreeOutputParameters()
+
+        if not self.parameters_dictionary is None:
+            for name in self.parameters_dictionary.keys():
+                new_free_ouput_parameters.set_parameter(name, self.parameters_dictionary[name].duplicate())
+                
+        return new_free_ouput_parameters

@@ -41,6 +41,12 @@ class OWStrain(OWGenericWidget):
     aa_max = Setting(0.0)
     bb_max = Setting(0.0)
 
+    aa_function = Setting(0)
+    bb_function = Setting(0)
+
+    aa_function_value = Setting("")
+    bb_function_value = Setting("")
+
     e1 = Setting(0.0)
     e6 = Setting(0.0)
 
@@ -58,6 +64,12 @@ class OWStrain(OWGenericWidget):
 
     e1_max = Setting(0.0)
     e6_max = Setting(0.0)
+
+    e1_function = Setting(0)
+    e6_function = Setting(0)
+
+    e1_function_value = Setting("")
+    e6_function_value = Setting("")
 
     fit_global_parameters = None
 
@@ -101,10 +113,10 @@ class OWStrain(OWGenericWidget):
     def send_strain(self):
         try:
             if not self.fit_global_parameters is None:
-                self.fit_global_parameters.set_strain_parameters(InvariantPAHLaueGroup14(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
-                                                                                         bb=self.populate_parameter("bb", InvariantPAH.get_parameters_prefix()),
-                                                                                         e1=self.populate_parameter("e1", InvariantPAH.get_parameters_prefix()),
-                                                                                         e6=self.populate_parameter("e6", InvariantPAH.get_parameters_prefix())))
+                self.fit_global_parameters.strain_parameters = InvariantPAHLaueGroup14(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
+                                                                                       bb=self.populate_parameter("bb", InvariantPAH.get_parameters_prefix()),
+                                                                                       e1=self.populate_parameter("e1", InvariantPAH.get_parameters_prefix()),
+                                                                                       e6=self.populate_parameter("e6", InvariantPAH.get_parameters_prefix()))
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 

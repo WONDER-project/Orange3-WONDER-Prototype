@@ -52,6 +52,13 @@ class OWInstrumentalProfile(OWGenericWidget):
     V_max = Setting(0.0)
     W_max = Setting(0.0)
 
+    U_function = Setting(0)
+    V_function = Setting(0)
+    W_function = Setting(0)
+
+    U_function_value = Setting("")
+    V_function_value = Setting("")
+    W_function_value = Setting("")
 
     a = Setting(0.0)
     b = Setting(0.0)
@@ -77,6 +84,13 @@ class OWInstrumentalProfile(OWGenericWidget):
     b_max = Setting(0.0)
     c_max = Setting(0.0)
 
+    a_function = Setting(0)
+    b_function = Setting(0)
+    c_function = Setting(0)
+
+    a_function_value = Setting("")
+    b_function_value = Setting("")
+    c_function_value = Setting("")
 
     fit_global_parameters = None
 

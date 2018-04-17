@@ -24,10 +24,10 @@ class OWGenericWidget(widget.OWWidget):
     info_id = 0
 
     MAX_WIDTH = 1320
-    MAX_WIDTH_NO_MAIN = 410
+    MAX_WIDTH_NO_MAIN = 510
     MAX_HEIGHT = 700
 
-    CONTROL_AREA_WIDTH = 405
+    CONTROL_AREA_WIDTH = 505
     TABS_AREA_HEIGHT = 560
 
     def __init__(self, show_automatic_box=True):
@@ -58,19 +58,66 @@ class OWGenericWidget(widget.OWWidget):
         gui.button(self.general_options_box, self, "Reset Fields", callback=self.callResetSettings)
 
 
+
     def create_box(self, parent_box, var):
         box = gui.widgetBox(parent_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50)
 
-        gui.lineEdit(box, self, var, var, labelWidth=20, valueType=float)
-        orangegui.checkBox(box, self, var + "_fixed", "fix")
-        orangegui.checkBox(box, self, var + "_has_min", "min")
-        gui.lineEdit(box, self, var + "_min", "", labelWidth=5, valueType=float)
-        orangegui.checkBox(box, self, var + "_has_max", "max")
-        gui.lineEdit(box, self, var + "_max", "", labelWidth=5, valueType=float)
+        box_label = gui.widgetBox(box, "", orientation="horizontal", width=20)
+        box_value =  gui.widgetBox(box, "", orientation="horizontal", width=130)
+        box_min_max = gui.widgetBox(box, "", orientation="horizontal")
+        box_fixed = gui.widgetBox(box, "", orientation="horizontal")
+        box_function = gui.widgetBox(box, "", orientation="horizontal")
+        box_function_value = gui.widgetBox(box, "", orientation="horizontal")
 
+        gui.widgetLabel(box_label, var)
+        le_var = gui.lineEdit(box_value, self, var, "", valueType=float)
+
+        def set_flags():
+            fixed = getattr(self, var + "_fixed") == True
+            function = getattr(self, var + "_function") == True
+
+            if function:
+                setattr(self, var + "_fixed", False)
+
+                box_min_max.setVisible(False)
+                box_fixed.setVisible(False)
+                le_var.setVisible(False)
+                box_value.setFixedWidth(5)
+                box_function_value.setVisible(True)
+            elif fixed:
+                setattr(self, var + "_function", False)
+
+                box_min_max.setVisible(False)
+                le_var.setVisible(True)
+                box_value.setFixedWidth(130)
+                box_function.setVisible(False)
+                box_function_value.setVisible(False)
+            else:
+                box_min_max.setVisible(True)
+                le_var.setVisible(True)
+                box_value.setFixedWidth(130)
+                box_fixed.setVisible(True)
+                box_function.setVisible(True)
+                box_function_value.setVisible(False)
+
+        orangegui.checkBox(box_fixed, self, var + "_fixed", "fixed", callback=set_flags)
+
+        orangegui.checkBox(box_min_max, self, var + "_has_min", "min")
+        gui.lineEdit(box_min_max, self, var + "_min", "", labelWidth=5, valueType=float)
+        orangegui.checkBox(box_min_max, self, var + "_has_max", "max")
+        gui.lineEdit(box_min_max, self, var + "_max", "", labelWidth=5, valueType=float)
+
+        orangegui.checkBox(box_function, self, var + "_function", "f(x)", callback=set_flags)
+        gui.lineEdit(box_function_value, self, var + "_function_value", "expression", valueType=str)
+
+        set_flags()
 
     def populate_parameter(self, parameter_name, parameter_prefix):
-        if getattr(self, parameter_name + "_fixed") == 0:
+        if getattr(self, parameter_name + "_function") == 1:
+            return FitParameter(parameter_name=parameter_prefix + parameter_name, function=True, function_value=getattr(self, parameter_name + "_function_value"))
+        elif getattr(self, parameter_name + "_fixed") == 1:
+            return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(self, parameter_name), fixed=True)
+        else:
             boundary = None
 
             min_value = -numpy.inf
@@ -83,10 +130,6 @@ class OWGenericWidget(widget.OWWidget):
                 boundary = Boundary(min_value=min_value, max_value=max_value)
 
             return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(self, parameter_name), boundary=boundary)
-        else:
-            return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(self, parameter_name), fixed=True)
-
-
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):

@@ -1,6 +1,6 @@
 import numpy
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FreeInputParameters, FreeOutputParameters
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList
 
 class FitGlobalParameters(FitParametersList):
 
@@ -130,6 +130,9 @@ class FitGlobalParameters(FitParametersList):
         
         text += "\n###################################\n"
 
+        text += self.free_input_parameters.to_text()
+        text += self.free_output_parameters.to_text()
+
         return text
 
     def evaluate_functions(self):
@@ -137,27 +140,40 @@ class FitGlobalParameters(FitParametersList):
             python_code = "import numpy\n\n"
 
             python_code += self.free_input_parameters.to_python_code()
+
             python_code += self.get_available_parameters()
 
-            parameters_dictionary, code = self.get_functions_data()
+            parameters_dictionary_fit, code_fit = self.get_functions_data()
+            parameters_dictionary_out, code_out = self.free_output_parameters.get_functions_data()
 
-            python_code += code
+            python_code += code_fit
+            python_code += code_out
+
+            parameters_dictionary = {}
+            parameters_dictionary.update(parameters_dictionary_fit)
+            parameters_dictionary.update(parameters_dictionary_out)
 
             print(python_code)
 
             exec(python_code, parameters_dictionary)
 
             self.set_functions_values(parameters_dictionary)
+
+            self.free_output_parameters.set_functions_values(parameters_dictionary)
         
         #TODO: output parameters
 
     def duplicate(self):
-        return FitGlobalParameters(fit_initialization=None if self.fit_initialization is None else self.fit_initialization.duplicate(),
+        fit_global_parameters = FitGlobalParameters(fit_initialization=None if self.fit_initialization is None else self.fit_initialization.duplicate(),
                                    background_parameters=None if self.background_parameters is None else self.background_parameters.duplicate(),
                                    instrumental_parameters=None if self.instrumental_parameters is None else self.instrumental_parameters.duplicate(),
                                    size_parameters=None if self.size_parameters is None else self.size_parameters.duplicate(),
                                    strain_parameters=None if self.strain_parameters is None else self.strain_parameters.duplicate())
 
+        fit_global_parameters.free_input_parameters = self.free_input_parameters.duplicate()
+        fit_global_parameters.free_output_parameters = self.free_output_parameters.duplicate()
+
+        return fit_global_parameters
 
 class FitSpaceParameters:
     def __init__(self, fit_global_parameters):
@@ -181,9 +197,6 @@ from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import Invar
 
 if __name__ == "__main__":
 
-
-
-
     fit_global_parameters = FitGlobalParameters()
 
     fit_global_parameters.free_input_parameters.set_parameter("A", 10)
@@ -203,6 +216,8 @@ if __name__ == "__main__":
                                                                       e1=FitParameter(parameter_name=parameter_prefix + "e1", function=True, function_value=parameter_prefix + "aa + " + parameter_prefix + "bb"),
                                                                       e6=FitParameter(parameter_name=parameter_prefix + "e6", function=True, function_value=parameter_prefix + "aa**2 + " + parameter_prefix + "bb**2"))
 
+
+    fit_global_parameters.free_output_parameters.set_formula("out1 = caglioti_U + numpy.abs(caglioti_W)")
 
     fit_global_parameters.evaluate_functions()
 

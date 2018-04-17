@@ -33,6 +33,8 @@ class OWFitter(OWGenericWidget):
     is_incremental = Setting(1)
     current_iteration = 0
 
+    free_output_parameters = Setting("")
+
     fit_global_parameters = None
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
@@ -96,6 +98,24 @@ class OWFitter(OWGenericWidget):
 
         gui.button(button_box,  self, "Fit", height=50, callback=self.do_fit)
 
+
+        tabs = gui.tabWidget(main_box)
+        tab_free_out = gui.createTabPage(tabs, "Free Output Parameters")
+
+        self.scrollarea_free_out = QScrollArea(tab_free_out)
+        self.scrollarea_free_out.setMinimumWidth(self.CONTROL_AREA_WIDTH-45)
+        self.scrollarea_free_out.setMinimumHeight(260)
+
+        self.text_area_free_out = gui.textArea(height=500, width=self.CONTROL_AREA_WIDTH-65, readOnly=False)
+        self.text_area_free_out.setText(self.free_output_parameters)
+
+        self.scrollarea_free_out.setWidget(self.text_area_free_out)
+        self.scrollarea_free_out.setWidgetResizable(1)
+
+        tab_free_out.layout().addWidget(self.scrollarea_free_out, alignment=Qt.AlignHCenter)
+
+
+
         self.tabs = gui.tabWidget(self.mainArea)
 
         self.tab_fit_in = gui.createTabPage(self.tabs, "Fit Input Parameters")
@@ -155,10 +175,13 @@ class OWFitter(OWGenericWidget):
     def do_fit(self):
         try:
             if not self.fit_global_parameters is None:
+                self.free_output_parameters = self.text_area_free_out.toPlainText()
+
                 congruence.checkStrictlyPositiveNumber(self.n_iterations, "Nr. Iterations")
 
                 self.fit_global_parameters.set_n_max_iterations(self.n_iterations)
                 self.fit_global_parameters.set_convergence_reached(False)
+                self.fit_global_parameters.free_output_parameters.parse_formulas(self.free_output_parameters)
 
                 self.progressBarInit()
 
@@ -212,6 +235,9 @@ class OWFitter(OWGenericWidget):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
 
+            self.fit_global_parameters.free_output_parameters.parse_formulas(self.free_output_parameters) # existing parameters
+
+            self.text_area_free_out.setText(self.fit_global_parameters.free_output_parameters.to_formulas())
             self.text_area_fit_in.setText(self.fit_global_parameters.to_text())
             self.tabs.setCurrentIndex(0)
 

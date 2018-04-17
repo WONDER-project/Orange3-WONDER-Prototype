@@ -31,50 +31,58 @@ class OWBackground(OWGenericWidget):
     c0 = Setting(0.0)
     c1 = Setting(0.0)
     c2 = Setting(0.0)
-
-    c0_fixed = Setting(0)
-    c1_fixed = Setting(0)
-    c2_fixed = Setting(0)
-
-    c0_has_min = Setting(0)
-    c1_has_min = Setting(0)
-    c2_has_min = Setting(0)
-
-    c0_min = Setting(0.0)
-    c1_min = Setting(0.0)
-    c2_min = Setting(0.0)
-
-    c0_has_max = Setting(0)
-    c1_has_max = Setting(0)
-    c2_has_max = Setting(0)
-
-    c0_max = Setting(0.0)
-    c1_max = Setting(0.0)
-    c2_max = Setting(0.0)
-
     c3 =  Setting(0.0)
     c4 =  Setting(0.0)
     c5 =  Setting(0.0)
 
+    c0_fixed = Setting(0)
+    c1_fixed = Setting(0)
+    c2_fixed = Setting(0)
     c3_fixed = Setting(0)
     c4_fixed = Setting(0)
     c5_fixed = Setting(0)
 
+    c0_has_min = Setting(0)
+    c1_has_min = Setting(0)
+    c2_has_min = Setting(0)
     c3_has_min = Setting(0)
     c4_has_min = Setting(0)
     c5_has_min = Setting(0)
 
+    c0_min = Setting(0.0)
+    c1_min = Setting(0.0)
+    c2_min = Setting(0.0)
     c3_min = Setting(0.0)
     c4_min = Setting(0.0)
     c5_min = Setting(0.0)
 
+    c0_has_max = Setting(0)
+    c1_has_max = Setting(0)
+    c2_has_max = Setting(0)
     c3_has_max = Setting(0)
     c4_has_max = Setting(0)
     c5_has_max = Setting(0)
 
+    c0_max = Setting(0.0)
+    c1_max = Setting(0.0)
+    c2_max = Setting(0.0)
     c3_max = Setting(0.0)
     c4_max = Setting(0.0)
     c5_max = Setting(0.0)
+
+    c0_function = Setting(0)
+    c1_function = Setting(0)
+    c2_function = Setting(0)
+    c3_function = Setting(0)
+    c4_function = Setting(0)
+    c5_function = Setting(0)
+
+    c0_function_value = Setting("")
+    c1_function_value = Setting("")
+    c2_function_value = Setting("")
+    c3_function_value = Setting("")
+    c4_function_value = Setting("")
+    c5_function_value = Setting("")
 
     fit_global_parameters = None
 

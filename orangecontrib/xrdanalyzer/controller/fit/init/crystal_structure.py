@@ -147,7 +147,7 @@ class CrystalStructure(FitParametersList):
         reflections = []
 
         for i in range(len(lines)):
-            congruence.checkEmptyString(text, "Reflections: line " + str(i+1))
+            congruence.checkEmptyString(lines[i], "Reflections: line " + str(i+1))
 
             if not lines[i].strip().startswith("#"):
                 data = lines[i].strip().split(",")
@@ -158,44 +158,64 @@ class CrystalStructure(FitParametersList):
                 k = int(data[1].strip())
                 l = int(data[2].strip())
 
-                intensity_data = data[3].strip().split()
+                if ":=" in data[3].strip():
+                    intensity_data = data[3].strip().split(":=")
 
-                if len(intensity_data) == 2:
-                    intensity_name = intensity_data[0]
-                    intensity_value = float(intensity_data[1])
+                    if len(intensity_data) == 2:
+                        intensity_name = intensity_data[0].strip()
+                        function_value = intensity_data[1].strip()
+                    else:
+                        intensity_name = None
+                        function_value = data[3].strip()
+
+                    if intensity_name is None:
+                        intensity_name = CrystalStructure.get_parameters_prefix() + "I" + str(h) + str(k) + str(l)
+                    elif not intensity_name.startswith(CrystalStructure.get_parameters_prefix()):
+                        intensity_name = CrystalStructure.get_parameters_prefix() + intensity_name
+
+                    reflection = Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
+                                                                            function=True,
+                                                                            function_value=function_value))
                 else:
-                    intensity_name = None
-                    intensity_value = float(data[3])
 
-                boundary = None
-                fixed = False
+                    intensity_data = data[3].strip().split()
 
-                if len(data) > 4:
-                    min_value = -numpy.inf
-                    max_value = numpy.inf
+                    if len(intensity_data) == 2:
+                        intensity_name = intensity_data[0].strip()
+                        intensity_value = float(intensity_data[1])
+                    else:
+                        intensity_name = None
+                        intensity_value = float(data[3])
 
-                    for j in range(4, len(data)):
-                        boundary_data = data[j].strip().split()
+                    boundary = None
+                    fixed = False
 
-                        if boundary_data[0] == "min": min_value = float(boundary_data[1].strip())
-                        elif boundary_data[0] == "max": max_value = float(boundary_data[1].strip())
-                        elif boundary_data[0] == "fixed": fixed = True
+                    if len(data) > 4:
+                        min_value = -numpy.inf
+                        max_value = numpy.inf
 
-                    if not fixed:
-                        if min_value != -numpy.inf or max_value != numpy.inf:
-                            boundary = Boundary(min_value=min_value, max_value=max_value)
-                        else:
-                            boundary = Boundary()
+                        for j in range(4, len(data)):
+                            boundary_data = data[j].strip().split()
 
-                if intensity_name is None:
-                    intensity_name = CrystalStructure.get_parameters_prefix() + "I" + str(h) + str(k) + str(l)
-                elif not intensity_name.startswith(CrystalStructure.get_parameters_prefix()):
-                    intensity_name = CrystalStructure.get_parameters_prefix() + intensity_name
+                            if boundary_data[0] == "min": min_value = float(boundary_data[1].strip())
+                            elif boundary_data[0] == "max": max_value = float(boundary_data[1].strip())
+                            elif boundary_data[0] == "fixed": fixed = True
 
-                reflection = Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
-                                                                        value=intensity_value,
-                                                                        fixed=fixed,
-                                                                        boundary=boundary))
+                        if not fixed:
+                            if min_value != -numpy.inf or max_value != numpy.inf:
+                                boundary = Boundary(min_value=min_value, max_value=max_value)
+                            else:
+                                boundary = Boundary()
+
+                    if intensity_name is None:
+                        intensity_name = CrystalStructure.get_parameters_prefix() + "I" + str(h) + str(k) + str(l)
+                    elif not intensity_name.startswith(CrystalStructure.get_parameters_prefix()):
+                        intensity_name = CrystalStructure.get_parameters_prefix() + intensity_name
+
+                    reflection = Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
+                                                                            value=intensity_value,
+                                                                            fixed=fixed,
+                                                                            boundary=boundary))
                 reflections.append(reflection)
 
         self.reflections = reflections
@@ -259,12 +279,12 @@ if __name__=="__main__":
     test.add_reflection(Reflection(2, 0, 0, intensity=FitParameter(value=300, boundary=Boundary(min_value=10, max_value=100000))))
     test.add_reflection(Reflection(2, 1, 1, intensity=FitParameter(value=400)))
 
-    text = "1, 1, 0, I110 1000, min 10\n" + \
-           "2, 0, 0, I200 2000, min 20, max 10000\n"  + \
-           "2, 1, 0, I210 3000, max 30000\n"  + \
-           "3, 0, 0, I300 4000\n"  + \
-           "3, 1, 0, 4100\n"  + \
-           "4, 4, 1, I441 5000\n"
+    text = "1, 1, 0, I110 := crystal_structure_I200\n" + \
+           "2, 0, 0, crystal_structure_I200 2000, min 20, max 10000\n"  + \
+           "2, 1, 0, crystal_structure_I210 3000, max 30000\n"  + \
+           "3, 0, 0, crystal_structure_I300 4000\n"  + \
+           "3, 1, 0, crystal_structure_4100\n"  + \
+           "4, 4, 1, crystal_structure_I441 5000\n"
 
     test.parse_reflections(text)
 
