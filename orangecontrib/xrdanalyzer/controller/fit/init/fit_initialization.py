@@ -1,5 +1,6 @@
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList
 
-class FitInitialization:
+class FitInitialization(FitParametersList):
 
     diffraction_pattern = None
     crystal_structure = None
@@ -13,20 +14,46 @@ class FitInitialization:
         self.crystal_structure = crystal_structure
         self.fft_parameters = fft_parameters
 
+
+    def has_functions(self):
+        # ADESSO WL e' fissa, dovra diventare un parametro di fit
+        #if not self.diffraction_pattern is None and self.diffraction_pattern.has_functions(): return True
+        if not self.crystal_structure is None and self.crystal_structure.has_functions(): return True
+
+        return False
+
+
+    def set_functions_values(self, parameters_dictionary):
+        # ADESSO WL e' fissa, dovra diventare un parametro di fit
+        #if not self.diffraction_pattern is None:
+        #    self.diffraction_pattern.set_functions_values(parameters_dictionary)
+
+        if not self.crystal_structure is None:
+            self.crystal_structure.set_functions_values(parameters_dictionary)
+
     def get_parameters(self):
         parameters = []
 
-        # ADESSO WL e fissa, dovra diventare un parametro di fit
-
+        # ADESSO WL e' fissa, dovra diventare un parametro di fit
         #if not self.diffraction_pattern is None:
-        #    for parameter in self.diffraction_pattern.get_parameters():
-        #        parameters.append(parameter)
+        #    parameters.append(self.diffraction_pattern.get_parameters())
 
         if not self.crystal_structure is None:
-            for parameter in self.crystal_structure.get_parameters():
-                parameters.append(parameter)
+            parameters.extend(self.crystal_structure.get_parameters())
 
         return parameters
+
+    def tuple(self):
+        tuple = []
+
+        # ADESSO WL e' fissa, dovra diventare un parametro di fit
+        #if not self.diffraction_pattern is None:
+        #    tuple.append(self.diffraction_pattern.tuple())
+
+        if not self.crystal_structure is None:
+            tuple.extend(self.crystal_structure.tuple())
+
+        return tuple
 
     def append_to_tuple(self, parameters, boundaries):
 
@@ -98,7 +125,6 @@ class FitInitialization:
             python_code += pc
 
     def set_functions_values(self, parameters_dictionary):
-
         if not self.diffraction_pattern is None:
             self.diffraction_pattern.set_functions_values(parameters_dictionary)
 

@@ -11,7 +11,7 @@ class Caglioti(FitParametersList):
 
     @classmethod
     def get_parameters_prefix(cls):
-        return "caglioti."
+        return "caglioti_"
 
     def __init__(self, U, V, W, a, b, c):
         super(Caglioti, self).__init__()
@@ -22,14 +22,6 @@ class Caglioti(FitParametersList):
         self.a = a
         self.b = b
         self.c = c
-
-        super().add_parameter(self.U)
-        super().add_parameter(self.V)
-        super().add_parameter(self.W)
-        super().add_parameter(self.a)
-        super().add_parameter(self.b)
-        super().add_parameter(self.c)
-
 
     def to_text(self):
         text = "INSTRUMENTAL PARAMETERS\n"

@@ -26,7 +26,7 @@ class FitParameter:
 
     def __init__(self,
                  value=None,
-                 parameter_name=None,
+                 parameter_name="",
                  boundary=None,
                  fixed=False,
                  function = False,
@@ -80,7 +80,7 @@ class FitParameter:
                 if self.boundary is None: self.boundary = Boundary(min_value=self.value, max_value=self.value + 1e-12)
 
     def to_text(self):
-        text = self.get_parameter_name() + " " + str(self.value)
+        text = self.parameter_name + " " + str(self.value)
 
         if not self.fixed:
             if not self.boundary is None:
@@ -118,41 +118,26 @@ class FitParameter:
 
 class FitParametersList:
 
-    def __init__(self):
-        self.fit_parameters_list = []
-
-    def _check_list(self):
-        if not hasattr(self, "fit_parameters_list"):
-            self.fit_parameters_list = []
-
-    def add_parameter(self, parameter):
-        self._check_list()
-        self.fit_parameters_list.append(parameter)
-
-    def set_parameter(self, index, parameter):
-        self._check_list()
-        self.fit_parameters_list[index] = parameter
-
     def get_parameters_count(self):
-        self._check_list()
-        return len(self.fit_parameters_list)
+        return len(self.get_parameters())
 
     def get_parameters(self):
-        self._check_list()
-        return self.fit_parameters_list
+        parameters = []
 
-    def append(self, fit_parameters_list):
-        if not fit_parameters_list is None:
-            for parameter in fit_parameters_list:
-                self.fit_parameters_list.append(parameter)
+        for attribute_name in self.__dict__.keys():
+            attribute = self.__dict__[attribute_name]
+
+            if isinstance(attribute, FitParameter):
+                parameters.append(attribute)
+
+        return parameters
 
     def tuple(self):
-        self._check_list()
         parameters = []
         boundaries_min = []
         boundaries_max = []
 
-        for fit_parameter in self.fit_parameters_list:
+        for fit_parameter in self.get_parameters():
             parameters.append(fit_parameter.value)
 
             if fit_parameter.boundary is None:
@@ -167,7 +152,6 @@ class FitParametersList:
         return parameters, boundaries
 
     def append_to_tuple(self, parameters, boundaries):
-        self._check_list()
         my_parameters, my_boundaries = self.tuple()
 
         parameters    = list(numpy.append(parameters, my_parameters))
@@ -180,7 +164,7 @@ class FitParametersList:
         raise NotImplementedError()
 
     def has_functions(self):
-        for parameter in self.fit_parameters_list:
+        for parameter in self.get_parameters():
             if parameter.function: return True
 
         return False
@@ -188,7 +172,7 @@ class FitParametersList:
     def get_available_parameters(self):
         text = ""
 
-        for parameter in self.fit_parameters_list:
+        for parameter in self.get_parameters():
             if not parameter.function: text += parameter.to_parameter_text() + "\n"
 
         return text
@@ -201,7 +185,7 @@ class FitParametersList:
         parameters_dictionary = {}
         python_code = ""
 
-        for parameter in self.fit_parameters_list:
+        for parameter in self.get_parameters():
             if parameter.function:
                 parameters_dictionary[parameter.parameter_name] = numpy.nan
                 python_code += parameter.to_python_code() + "\n"
@@ -209,7 +193,7 @@ class FitParametersList:
         return parameters_dictionary, python_code
 
     def set_functions_values(self, parameters_dictionary):
-        for parameter in self.fit_parameters_list:
+        for parameter in self.get_parameters():
             if parameter.function:
                 parameter.value = float(parameters_dictionary[parameter.parameter_name])
 

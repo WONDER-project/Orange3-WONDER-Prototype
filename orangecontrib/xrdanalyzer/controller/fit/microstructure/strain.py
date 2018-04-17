@@ -54,8 +54,9 @@ class InvariantPAH(FitParametersList):
     e14 = None
     e15 = None
 
+    @classmethod
     def get_parameters_prefix(cls):
-        return "strain."
+        return "strain_"
 
     def __init__(self,
                  aa,
@@ -82,9 +83,6 @@ class InvariantPAH(FitParametersList):
         self.bb = bb
         self.laue_id = laue_id
 
-        super().add_parameter(self.aa)
-        super().add_parameter(self.bb)
-
         self.e1  = e1
         self.e2  = e2
         self.e3  = e3
@@ -100,22 +98,6 @@ class InvariantPAH(FitParametersList):
         self.e13 = e13
         self.e14 = e14
         self.e15 = e15
-
-        if not self.e1  is None: super().add_parameter(e1)
-        if not self.e2  is None: super().add_parameter(e2)
-        if not self.e3  is None: super().add_parameter(e3)
-        if not self.e4  is None: super().add_parameter(e4)
-        if not self.e5  is None: super().add_parameter(e5)
-        if not self.e6  is None: super().add_parameter(e6)
-        if not self.e7  is None: super().add_parameter(e7)
-        if not self.e8  is None: super().add_parameter(e8)
-        if not self.e9  is None: super().add_parameter(e9)
-        if not self.e10 is None: super().add_parameter(e10)
-        if not self.e11 is None: super().add_parameter(e11)
-        if not self.e12 is None: super().add_parameter(e12)
-        if not self.e13 is None: super().add_parameter(e13)
-        if not self.e14 is None: super().add_parameter(e14)
-        if not self.e15 is None: super().add_parameter(e15)
 
     def get_invariant(self, h, k, l):
         invariant = self.e1.value*(h**4)

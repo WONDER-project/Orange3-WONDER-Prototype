@@ -28,53 +28,53 @@ class OWBackground(OWGenericWidget):
 
     want_main_area =  False
 
-    a0 = Setting(0.0)
-    a1 = Setting(0.0)
-    a2 = Setting(0.0)
+    c0 = Setting(0.0)
+    c1 = Setting(0.0)
+    c2 = Setting(0.0)
 
-    a0_fixed = Setting(0)
-    a1_fixed = Setting(0)
-    a2_fixed = Setting(0)
+    c0_fixed = Setting(0)
+    c1_fixed = Setting(0)
+    c2_fixed = Setting(0)
 
-    a0_has_min = Setting(0)
-    a1_has_min = Setting(0)
-    a2_has_min = Setting(0)
+    c0_has_min = Setting(0)
+    c1_has_min = Setting(0)
+    c2_has_min = Setting(0)
 
-    a0_min = Setting(0.0)
-    a1_min = Setting(0.0)
-    a2_min = Setting(0.0)
+    c0_min = Setting(0.0)
+    c1_min = Setting(0.0)
+    c2_min = Setting(0.0)
 
-    a0_has_max = Setting(0)
-    a1_has_max = Setting(0)
-    a2_has_max = Setting(0)
+    c0_has_max = Setting(0)
+    c1_has_max = Setting(0)
+    c2_has_max = Setting(0)
 
-    a0_max = Setting(0.0)
-    a1_max = Setting(0.0)
-    a2_max = Setting(0.0)
+    c0_max = Setting(0.0)
+    c1_max = Setting(0.0)
+    c2_max = Setting(0.0)
 
-    a3 =  Setting(0.0)
-    a4 =  Setting(0.0)
-    a5 =  Setting(0.0)
+    c3 =  Setting(0.0)
+    c4 =  Setting(0.0)
+    c5 =  Setting(0.0)
 
-    a3_fixed = Setting(0)
-    a4_fixed = Setting(0)
-    a5_fixed = Setting(0)
+    c3_fixed = Setting(0)
+    c4_fixed = Setting(0)
+    c5_fixed = Setting(0)
 
-    a3_has_min = Setting(0)
-    a4_has_min = Setting(0)
-    a5_has_min = Setting(0)
+    c3_has_min = Setting(0)
+    c4_has_min = Setting(0)
+    c5_has_min = Setting(0)
 
-    a3_min = Setting(0.0)
-    a4_min = Setting(0.0)
-    a5_min = Setting(0.0)
+    c3_min = Setting(0.0)
+    c4_min = Setting(0.0)
+    c5_min = Setting(0.0)
 
-    a3_has_max = Setting(0)
-    a4_has_max = Setting(0)
-    a5_has_max = Setting(0)
+    c3_has_max = Setting(0)
+    c4_has_max = Setting(0)
+    c5_has_max = Setting(0)
 
-    a3_max = Setting(0.0)
-    a4_max = Setting(0.0)
-    a5_max = Setting(0.0)
+    c3_max = Setting(0.0)
+    c4_max = Setting(0.0)
+    c5_max = Setting(0.0)
 
     fit_global_parameters = None
 
@@ -93,12 +93,12 @@ class OWBackground(OWGenericWidget):
                                  "Chebyshev Parameters", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 30)
 
-        self.create_box(chebyshev_box, "a0")
-        self.create_box(chebyshev_box, "a1")
-        self.create_box(chebyshev_box, "a2")
-        self.create_box(chebyshev_box, "a3")
-        self.create_box(chebyshev_box, "a4")
-        self.create_box(chebyshev_box, "a5")
+        self.create_box(chebyshev_box, "c0")
+        self.create_box(chebyshev_box, "c1")
+        self.create_box(chebyshev_box, "c2")
+        self.create_box(chebyshev_box, "c3")
+        self.create_box(chebyshev_box, "c4")
+        self.create_box(chebyshev_box, "c5")
 
         button_box = gui.widgetBox(main_box,
                                    "", orientation="horizontal",
@@ -110,15 +110,12 @@ class OWBackground(OWGenericWidget):
     def send_background(self):
         try:
             if not self.fit_global_parameters is None:
-
                 self.fit_global_parameters.background_parameters = ChebyshevBackground(c0=self.populate_parameter("c0", ChebyshevBackground.get_parameters_prefix()),
                                                                                        c1=self.populate_parameter("c1", ChebyshevBackground.get_parameters_prefix()),
                                                                                        c2=self.populate_parameter("c2", ChebyshevBackground.get_parameters_prefix()),
                                                                                        c3=self.populate_parameter("c3", ChebyshevBackground.get_parameters_prefix()),
                                                                                        c4=self.populate_parameter("c4", ChebyshevBackground.get_parameters_prefix()),
                                                                                        c5=self.populate_parameter("c5", ChebyshevBackground.get_parameters_prefix()))
-
-                #ShowTextDialog.show_text("Output", self.fit_global_parameters.background_parameters.to_PM2K(), parent=self)
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 

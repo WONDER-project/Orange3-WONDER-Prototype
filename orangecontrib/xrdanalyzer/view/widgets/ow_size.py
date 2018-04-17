@@ -131,8 +131,8 @@ class OWSize(OWGenericWidget):
 
 
 if __name__ == "__main__":
-    a4 =  QApplication(sys.argv)
-    ow = OWDiffractionPattern()
+    a =  QApplication(sys.argv)
+    ow = OWSize()
     ow.show()
     a.exec_()
     ow.saveSettings()

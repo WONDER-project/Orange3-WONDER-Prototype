@@ -36,7 +36,7 @@ class SizeParameters(FitParametersList):
 
     @classmethod
     def get_parameters_prefix(cls):
-        return "size."
+        return "size_"
 
     def __init__(self, shape, distribution, mu, sigma):
         super(SizeParameters, self).__init__()
@@ -45,9 +45,6 @@ class SizeParameters(FitParametersList):
         self.distribution = distribution
         self.mu = mu
         self.sigma = sigma
-
-        super().add_parameter(self.mu)
-        super().add_parameter(self.sigma)
 
     def to_text(self):
         text = "SIZE\n"

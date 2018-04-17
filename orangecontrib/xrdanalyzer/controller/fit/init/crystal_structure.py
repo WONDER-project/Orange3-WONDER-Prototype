@@ -60,7 +60,7 @@ class CrystalStructure(FitParametersList):
 
     @classmethod
     def get_parameters_prefix(cls):
-        return "crystal_structure."
+        return "crystal_structure_"
 
 
     def __init__(self, a, b, c, alpha, beta, gamma, simmetry=Simmetry.NONE):
@@ -74,13 +74,6 @@ class CrystalStructure(FitParametersList):
         self.gamma = gamma
         self.simmetry = simmetry
         self.reflections = []
-
-        super().add_parameter(self.a)
-        super().add_parameter(self.b)
-        super().add_parameter(self.c)
-        super().add_parameter(self.alpha)
-        super().add_parameter(self.beta)
-        super().add_parameter(self.gamma)
 
     @classmethod
     def is_cube(cls, simmetry):
@@ -107,13 +100,11 @@ class CrystalStructure(FitParametersList):
 
     def add_reflection(self, reflection):
         self.reflections.append(reflection)
-        super().add_parameter(reflection.intensity)
 
         self.update_reflection(-1)
 
     def set_reflection(self, index, reflection):
         self.reflections[index] = reflection
-        super().set_parameter(6 + index, reflection)
 
         self.update_reflection(index)
 
@@ -154,9 +145,6 @@ class CrystalStructure(FitParametersList):
         lines = text.splitlines()
 
         reflections = []
-
-        if len(self.fit_parameters_list) > 6:
-            self.fit_parameters_list = self.fit_parameters_list[:6]
 
         for i in range(len(lines)):
             congruence.checkEmptyString(text, "Reflections: line " + str(i+1))
@@ -199,7 +187,9 @@ class CrystalStructure(FitParametersList):
                         else:
                             boundary = Boundary()
 
-                if not intensity_name.startswith(CrystalStructure.get_parameters_prefix()):
+                if intensity_name is None:
+                    intensity_name = CrystalStructure.get_parameters_prefix() + "I" + str(h) + str(k) + str(l)
+                elif not intensity_name.startswith(CrystalStructure.get_parameters_prefix()):
                     intensity_name = CrystalStructure.get_parameters_prefix() + intensity_name
 
                 reflection = Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
@@ -207,8 +197,6 @@ class CrystalStructure(FitParametersList):
                                                                         fixed=fixed,
                                                                         boundary=boundary))
                 reflections.append(reflection)
-
-                super().add_parameter(reflection.intensity)
 
         self.reflections = reflections
         self.update_reflections()
@@ -252,11 +240,18 @@ class CrystalStructure(FitParametersList):
 
         return text
 
+    def get_parameters(self):
+        parameters = super().get_parameters()
+
+        for reflection in self.reflections:
+            parameters.append(reflection.intensity)
+
+        return parameters
 
 if __name__=="__main__":
     test = CrystalStructure.init_cube(a0=FitParameter(value=0.55, fixed=True), simmetry=Simmetry.BCC)
 
-    test = CrystalStructure(a=FitParameter(value=0.55), b=FitParameter(value=0.66), c=FitParameter(value=0.77),
+    test = CrystalStructure(a=FitParameter(parameter_name="a", value=0.55), b=FitParameter(parameter_name="b", value=0.66), c=FitParameter(parameter_name="c", value=0.77),
                             alpha=FitParameter(value=10), beta=FitParameter(value=20), gamma=FitParameter(value=30),
                             simmetry=Simmetry.NONE)
 

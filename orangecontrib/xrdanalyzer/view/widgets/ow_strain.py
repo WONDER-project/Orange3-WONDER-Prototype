@@ -101,10 +101,10 @@ class OWStrain(OWGenericWidget):
     def send_strain(self):
         try:
             if not self.fit_global_parameters is None:
-                self.fit_global_parameters.strain_parameters = InvariantPAHLaueGroup14(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
-                                                                                       bb=self.populate_parameter("bb", InvariantPAH.get_parameters_prefix()),
-                                                                                       e1=self.populate_parameter("e1", InvariantPAH.get_parameters_prefix()),
-                                                                                       e6=self.populate_parameter("e6", InvariantPAH.get_parameters_prefix()))
+                self.fit_global_parameters.set_strain_parameters(InvariantPAHLaueGroup14(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
+                                                                                         bb=self.populate_parameter("bb", InvariantPAH.get_parameters_prefix()),
+                                                                                         e1=self.populate_parameter("e1", InvariantPAH.get_parameters_prefix()),
+                                                                                         e6=self.populate_parameter("e6", InvariantPAH.get_parameters_prefix())))
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 

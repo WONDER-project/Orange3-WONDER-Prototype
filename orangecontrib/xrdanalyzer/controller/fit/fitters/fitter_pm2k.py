@@ -534,26 +534,6 @@ def fit_function(s, parameters):
         raise NotImplementedError("Only Cubic structures are supported by fit")
 
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, FreeInputParameters, FreeOutputParameters
-
-if __name__ == "__main__":
-
-    free_p = FreeInputParameters()
-
-    free_p.set_parameter("A", 10)
-    free_p.set_parameter("C", 20)
-
-    free_parameters_python_text = free_p.to_python_code()
-
-    parameter = FitParameter(parameter_name="param1", function=True, function_value="numpy.exp(A +C)")
-
-    out = {parameter.parameter_name : numpy.nan}
-
-    exec("import numpy\n\n" + free_parameters_python_text + parameter.to_python_code(), out)
-
-    parameter.set_value(float(out[parameter.parameter_name]))
-
-    print("OUTPUT", parameter.value)
 
 
 

@@ -9,8 +9,9 @@ class ChebyshevBackground(FitParametersList):
     c4 = None
     c5 = None
 
+    @classmethod
     def get_parameters_prefix(cls):
-        return "chebyshev."
+        return "chebyshev_"
 
     def __init__(self, c0, c1, c2, c3, c4, c5):
         super(ChebyshevBackground, self).__init__()
@@ -21,13 +22,6 @@ class ChebyshevBackground(FitParametersList):
         self.c3 = c3
         self.c4 = c4
         self.c5 = c5
-
-        super().add_parameter(self.c0)
-        super().add_parameter(self.c1)
-        super().add_parameter(self.c2)
-        super().add_parameter(self.c3)
-        super().add_parameter(self.c4)
-        super().add_parameter(self.c5)
 
     def to_text(self):
         text = "BACKGROUND PARAMETERS\n"
