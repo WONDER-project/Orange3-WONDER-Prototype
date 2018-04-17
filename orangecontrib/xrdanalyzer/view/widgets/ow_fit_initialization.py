@@ -167,6 +167,7 @@ class OWFitInitialization(OWGenericWidget):
                     text += reflection.to_text() + "\n"
 
                 self.text_area.setText(text)
+                self.reflections = self.text_area.toPlainText()
 
             if self.is_automatic_run:
                 self.send_fit_initialization()

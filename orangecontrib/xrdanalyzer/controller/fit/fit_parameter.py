@@ -200,6 +200,7 @@ class FitParametersList:
             if parameter.function:
                 parameter.value = float(parameters_dictionary[parameter.parameter_name])
 
+
 class FreeInputParameters:
     def __init__(self):
         self.parameters_dictionary = {}
@@ -241,6 +242,34 @@ class FreeInputParameters:
 
         return text
 
+    def parse_values(self, text):
+        is_empty = False
+
+        try:
+            congruence.checkEmptyString(text, "")
+        except:
+            is_empty = True
+
+        if not is_empty:
+            lines = text.splitlines()
+
+            for i in range(len(lines)):
+                is_line_empty = False
+                try:
+                    congruence.checkEmptyString(lines[i], "")
+                except:
+                    is_line_empty = True
+
+                if not is_line_empty:
+                    data = lines[i].strip().split("=")
+
+                    if len(data) != 2: raise ValueError("Free Output Parameters, malformed line:" + str(i+1))
+
+                    name  = data[0].strip()
+                    value = float(data[1].strip())
+
+                    self.set_parameter(name, value)
+
     def to_python_code(self):
         python_text = ""
 
@@ -257,6 +286,7 @@ class FreeInputParameters:
                 new_free_input_parameters.set_parameter(name, self.parameters_dictionary[name])
                 
         return new_free_input_parameters
+
 
 
 class FreeOutputParameter:
@@ -369,7 +399,7 @@ class FreeOutputParameters:
 
                     self.set_parameter_expression(name, expression)
 
-    def to_formulas(self):
+    def to_python_code(self):
         text = ""
 
         if not self.parameters_dictionary is None:

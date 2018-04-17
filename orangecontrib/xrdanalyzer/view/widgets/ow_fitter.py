@@ -235,9 +235,11 @@ class OWFitter(OWGenericWidget):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
 
-            self.fit_global_parameters.free_output_parameters.parse_formulas(self.free_output_parameters) # existing parameters
+            self.fit_global_parameters.free_output_parameters.parse_formulas(self.text_area_free_out.toPlainText()) # existing parameters
 
-            self.text_area_free_out.setText(self.fit_global_parameters.free_output_parameters.to_formulas())
+            self.text_area_free_out.setText(self.fit_global_parameters.free_output_parameters.to_python_code())
+            self.free_output_parameters = self.text_area_free_out.toPlainText()
+
             self.text_area_fit_in.setText(self.fit_global_parameters.to_text())
             self.tabs.setCurrentIndex(0)
 
