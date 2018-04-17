@@ -97,7 +97,6 @@ class FitParameter:
     def to_parameter_text(self):
         return self.parameter_name + " = " + str(self.value)
 
-
     def to_python_code(self):
         if not self.function:
             raise ValueError("Fit parameter " + self.parameter_name + "is not a function")
@@ -117,6 +116,10 @@ class FitParameter:
         return not self.fixed and not self.function
 
 class FitParametersList:
+
+    @classmethod
+    def get_parameters_prefix(cls):
+        return ""
 
     def get_parameters_count(self):
         return len(self.get_parameters())
@@ -176,10 +179,6 @@ class FitParametersList:
             if not parameter.function: text += parameter.to_parameter_text() + "\n"
 
         return text
-
-    @classmethod
-    def get_parameters_prefix(cls):
-        return ""
 
     def get_functions_data(self):
         parameters_dictionary = {}
@@ -245,7 +244,6 @@ class FreeInputParameters:
             python_text += name + " = " + str(self.get_parameter(name)) + "\n"
 
         return python_text
-
 
 class FreeOutputParameter:
     def __init__(self, expression=None, value=None):

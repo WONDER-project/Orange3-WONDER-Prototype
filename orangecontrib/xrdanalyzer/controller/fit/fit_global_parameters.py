@@ -49,14 +49,6 @@ class FitGlobalParameters(FitParametersList):
     def space_parameters(self):
         return FitSpaceParameters(self)
 
-    def duplicate(self):
-        return FitGlobalParameters(fit_initialization=None if self.fit_initialization is None else self.fit_initialization.duplicate(),
-                                   background_parameters=None if self.background_parameters is None else self.background_parameters.duplicate(),
-                                   instrumental_parameters=None if self.instrumental_parameters is None else self.instrumental_parameters.duplicate(),
-                                   size_parameters=None if self.size_parameters is None else self.size_parameters.duplicate(),
-                                   strain_parameters=None if self.strain_parameters is None else self.strain_parameters.duplicate())
-
-
     def get_parameters(self):
         parameters = []
 
@@ -140,72 +132,6 @@ class FitGlobalParameters(FitParametersList):
 
         return text
 
-    def get_available_parameters(self):
-        text = ""
-
-        if not self.fit_initialization is None:
-            text += self.fit_initialization.get_available_parameters()
-
-        if not self.background_parameters is None:
-            text += self.background_parameters.get_available_parameters()
-
-        if not self.instrumental_parameters is None:
-            text += self.instrumental_parameters.get_available_parameters()
-
-        if not self.size_parameters is None:
-            text += self.size_parameters.get_available_parameters()
-
-        if not self.strain_parameters is None:
-            text += self.strain_parameters.get_available_parameters()
-
-
-        return text
-
-    def get_functions_data(self):
-        parameters_dictionary = {}
-        python_code = ""
-
-        if not self.fit_initialization is None:
-            pd, pc = self.fit_initialization.get_functions_data()
-
-            parameters_dictionary.update(pd)
-            python_code += pc
-
-        if not self.background_parameters is None:
-            pd, pc = self.background_parameters.get_functions_data()
-
-            parameters_dictionary.update(pd)
-            python_code += pc
-
-        if not self.instrumental_parameters is None:
-            pd, pc = self.instrumental_parameters.get_functions_data()
-
-            parameters_dictionary.update(pd)
-            python_code += pc
-
-        if not self.size_parameters is None:
-            pd, pc = self.size_parameters.get_functions_data()
-
-            parameters_dictionary.update(pd)
-            python_code += pc
-
-        if not self.strain_parameters is None:
-            pd, pc = self.strain_parameters.get_functions_data()
-
-            parameters_dictionary.update(pd)
-            python_code += pc
-
-        return parameters_dictionary, python_code
-
-    def has_functions(self):
-        if not self.fit_initialization is None and self.fit_initialization.has_functions(): return True
-        if not self.background_parameters is None and self.background_parameters.has_functions(): return True
-        if not self.instrumental_parameters is None and self.instrumental_parameters.has_functions(): return True
-        if not self.size_parameters is None and self.size_parameters.has_functions(): return True
-        if not self.strain_parameters is None and self.strain_parameters.has_functions(): return True
-
-        return False
-
     def evaluate_functions(self):
         if self.has_functions():
             python_code = "import numpy\n\n"
@@ -225,17 +151,12 @@ class FitGlobalParameters(FitParametersList):
         
         #TODO: output parameters
 
-    def set_functions_values(self, parameters_dictionary):
-        if not self.fit_initialization is None:
-            self.fit_initialization.set_functions_values(parameters_dictionary)
-        if not self.background_parameters is None:
-            self.background_parameters.set_functions_values(parameters_dictionary)
-        if not self.instrumental_parameters is None:
-            self.instrumental_parameters.set_functions_values(parameters_dictionary)
-        if not self.size_parameters is None:
-            self.size_parameters.set_functions_values(parameters_dictionary)
-        if not self.strain_parameters is None:
-            self.strain_parameters.set_functions_values(parameters_dictionary)
+    def duplicate(self):
+        return FitGlobalParameters(fit_initialization=None if self.fit_initialization is None else self.fit_initialization.duplicate(),
+                                   background_parameters=None if self.background_parameters is None else self.background_parameters.duplicate(),
+                                   instrumental_parameters=None if self.instrumental_parameters is None else self.instrumental_parameters.duplicate(),
+                                   size_parameters=None if self.size_parameters is None else self.size_parameters.duplicate(),
+                                   strain_parameters=None if self.strain_parameters is None else self.strain_parameters.duplicate())
 
 
 class FitSpaceParameters:
