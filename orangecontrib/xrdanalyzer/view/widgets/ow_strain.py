@@ -71,8 +71,6 @@ class OWStrain(OWGenericWidget):
     e1_function_value = Setting("")
     e6_function_value = Setting("")
 
-    fit_global_parameters = None
-
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 

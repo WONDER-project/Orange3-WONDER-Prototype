@@ -9,9 +9,11 @@ from Orange.widgets import gui as orangegui
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QRect
 
-from orangecontrib.xrdanalyzer.util.gui.gui_utility import ConfirmDialog, gui
+from orangecontrib.xrdanalyzer.util.gui.gui_utility import ConfirmDialog, gui, ShowTextDialog
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
+from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterListener
+from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 
 class OWGenericWidget(widget.OWWidget):
 
@@ -29,6 +31,8 @@ class OWGenericWidget(widget.OWWidget):
 
     CONTROL_AREA_WIDTH = 505
     TABS_AREA_HEIGHT = 560
+
+    fit_global_parameters = None
 
     def __init__(self, show_automatic_box=True):
         super().__init__()
@@ -57,6 +61,7 @@ class OWGenericWidget(widget.OWWidget):
 
         gui.button(self.general_options_box, self, "Reset Fields", callback=self.callResetSettings)
 
+        gui.button(self.general_options_box, self, "Show Available Parameters", callback=self.show_available_parameters)
 
 
     def create_box(self, parent_box, var):
@@ -137,3 +142,6 @@ class OWGenericWidget(widget.OWWidget):
                 self.resetSettings()
             except:
                 pass
+
+    def show_available_parameters(self):
+        ShowTextDialog.show_text("Available Parameters", "" if self.fit_global_parameters is None else self.fit_global_parameters.get_available_parameters(), parent=self)

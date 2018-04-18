@@ -92,8 +92,6 @@ class OWInstrumentalProfile(OWGenericWidget):
     b_function_value = Setting("")
     c_function_value = Setting("")
 
-    fit_global_parameters = None
-
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 

@@ -15,7 +15,7 @@ from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName
-from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_lmfit import LmfitFittingMethods
+from orangecontrib.xrdanalyzer.controller.fit.fitters.old.fitter_lmfit import LmfitFittingMethods
 
 
 class OWFitter(OWGenericWidget):
@@ -34,8 +34,6 @@ class OWFitter(OWGenericWidget):
     current_iteration = 0
 
     free_output_parameters = Setting("")
-
-    fit_global_parameters = None
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
@@ -106,7 +104,7 @@ class OWFitter(OWGenericWidget):
         self.scrollarea_free_out.setMinimumWidth(self.CONTROL_AREA_WIDTH-45)
         self.scrollarea_free_out.setMinimumHeight(260)
 
-        self.text_area_free_out = gui.textArea(height=500, width=self.CONTROL_AREA_WIDTH-65, readOnly=False)
+        self.text_area_free_out = gui.textArea(height=1000, width=1000, readOnly=False)
         self.text_area_free_out.setText(self.free_output_parameters)
 
         self.scrollarea_free_out.setWidget(self.text_area_free_out)

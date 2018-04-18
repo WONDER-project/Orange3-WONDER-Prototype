@@ -36,3 +36,48 @@ class FitterInterface:
         pass
 
 
+#################################################
+#
+# FIT FUNCTION
+#
+#################################################
+
+import numpy
+from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
+from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_peak, add_chebyshev_background
+
+def fit_function(s, fit_global_parameter):
+    if CrystalStructure.is_cube(fit_global_parameter.fit_initialization.crystal_structure.simmetry):
+        separated_peaks_functions = []
+
+        for reflection_index in range(fit_global_parameter.fit_initialization.crystal_structure.get_reflections_count()):
+            sanalitycal, Ianalitycal = create_one_peak(reflection_index, fit_global_parameter)
+
+            separated_peaks_functions.append([sanalitycal, Ianalitycal])
+
+        s_large, I_large = Utilities.merge_functions(separated_peaks_functions,
+                                                     fit_global_parameter.fit_initialization.fft_parameters.s_max,
+                                                     fit_global_parameter.fit_initialization.fft_parameters.n_step)
+
+        if not fit_global_parameter.background_parameters is None:
+            add_chebyshev_background(s_large,
+                                     I_large,
+                                     parameters=[fit_global_parameter.background_parameters.c0.value,
+                                                 fit_global_parameter.background_parameters.c1.value,
+                                                 fit_global_parameter.background_parameters.c2.value,
+                                                 fit_global_parameter.background_parameters.c3.value,
+                                                 fit_global_parameter.background_parameters.c4.value,
+                                                 fit_global_parameter.background_parameters.c5.value])
+
+        return numpy.interp(s, s_large, I_large)
+    else:
+        raise NotImplementedError("Only Cubic structures are supported by fit")
+
+
+
+
+
+
+
+

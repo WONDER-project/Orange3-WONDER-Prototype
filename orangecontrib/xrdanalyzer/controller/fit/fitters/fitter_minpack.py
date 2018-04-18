@@ -4,21 +4,14 @@ import numpy
 
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
 
-from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
-
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_ERR
 
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
-
-from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener
-from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_pm2k_util import *
-from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_peak, add_chebyshev_background
-
+from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener, fit_function
+from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util import *
 
 PRCSN = 2.5E-7
 
 class FitterMinpack(FitterInterface):
-
 
     def __init__(self):
         super().__init__()
@@ -157,12 +150,8 @@ class FitterMinpack(FitterInterface):
                                 # check number of parameters reaching convergence
                                 if (abs(self.g.getitem(i))<=abs(PRCSN*self.currpar.getitem(i))): n0 += 1
 
-                        #CALCOLO DELLE FUNZIONI
-                        if fit_global_parameters.has_functions():
-                            fit_global_parameters_out = self.build_fit_global_parameters_out(self.parameters)
-                            fit_global_parameters_out.evaluate_functions()
-
-                            self.parameters = fit_global_parameters_out.get_parameters()
+                        # calculate functions
+                        self.parameters = self.build_fit_global_parameters_out(self.parameters).get_parameters()
 
                         if (n0==self.nfit):
                             self.conver = True
@@ -192,11 +181,8 @@ class FitterMinpack(FitterInterface):
                                 #  apply the required constraints (min/max)
                                 self.parameters[j].set_value(self.currpar.getitem(i) + recycle*self.g.getitem(i))
 
-                        if fit_global_parameters.has_functions():
-                            fit_global_parameters_out = self.build_fit_global_parameters_out(self.parameters)
-                            fit_global_parameters_out.evaluate_functions()
-
-                            self.parameters = fit_global_parameters_out.get_parameters()
+                        # calculate functions
+                        self.parameters = self.build_fit_global_parameters_out(self.parameters).get_parameters()
 
                         # update the wss
                         self.wss = self.getWSSQ()
@@ -245,18 +231,17 @@ class FitterMinpack(FitterInterface):
                     j += 1
                     self.parameters[i].set_value(self.initialpar.getitem(j))
 
-
+            self.parameters = self.build_fit_global_parameters_out(self.parameters).get_parameters()
 
         fitted_parameters = self.parameters
 
         fit_global_parameters_out = self.build_fit_global_parameters_out(fitted_parameters)
-        if fit_global_parameters.has_functions(): fit_global_parameters_out.evaluate_functions()
         fit_global_parameters_out.set_convergence_reached(self.conver)
 
         fitted_pattern = DiffractionPattern()
         fitted_pattern.wavelength = fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
 
-        fitted_intensity = fit_function(self.s_experimental, fitted_parameters)
+        fitted_intensity = fit_function(self.s_experimental, fit_global_parameters_out)
 
         for index in range(0, len(fitted_intensity)):
             fitted_pattern.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=self.twotheta_experimental[index],
@@ -289,7 +274,7 @@ class FitterMinpack(FitterInterface):
         fit_global_parameters = FitterListener.Instance().get_registered_fit_global_parameters().duplicate()
         crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
 
-        if not crystal_structure.a.function: crystal_structure.a.value = fitted_parameters[0].value
+        crystal_structure.a.value = fitted_parameters[0].value
         crystal_structure.b.value = fitted_parameters[1].value
         crystal_structure.c.value = fitted_parameters[2].value
         crystal_structure.alpha.value = fitted_parameters[3].value
@@ -335,11 +320,9 @@ class FitterMinpack(FitterInterface):
 
             last_index += fit_global_parameters.strain_parameters.get_parameters_count()
 
+        if fit_global_parameters.has_functions(): fit_global_parameters.evaluate_functions()
+
         return fit_global_parameters
-
-
-
-
 
     ###############################################
     #
@@ -358,7 +341,7 @@ class FitterMinpack(FitterInterface):
         return nfit
 
     def getWeightedDelta(self):
-        y = fit_function(self.s_experimental, self.parameters)
+        y = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
 
         fmm = numpy.zeros(self.getNrPoints())
 
@@ -371,7 +354,7 @@ class FitterMinpack(FitterInterface):
         return fmm
 
     def getDerivative(self):
-        y = fit_function(self.s_experimental, self.parameters)
+        y = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
 
         deriv = CMatrix(self.getNrParamToFit(), self.getNrPoints())
 
@@ -389,13 +372,13 @@ class FitterMinpack(FitterInterface):
                     parameter.value = pk * (1.0 + step)
                     parameter.check_value()
 
-                    deriv[jj] = fit_function(self.s_experimental, self.parameters)
+                    deriv[jj] = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
                 else:
                     d = step
                     parameter.value = pk + d
                     parameter.check_value()
 
-                    deriv[jj] = fit_function(self.s_experimental, self.parameters)
+                    deriv[jj] = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
 
                 parameter.value = pk
                 parameter.check_value()
@@ -410,7 +393,7 @@ class FitterMinpack(FitterInterface):
         return deriv
 
     def getWSSQ(self):
-        y = fit_function(self.s_experimental, self.parameters)
+        y = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
 
         wssqlow = 0.0
         wssq = 0.0
@@ -443,99 +426,6 @@ class FitterMinpack(FitterInterface):
                         wssq    += wssqtmp
 
         return wssq + wssqlow
-
-
-#################################################
-#
-# FIT FUNCTION
-#
-#################################################
-
-class CommonFittingData():
-
-    def __init__(self, parameters):
-        fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
-        crystal_structure = fit_global_parameter.fit_initialization.crystal_structure
-
-        self.lattice_parameter = parameters[0].value
-
-        last_index = crystal_structure.get_parameters_count() - 1
-
-        if not fit_global_parameter.background_parameters is None:
-            self.c0 = parameters[last_index + 1].value
-            self.c1 = parameters[last_index + 2].value
-            self.c2 = parameters[last_index + 3].value
-            self.c3 = parameters[last_index + 4].value
-            self.c4 = parameters[last_index + 5].value
-            self.c5 = parameters[last_index + 6].value
-
-            last_index += fit_global_parameter.background_parameters.get_parameters_count()
-
-        if not fit_global_parameter.instrumental_parameters is None:
-            self.U = parameters[last_index + 1].value
-            self.V = parameters[last_index + 2].value
-            self.W = parameters[last_index + 3].value
-            self.a = parameters[last_index + 4].value
-            self.b = parameters[last_index + 5].value
-            self.c = parameters[last_index + 6].value
-
-            last_index += fit_global_parameter.instrumental_parameters.get_parameters_count()
-
-        if not fit_global_parameter.size_parameters is None:
-            self.mu    = parameters[last_index + 1].value
-            self.sigma = parameters[last_index + 2].value
-
-            last_index += fit_global_parameter.size_parameters.get_parameters_count()
-
-        if not fit_global_parameter.strain_parameters is None:
-            self.aa = parameters[last_index + 1].value
-            self.bb = parameters[last_index + 2].value
-            self.A = parameters[last_index + 3].value # in realtà è E1 dell'invariante PAH
-            self.B = parameters[last_index + 4].value # in realtà è E6 dell'invariante PAH
-
-            last_index += fit_global_parameter.strain_parameters.get_parameters_count()
-
-        self.last_index = last_index
-
-    @classmethod
-    def get_amplitude(cls, parameters, reflection_index):
-        return parameters[6 + reflection_index].value
-
-
-def fit_function(s, parameters):
-
-    fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
-    common_fitting_data = CommonFittingData(parameters)
-
-    if CrystalStructure.is_cube(fit_global_parameter.fit_initialization.crystal_structure.simmetry):
-        separated_peaks_functions = []
-
-        for reflection_index in range(fit_global_parameter.fit_initialization.crystal_structure.get_reflections_count()):
-            sanalitycal, Ianalitycal = create_one_peak(reflection_index, parameters, common_fitting_data)
-
-            separated_peaks_functions.append([sanalitycal, Ianalitycal])
-
-        s_large, I_large = Utilities.merge_functions(separated_peaks_functions,
-                                                     fit_global_parameter.fit_initialization.fft_parameters.s_max,
-                                                     fit_global_parameter.fit_initialization.fft_parameters.n_step)
-
-        if not fit_global_parameter.background_parameters is None:
-            add_chebyshev_background(s_large,
-                                     I_large,
-                                     parameters=[common_fitting_data.c0,
-                                      common_fitting_data.c1,
-                                      common_fitting_data.c2,
-                                      common_fitting_data.c3,
-                                      common_fitting_data.c4,
-                                      common_fitting_data.c5])
-
-        return numpy.interp(s, s_large, I_large)
-    else:
-        raise NotImplementedError("Only Cubic structures are supported by fit")
-
-
-
-
 
 
 

@@ -136,7 +136,7 @@ class FitGlobalParameters(FitParametersList):
         return text
 
     def evaluate_functions(self):
-        if self.has_functions():
+        if self.has_functions() or self.free_output_parameters.get_parameters_count() > 0:
             python_code = "import numpy\n\n"
 
             python_code += self.free_input_parameters.to_python_code()
@@ -152,8 +152,6 @@ class FitGlobalParameters(FitParametersList):
             parameters_dictionary = {}
             parameters_dictionary.update(parameters_dictionary_fit)
             parameters_dictionary.update(parameters_dictionary_out)
-
-            print(python_code)
 
             exec(python_code, parameters_dictionary)
 

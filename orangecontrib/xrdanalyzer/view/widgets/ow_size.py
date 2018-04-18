@@ -55,9 +55,6 @@ class OWSize(OWGenericWidget):
     mu_function_value = Setting("")
     sigma_function_value = Setting("")
 
-
-    fit_global_parameters = None
-
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 

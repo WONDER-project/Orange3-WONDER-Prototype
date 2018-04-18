@@ -1,15 +1,12 @@
 from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterListener
 from orangecontrib.xrdanalyzer.util.general_functions import fft
 
-def create_one_peak(reflection_index, parameters, common_fitting_data):
-    fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
+def create_one_peak(reflection_index, fit_global_parameter):
     fit_space_parameters = FitterListener.Instance().get_registered_space_parameters()
 
     crystal_structure = fit_global_parameter.fit_initialization.crystal_structure
-
     reflection = crystal_structure.get_reflection(reflection_index)
-
-    amplitude = common_fitting_data.get_amplitude(parameters, reflection_index)
+    amplitude = reflection.intensity.value
 
     fourier_amplitudes = None
 
@@ -19,38 +16,38 @@ def create_one_peak(reflection_index, parameters, common_fitting_data):
                                                        reflection.h,
                                                        reflection.k,
                                                        reflection.l,
-                                                       common_fitting_data.lattice_parameter,
+                                                       crystal_structure.a.value,
                                                        fit_global_parameter.fit_initialization.diffraction_pattern.wavelength,
-                                                       common_fitting_data.U,
-                                                       common_fitting_data.V,
-                                                       common_fitting_data.W,
-                                                       common_fitting_data.a,
-                                                       common_fitting_data.b,
-                                                       common_fitting_data.c)
+                                                       fit_global_parameter.instrumental_parameters.U.value,
+                                                       fit_global_parameter.instrumental_parameters.V.value,
+                                                       fit_global_parameter.instrumental_parameters.W.value,
+                                                       fit_global_parameter.instrumental_parameters.a.value,
+                                                       fit_global_parameter.instrumental_parameters.b.value,
+                                                       fit_global_parameter.instrumental_parameters.c.value)
         else:
             fourier_amplitudes *= instrumental_function(fit_space_parameters.L,
                                                         reflection.h,
                                                         reflection.k,
                                                         reflection.l,
-                                                        common_fitting_data.lattice_parameter,
+                                                        crystal_structure.a.value,
                                                         fit_global_parameter.fit_initialization.diffraction_pattern.wavelength,
-                                                        common_fitting_data.U,
-                                                        common_fitting_data.V,
-                                                        common_fitting_data.W,
-                                                        common_fitting_data.a,
-                                                        common_fitting_data.b,
-                                                        common_fitting_data.c)
+                                                        fit_global_parameter.instrumental_parameters.U.value,
+                                                        fit_global_parameter.instrumental_parameters.V.value,
+                                                        fit_global_parameter.instrumental_parameters.W.value,
+                                                        fit_global_parameter.instrumental_parameters.a.value,
+                                                        fit_global_parameter.instrumental_parameters.b.value,
+                                                        fit_global_parameter.instrumental_parameters.c.value)
 
 
     if not fit_global_parameter.size_parameters is None:
         if fourier_amplitudes is None:
             fourier_amplitudes = size_function_lognormal(fit_space_parameters.L,
-                                                         common_fitting_data.sigma,
-                                                         common_fitting_data.mu)
+                                                         fit_global_parameter.size_parameters.sigma.value,
+                                                         fit_global_parameter.size_parameters.mu.value)
         else:
             fourier_amplitudes *= size_function_lognormal(fit_space_parameters.L,
-                                                          common_fitting_data.sigma,
-                                                          common_fitting_data.mu)
+                                                          fit_global_parameter.size_parameters.sigma.value,
+                                                          fit_global_parameter.size_parameters.mu.value)
 
     if not fit_global_parameter.strain_parameters is None:
         if fourier_amplitudes is None:
@@ -58,27 +55,28 @@ def create_one_peak(reflection_index, parameters, common_fitting_data):
                                                  reflection.h,
                                                  reflection.k,
                                                  reflection.l,
-                                                 common_fitting_data.lattice_parameter,
-                                                 common_fitting_data.aa,
-                                                 common_fitting_data.bb,
-                                                 common_fitting_data.A,
-                                                 common_fitting_data.B)
+                                                 crystal_structure.a.value,
+                                                 fit_global_parameter.strain_parameters.aa.value,
+                                                 fit_global_parameter.strain_parameters.bb.value,
+                                                 fit_global_parameter.strain_parameters.e1.value,
+                                                 fit_global_parameter.strain_parameters.e6.value)
         else:
             fourier_amplitudes *= strain_function(fit_space_parameters.L,
                                                   reflection.h,
                                                   reflection.k,
                                                   reflection.l,
-                                                  common_fitting_data.lattice_parameter,
-                                                  common_fitting_data.aa,
-                                                  common_fitting_data.bb,
-                                                  common_fitting_data.A,
-                                                  common_fitting_data.B)
+                                                  crystal_structure.a.value,
+                                                  fit_global_parameter.strain_parameters.aa.value,
+                                                  fit_global_parameter.strain_parameters.bb.value,
+                                                  fit_global_parameter.strain_parameters.e1.value,
+                                                  fit_global_parameter.strain_parameters.e6.value)
 
     s, I = fft(fourier_amplitudes,
                n_steps=fit_global_parameter.fit_initialization.fft_parameters.n_step,
                dL=fit_space_parameters.dL)
 
-    s += Utilities.s_hkl(common_fitting_data.lattice_parameter, reflection.h, reflection.k, reflection.l)
+    s += Utilities.s_hkl(crystal_structure.a.value, reflection.h, reflection.k, reflection.l)
+
 
     return s, amplitude*I
 

@@ -21,8 +21,6 @@ class OWFreeInputParameters(OWGenericWidget):
 
     free_input_parameters = Setting("")
 
-    fit_global_parameters = None
-
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 

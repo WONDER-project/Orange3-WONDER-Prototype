@@ -3,10 +3,7 @@ import numpy
 from scipy.optimize import curve_fit
 
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
-from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection
-from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener
-from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_peak
+from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener, fit_function
 
 class FitterScipy(FitterInterface):
 
@@ -110,92 +107,3 @@ class FitterScipy(FitterInterface):
                          sigma=numpy.sqrt(intensity_experimental),
                          p0=parameters,
                          bounds=boundaries)
-
-class CommonFittingData():
-
-    def __init__(self, parameters):
-        fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
-        crystal_structure = fit_global_parameter.fit_initialization.crystal_structure
-
-        self.lattice_parameter = parameters[0]
-
-        last_index = crystal_structure.get_parameters_count() - 1
-
-        if not fit_global_parameter.background_parameters is None:
-            self.c0 = parameters[last_index + 1]
-            self.c1 = parameters[last_index + 2]
-            self.c2 = parameters[last_index + 3]
-            self.c3 = parameters[last_index + 4]
-            self.c4 = parameters[last_index + 5]
-            self.c5 = parameters[last_index + 6]
-
-            last_index += fit_global_parameter.background_parameters.get_parameters_count()
-
-        if not fit_global_parameter.instrumental_parameters is None:
-            self.U = parameters[last_index + 1]
-            self.V = parameters[last_index + 2]
-            self.W = parameters[last_index + 3]
-            self.a = parameters[last_index + 4]
-            self.b = parameters[last_index + 5]
-            self.c = parameters[last_index + 6]
-
-            last_index += fit_global_parameter.instrumental_parameters.get_parameters_count()
-
-        if not fit_global_parameter.size_parameters is None:
-            self.mu    = parameters[last_index + 1]
-            self.sigma = parameters[last_index + 2]
-
-            last_index += fit_global_parameter.size_parameters.get_parameters_count()
-
-        if not fit_global_parameter.strain_parameters is None:
-            self.aa = parameters[last_index + 1]
-            self.bb = parameters[last_index + 2]
-            self.A = parameters[last_index + 3] # in realtà è E1 dell'invariante PAH
-            self.B = parameters[last_index + 4] # in realtà è E6 dell'invariante PAH
-
-            last_index += fit_global_parameter.strain_parameters.get_parameters_count()
-
-        self.last_index = last_index
-
-    @classmethod
-    def get_amplitude(cls, parameters, reflection_index):
-        return parameters[6 + reflection_index]
-
-
-#################################################
-#
-# SCIPY FIT FUNCTION
-#
-#################################################
-
-def fit_function(s, *parameters):
-
-    if len(parameters) == 1:
-        parameters = parameters[0]
-
-    fit_global_parameter = FitterListener.Instance().get_registered_fit_global_parameters()
-    common_fitting_data = CommonFittingData(parameters)
-
-    if CrystalStructure.is_cube(fit_global_parameter.fit_initialization.crystal_structure.simmetry):
-        separated_peaks_functions = []
-
-        for reflection_index in range(fit_global_parameter.fit_initialization.crystal_structure.get_reflections_count()):
-            sanalitycal, Ianalitycal = create_one_peak(reflection_index, parameters, common_fitting_data)
-
-            separated_peaks_functions.append([sanalitycal, Ianalitycal])
-
-        s_large, I_large = Utilities.merge_functions(separated_peaks_functions,
-                                                     fit_global_parameter.fit_initialization.fft_parameters.s_max,
-                                                     fit_global_parameter.fit_initialization.fft_parameters.n_step)
-
-        # TEMPORARY BACKGROUND - to be replaced with proper Chebyshev
-        if not fit_global_parameter.background_parameters is None:
-            background = numpy.array([common_fitting_data.c0] * len(s_large))
-        else:
-            background = numpy.zeros(s_large.size)
-
-        return numpy.interp(s, s_large, background + I_large)
-    else:
-        raise NotImplementedError("Only Cubic structures are supported by fit")
-
-

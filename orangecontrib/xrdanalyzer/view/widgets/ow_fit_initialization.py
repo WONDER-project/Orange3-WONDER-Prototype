@@ -30,7 +30,7 @@ class OWFitInitialization(OWGenericWidget):
     want_main_area = False
 
     s_max = Setting(9.0)
-    n_step = Setting(8196)
+    n_step = Setting(8192)
 
     a = Setting(0.0)
     #b = Setting(0.0)
@@ -43,8 +43,6 @@ class OWFitInitialization(OWGenericWidget):
     simmetry = Setting(4)
 
     reflections = Setting("")
-
-    fit_global_parameters = None
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
