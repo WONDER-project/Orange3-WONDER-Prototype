@@ -1,4 +1,4 @@
-import sys
+import sys, numpy
 
 from PyQt5.QtWidgets import QMessageBox, QScrollArea, QApplication
 from PyQt5.QtCore import Qt
@@ -247,22 +247,30 @@ class OWFitter(OWGenericWidget):
     def show_data(self):
         diffraction_pattern = self.fit_global_parameters.fit_initialization.diffraction_pattern
 
-        text = "2Theta [deg], s [Å-1], Intensity"
+        text = "2Theta [deg], s [Å-1], Intensity, Residual"
         x = []
         y = []
         yf = []
+        res = []
 
         for index in range(0, self.fitted_pattern.diffraction_points_count()):
             text += "\n" + str(self.fitted_pattern.get_diffraction_point(index).twotheta) + "  " + \
                     str(self.fitted_pattern.get_diffraction_point(index).s) + " " + \
-                    str(self.fitted_pattern.get_diffraction_point(index).intensity)
+                    str(self.fitted_pattern.get_diffraction_point(index).intensity) + " " + \
+                    str(self.fitted_pattern.get_diffraction_point(index).error) + " "
 
             x.append(diffraction_pattern.get_diffraction_point(index).twotheta)
             y.append(diffraction_pattern.get_diffraction_point(index).intensity)
             yf.append(self.fitted_pattern.get_diffraction_point(index).intensity)
+            res.append(self.fitted_pattern.get_diffraction_point(index).error)
+
+        max_res = numpy.max(res)
+
+        res = -10 + (res-max_res)
 
         self.plot.addCurve(x, y, legend="data", symbol='o', color="blue")
         self.plot.addCurve(x, yf, legend="fit", color="red")
+        self.plot.addCurve(x, res, legend="residual", color="green")
 
         self.text_area.setText(text)
 

@@ -242,11 +242,12 @@ class FitterMinpack(FitterInterface):
         fitted_pattern.wavelength = fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
 
         fitted_intensity = fit_function(self.s_experimental, fit_global_parameters_out)
+        fitted_residual = self.intensity_experimental - fitted_intensity
 
         for index in range(0, len(fitted_intensity)):
             fitted_pattern.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=self.twotheta_experimental[index],
                                                                                     intensity=fitted_intensity[index],
-                                                                                    error=0.0,
+                                                                                    error=fitted_residual[index],
                                                                                     s=self.s_experimental[index]))
 
         self.conver = False
