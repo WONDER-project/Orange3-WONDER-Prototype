@@ -11,6 +11,41 @@ from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util import
 
 PRCSN = 2.5E-7
 
+class MinpackData:
+    def __init__(self,
+                 dof = 0.0,
+                 wss = 0.0,
+                 ss = 0.0,
+                 wsq = 0.0,
+                 nobs = 0.0,
+                 nprm = 0.0,
+                 nfit = 0.0,
+                 calculate = False):
+        self.dof = dof
+        self.wss = wss
+        self.ss = ss
+        self.wsq = wsq
+        self.nprm = nprm
+        self.nfit = nfit
+        self.nobs = nobs
+
+        if calculate: self.calculate()
+
+    def calculate(self):
+        self.rwp  = numpy.sqrt(self.wss / self.wsq)
+        self.rexp = numpy.sqrt(self.dof / self.wsq)
+
+    def gof(self):
+        return self.rwp / self.rexp
+
+    def to_text(self):
+        text = "WSS, SS, WSQ: " + str(self.wss) + ", " + str(self.ss) + ", " + str(self.wsq) + "\n"
+        text += "GOF: " + str(self.gof())+ "\n"
+        text += "DOF, NOBS: " + str(self.dof) + ", " + str(self.nobs) + "\n"
+        text += "NPARAM, NFIT: " + str(self.nprm) + ", " + str(self.nfit)
+
+        return text
+
 class FitterMinpack(FitterInterface):
 
     def __init__(self):
@@ -43,6 +78,7 @@ class FitterMinpack(FitterInterface):
         self.nprm = len(self.parameters)
         self.nfit = self.getNrParamToFit()
         self.nobs = self.getNrPoints()
+        self.dof = self.nobs - self.nfit
 
         self.a = CTriMatrix()
         self.c = CTriMatrix()
@@ -64,6 +100,12 @@ class FitterMinpack(FitterInterface):
         self.wss = self.getWSSQ()
         self.oldwss  = self.wss
 
+        self.minpack_data = MinpackData(wss=self.wss,
+                                        dof=self.dof,
+                                        nobs=self.nobs,
+                                        nprm=self.nprm,
+                                        nfit=self.nfit)
+
         self.conver = False
         self.exitflag  = False
 
@@ -74,6 +116,7 @@ class FitterMinpack(FitterInterface):
             if parameter.is_variable():
                 j += 1
                 self.initialpar.setitem(j, parameter.value)
+
 
     def do_fit(self, fit_global_parameters, current_iteration):
         if current_iteration <= fit_global_parameters.get_n_max_iterations() and not self.conver:
@@ -202,17 +245,16 @@ class FitterMinpack(FitterInterface):
                                 # update value of parameter
                                 self.initialpar.setitem(ii, self.currpar.getitem(ii) + recycle*self.g.getitem(ii))
 
-                    self.wss = self.getWSSQ()
+                    y = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
 
-                    #TODO
-                    '''
-                    ss  = minObjList->getSSQFromData();
+                    self.wss = self.getWSSQ(y=y)
 
-                    double wsq	= minObjList->getWSQFromData();
-                    double rwp	= sqrt(wss / wsq);
-                    double rexp	= sqrt(((double)dof) / wsq);
-                    double gof	= rwp / rexp;
-                    '''
+                    self.minpack_data.wss = self.wss
+                    self.minpack_data.ss = self.getSSQFromData(y=y)
+                    self.minpack_data.wsq = self.getWSQFromData(y=y)
+                    self.minpack_data.calculate()
+
+                    print(self.minpack_data.to_text())
                 else:
                     print("Chlolesky decomposition failed")
 
@@ -252,7 +294,7 @@ class FitterMinpack(FitterInterface):
 
         self.conver = False
 
-        return fitted_pattern, fit_global_parameters_out
+        return fitted_pattern, fit_global_parameters_out, self.minpack_data
 
     def set(self):
         fmm = self.getWeightedDelta()
@@ -393,8 +435,8 @@ class FitterMinpack(FitterInterface):
 
         return deriv
 
-    def getWSSQ(self):
-        y = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
+    def getWSSQ(self, y=None):
+        if y is None: y = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
 
         wssqlow = 0.0
         wssq = 0.0
@@ -429,6 +471,45 @@ class FitterMinpack(FitterInterface):
         return wssq + wssqlow
 
 
+    def getWSQFromData(self, y=None):
+        if y is None: y = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
 
+        wssq = 0.0
+
+        for i in range(0, self.getNrPoints()):
+            if not self.mighell:
+                if self.error_experimental[i] == 0.0:
+                    yv = 0.0
+                else:
+                    yv = (y[i] - self.intensity_experimental[i])/self.error_experimental[i]
+
+                wssq += (yv**2)
+            else:
+                if self.intensity_experimental[i] < 1:
+                    yv = y[i] - 2*self.intensity_experimental[i]
+                else:
+                    yv = y[i] - (self.intensity_experimental[i] + 1.0)
+
+                wssq += (yv**2)/(self.error_experimental[i]**2+1.0)
+
+        return wssq
+
+    def getSSQFromData(self, y=None):
+        if y is None: y = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
+
+        ss = 0.0
+
+        for i in range(0, self.getNrPoints()):
+            if not self.mighell:
+                yv = (y[i] - self.intensity_experimental[i])
+            else:
+                if self.intensity_experimental[i] < 1:
+                    yv = y[i] - 2*self.intensity_experimental[i]
+                else:
+                    yv = y[i] - (self.intensity_experimental[i] + 1.0)
+
+            ss += yv**2
+
+        return ss
 
 

@@ -195,12 +195,11 @@ class OWFitter(OWGenericWidget):
                     self.progressBarSet(int(iteration/self.n_iterations)*100)
                     self.setStatusMessage("Fitting iteration nr. " + str(iteration))
 
-                    self.fitted_pattern, fitted_fit_global_parameters = fitter.do_fit(fit_global_parameters=fitted_fit_global_parameters,
-                                                                                      current_iteration=iteration)
-
+                    self.fitted_pattern, fitted_fit_global_parameters, fit_data = fitter.do_fit(fit_global_parameters=fitted_fit_global_parameters,
+                                                                                                current_iteration=iteration)
                     self.show_data()
 
-                    self.text_area_fit_out.setText(fitted_fit_global_parameters.to_text())
+                    self.text_area_fit_out.setText(fit_data.to_text() + "\n\n" + fitted_fit_global_parameters.to_text())
 
                     self.tabs.setCurrentIndex(1)
 
