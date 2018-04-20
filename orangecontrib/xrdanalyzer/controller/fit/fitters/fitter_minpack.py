@@ -294,6 +294,38 @@ class FitterMinpack(FitterInterface):
 
         self.conver = False
 
+
+        errors = [0] * len(self.parameters)
+
+        if self.a.chodec() == 0: # Cholesky decomposition
+            k = 0
+            for i in range (0, self.nprm):
+                if self.parameters[i].is_variable():
+
+                    self.g.zero()
+                    self.g[k] = 1.0
+                    self.a.choback(self.g)
+                    errors[i] = numpy.sqrt(numpy.abs(self.g[k]))
+                    k += 1
+        else:
+            print("Errors not calculated")
+
+        fit_global_parameters_out = self.build_fit_global_parameters_out_errors(errors=errors)
+        '''
+	if (dof>0)
+	{
+		minObjList->evalDataOut();
+		wss = minObjList->getWSSQFromData();
+		ss = minObjList->getSSQFromData();
+		double wsq	= minObjList->getWSQFromData();
+		double rwp	= sqrt(wss / wsq);
+		double rexp	= sqrt(((double)dof) / wsq);
+		//double gof1  = sqrt(wss/dof);
+		double gof	= rwp / rexp;
+		wss *= (step*step);
+    }
+        '''
+
         return fitted_pattern, fit_global_parameters_out, self.minpack_data
 
     def set(self):
@@ -366,6 +398,61 @@ class FitterMinpack(FitterInterface):
         if fit_global_parameters.has_functions(): fit_global_parameters.evaluate_functions()
 
         return fit_global_parameters
+
+    def build_fit_global_parameters_out_errors(self, errors):
+        fit_global_parameters = FitterListener.Instance().get_registered_fit_global_parameters().duplicate()
+        crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
+
+        crystal_structure.a.error = errors[0]
+        crystal_structure.b.error = errors[1]
+        crystal_structure.c.error = errors[2]
+        crystal_structure.alpha.error = errors[3]
+        crystal_structure.beta.error = errors[4]
+        crystal_structure.gamma.error = errors[5]
+
+        for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
+            crystal_structure.get_reflection(reflection_index).intensity.error = errors[6+reflection_index]
+
+        last_index = crystal_structure.get_parameters_count() - 1
+
+        if not fit_global_parameters.background_parameters is None:
+            fit_global_parameters.background_parameters.c0.error = errors[last_index + 1]
+            fit_global_parameters.background_parameters.c1.error = errors[last_index + 2]
+            fit_global_parameters.background_parameters.c2.error = errors[last_index + 3]
+            fit_global_parameters.background_parameters.c3.error = errors[last_index + 4]
+            fit_global_parameters.background_parameters.c4.error = errors[last_index + 5]
+            fit_global_parameters.background_parameters.c5.error = errors[last_index + 6]
+
+            last_index += fit_global_parameters.background_parameters.get_parameters_count()
+
+        if not fit_global_parameters.instrumental_parameters is None:
+            fit_global_parameters.instrumental_parameters.U.error = errors[last_index + 1]
+            fit_global_parameters.instrumental_parameters.V.error = errors[last_index + 2]
+            fit_global_parameters.instrumental_parameters.W.error = errors[last_index + 3]
+            fit_global_parameters.instrumental_parameters.a.error = errors[last_index + 4]
+            fit_global_parameters.instrumental_parameters.b.error = errors[last_index + 5]
+            fit_global_parameters.instrumental_parameters.c.error = errors[last_index + 6]
+
+            last_index += fit_global_parameters.instrumental_parameters.get_parameters_count()
+
+        if not fit_global_parameters.size_parameters is None:
+            fit_global_parameters.size_parameters.mu.error    = errors[last_index + 1]
+            fit_global_parameters.size_parameters.sigma.error = errors[last_index + 2]
+
+            last_index += fit_global_parameters.size_parameters.get_parameters_count()
+
+        if not fit_global_parameters.strain_parameters is None:
+            fit_global_parameters.strain_parameters.aa.error = errors[last_index + 1]
+            fit_global_parameters.strain_parameters.bb.error = errors[last_index + 2]
+            fit_global_parameters.strain_parameters.e1.error = errors[last_index + 3] # in realtà è E1 dell'invariante PAH
+            fit_global_parameters.strain_parameters.e6.error = errors[last_index + 4] # in realtà è E6 dell'invariante PAH
+
+            last_index += fit_global_parameters.strain_parameters.get_parameters_count()
+
+        if fit_global_parameters.has_functions(): fit_global_parameters.evaluate_functions()
+
+        return fit_global_parameters
+
 
     ###############################################
     #

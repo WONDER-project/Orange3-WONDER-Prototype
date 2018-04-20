@@ -17,12 +17,6 @@ class Boundary:
         self.max_value = max_value
 
 class FitParameter:
-    value = 0.0
-    boundary = None
-    fixed = False
-    function = False
-    function_value = ""
-    step = PARAM_ERR
 
     def __init__(self,
                  value=None,
@@ -31,12 +25,14 @@ class FitParameter:
                  fixed=False,
                  function = False,
                  function_value = "",
-                 step=PARAM_ERR):
+                 step=PARAM_ERR,
+                 error=None):
         self.parameter_name = parameter_name
         self.value = value
         self.fixed = fixed
         self.function = function
         self.function_value = function_value
+        self.error = error
 
         if self.function:
             if self.function_value is None: raise ValueError("Function Value cannot be None")
@@ -95,6 +91,9 @@ class FitParameter:
 
                     if not self.boundary.max_value == numpy.inf:
                         text += ", max " + str(self.boundary.max_value)
+
+        if self.is_variable() and not self.error is None:
+            text += ", sd = \u00B1 " + str(self.error)
 
         return text
 
