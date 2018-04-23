@@ -20,7 +20,7 @@ class MinpackData:
                  nobs = 0.0,
                  nprm = 0.0,
                  nfit = 0.0,
-                 calculate = False):
+                 calculate = True):
         self.dof = dof
         self.wss = wss
         self.ss = ss
@@ -32,8 +32,15 @@ class MinpackData:
         if calculate: self.calculate()
 
     def calculate(self):
-        self.rwp  = numpy.sqrt(self.wss / self.wsq)
-        self.rexp = numpy.sqrt(self.dof / self.wsq)
+        try:
+            self.rwp  = numpy.sqrt(self.wss / self.wsq)
+        except:
+            self.rwp = 0.0
+
+        try:
+            self.rexp = numpy.sqrt(self.dof / self.wsq)
+        except:
+            self.rexp = 0.0
 
     def gof(self):
         return self.rwp / self.rexp
@@ -104,8 +111,7 @@ class FitterMinpack(FitterInterface):
                                         dof=self.dof,
                                         nobs=self.nobs,
                                         nprm=self.nprm,
-                                        nfit=self.nfit,
-                                        calculate=True)
+                                        nfit=self.nfit)
 
         self.conver = False
         self.exitflag  = False

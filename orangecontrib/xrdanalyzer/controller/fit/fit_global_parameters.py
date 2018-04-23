@@ -137,7 +137,7 @@ class FitGlobalParameters(FitParametersList):
 
     def evaluate_functions(self):
         if self.has_functions() or self.free_output_parameters.get_parameters_count() > 0:
-            python_code = "import numpy\n\n"
+            python_code = "import numpy\nfrom numpy import *\n\n"
 
             python_code += self.free_input_parameters.to_python_code()
 
