@@ -104,7 +104,8 @@ class FitterMinpack(FitterInterface):
                                         dof=self.dof,
                                         nobs=self.nobs,
                                         nprm=self.nprm,
-                                        nfit=self.nfit)
+                                        nfit=self.nfit,
+                                        calculate=True)
 
         self.conver = False
         self.exitflag  = False
