@@ -35,3 +35,5 @@ def fft(f, n_steps, dL):
     integral = numpy.trapz(y_fft, q)
 
     return q, y_fft / integral
+
+

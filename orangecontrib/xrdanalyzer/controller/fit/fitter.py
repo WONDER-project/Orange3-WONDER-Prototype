@@ -27,13 +27,10 @@ class FitterInterface:
         self.specific_init_fitter(fit_global_parameters)
 
     def specific_init_fitter(self, fit_global_parameters):
-        pass
+        raise NotImplementedError("Abstract")
 
     def do_fit(self, fit_global_parameters=None, current_iteration=0):
         raise NotImplementedError("Abstract")
-
-    def finalize_fit(self):
-        pass
 
 
 #################################################

@@ -26,7 +26,7 @@ class OWFitter(OWGenericWidget):
 
     want_main_area = True
 
-    fitter = Setting(0)
+    fitter_name = Setting(0)
     fitting_method = Setting(0)
 
     n_iterations = Setting(5)
@@ -50,7 +50,7 @@ class OWFitter(OWGenericWidget):
                                    "", orientation="horizontal",
                                    width=self.CONTROL_AREA_WIDTH-25)
 
-        self.cb_fitter = orangegui.comboBox(fitter_box, self, "fitter", label="Fitter", items=FitterName.tuple(), callback=self.set_fitter, orientation="horizontal")
+        self.cb_fitter = orangegui.comboBox(fitter_box, self, "fitter_name", label="Fitter", items=FitterName.tuple(), callback=self.set_fitter, orientation="horizontal")
 
         self.fitter_box_1 = gui.widgetBox(main_box,
                                    "", orientation="horizontal",
@@ -176,8 +176,8 @@ class OWFitter(OWGenericWidget):
         self.tab_fit_out.layout().addWidget(self.scrollarea_fit_out, alignment=Qt.AlignHCenter)
 
     def set_fitter(self):
-        self.fitter_box_1.setVisible(self.fitter <= 1)
-        self.fitter_box_2.setVisible(self.fitter == 2)
+        self.fitter_box_1.setVisible(self.fitter_name <= 1)
+        self.fitter_box_2.setVisible(self.fitter_name == 2)
 
     def do_fit(self):
         try:
@@ -192,25 +192,28 @@ class OWFitter(OWGenericWidget):
 
                 self.progressBarInit()
 
-                fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
-                                                     fitting_method=self.cb_fitting_method.currentText())
-
                 if self.is_incremental == 1:
                     if self.current_iteration == 0:
-                        fitter.init_fitter(self.fit_global_parameters)
-                else:
-                    self.current_iteration = 0
-                    fitter.init_fitter(self.fit_global_parameters)
+                        self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
+                                                                  fitting_method=self.cb_fitting_method.currentText())
 
-                fitted_fit_global_parameters = self.fit_global_parameters
+                        self.fitter.init_fitter(self.fit_global_parameters)
+                else:
+                    self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
+                                                              fitting_method=self.cb_fitting_method.currentText())
+
+                    self.fitter.init_fitter(self.fit_global_parameters)
+                    self.current_iteration = 0
+
+                fitted_fit_global_parameters = self.fit_global_parameters.duplicate()
 
                 for iteration in range(1, self.n_iterations + 1):
 
                     self.progressBarSet(int(iteration/self.n_iterations)*100)
                     self.setStatusMessage("Fitting iteration nr. " + str(iteration))
 
-                    self.fitted_pattern, fitted_fit_global_parameters, fit_data = fitter.do_fit(fit_global_parameters=fitted_fit_global_parameters,
-                                                                                                current_iteration=iteration)
+                    self.fitted_pattern, fitted_fit_global_parameters, fit_data = self.fitter.do_fit(fit_global_parameters=fitted_fit_global_parameters,
+                                                                                                     current_iteration=iteration)
                     self.show_data()
 
                     self.text_area_fit_out.setText(fit_data.to_text() + "\n\n" + fitted_fit_global_parameters.to_text())
@@ -220,8 +223,6 @@ class OWFitter(OWGenericWidget):
                     self.current_iteration = iteration
 
                     if fitted_fit_global_parameters.is_convergence_reached(): break
-
-                fitter.finalize_fit()
 
                 self.setStatusMessage("Fitting procedure completed")
 

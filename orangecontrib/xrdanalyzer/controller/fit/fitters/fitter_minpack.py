@@ -20,6 +20,7 @@ class MinpackData:
                  nobs = 0.0,
                  nprm = 0.0,
                  nfit = 0.0,
+                 calc_lambda = 0.0,
                  calculate = True):
         self.dof = dof
         self.wss = wss
@@ -28,6 +29,7 @@ class MinpackData:
         self.nprm = nprm
         self.nfit = nfit
         self.nobs = nobs
+        self.calc_lambda = calc_lambda
 
         if calculate: self.calculate()
 
@@ -47,6 +49,7 @@ class MinpackData:
 
     def to_text(self):
         text = "WSS, SS, WSQ: " + str(self.wss) + ", " + str(self.ss) + ", " + str(self.wsq) + "\n"
+        text += "LAMBDA: " + str(self.calc_lambda)+ "\n"
         text += "GOF: " + str(self.gof())+ "\n"
         text += "DOF, NOBS: " + str(self.dof) + ", " + str(self.nobs) + "\n"
         text += "NPARAM, NFIT: " + str(self.nprm) + ", " + str(self.nfit)
@@ -176,6 +179,8 @@ class FitterMinpack(FitterInterface):
                     # the matrix is inverted, so calculate g (change in the
                     # parameters) by back substitution
 
+                    print("Chlolesky decomposition ok")
+
                     self.a.choback(self.g)
 
                     recyc = False
@@ -259,6 +264,7 @@ class FitterMinpack(FitterInterface):
                     self.minpack_data.wss = self.wss
                     self.minpack_data.ss = self.getSSQFromData(y=y)
                     self.minpack_data.wsq = self.getWSQFromData(y=y)
+                    self.minpack_data.calc_lambda = self._lambda
                     self.minpack_data.calculate()
 
                     print(self.minpack_data.to_text())
