@@ -156,10 +156,7 @@ class FitGlobalParameters(FitParametersList):
             exec(python_code, parameters_dictionary)
 
             self.set_functions_values(parameters_dictionary)
-
             self.free_output_parameters.set_functions_values(parameters_dictionary)
-        
-        #TODO: output parameters
 
     def duplicate(self):
         fit_global_parameters = FitGlobalParameters(fit_initialization=None if self.fit_initialization is None else self.fit_initialization.duplicate(),

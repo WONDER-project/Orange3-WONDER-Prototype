@@ -67,8 +67,8 @@ class OWGenericWidget(widget.OWWidget):
     def create_box(self, parent_box, var):
         box = gui.widgetBox(parent_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50)
 
-        box_label = gui.widgetBox(box, "", orientation="horizontal", width=20)
-        box_value =  gui.widgetBox(box, "", orientation="horizontal", width=130)
+        box_label = gui.widgetBox(box, "", orientation="horizontal", width=40)
+        box_value =  gui.widgetBox(box, "", orientation="horizontal", width=110)
         box_min_max = gui.widgetBox(box, "", orientation="horizontal")
         box_fixed = gui.widgetBox(box, "", orientation="horizontal")
         box_function = gui.widgetBox(box, "", orientation="horizontal")
@@ -94,13 +94,13 @@ class OWGenericWidget(widget.OWWidget):
 
                 box_min_max.setVisible(False)
                 le_var.setVisible(True)
-                box_value.setFixedWidth(130)
+                box_value.setFixedWidth(110)
                 box_function.setVisible(False)
                 box_function_value.setVisible(False)
             else:
                 box_min_max.setVisible(True)
                 le_var.setVisible(True)
-                box_value.setFixedWidth(130)
+                box_value.setFixedWidth(110)
                 box_fixed.setVisible(True)
                 box_function.setVisible(True)
                 box_function_value.setVisible(False)

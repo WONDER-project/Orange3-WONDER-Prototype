@@ -118,7 +118,18 @@ class FitParameter:
     def is_variable(self):
         return not self.fixed and not self.function
 
-class FitParametersList:
+class ParametersList:
+    def to_text(self):
+        raise NotImplementedError()
+
+    def to_python_code(self):
+        raise NotImplementedError()
+
+    def duplicate(self):
+        raise NotImplementedError
+
+
+class FitParametersList(ParametersList):
 
     @classmethod
     def get_parameters_prefix(cls):
@@ -200,7 +211,7 @@ class FitParametersList:
                 parameter.value = float(parameters_dictionary[parameter.parameter_name])
 
 
-class FreeInputParameters:
+class FreeInputParameters(ParametersList):
     def __init__(self):
         self.parameters_dictionary = {}
     
@@ -296,7 +307,7 @@ class FreeOutputParameter:
     def duplicate(self):
         return FreeOutputParameter(expression=self.expression, value=self.value)
     
-class FreeOutputParameters:
+class FreeOutputParameters(ParametersList):
     def __init__(self):
         self.parameters_dictionary = {}
 
