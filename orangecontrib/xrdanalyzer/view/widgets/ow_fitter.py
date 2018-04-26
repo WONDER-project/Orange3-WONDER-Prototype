@@ -195,7 +195,12 @@ class OWFitter(OWGenericWidget):
                 fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
                                                      fitting_method=self.cb_fitting_method.currentText())
 
-                fitter.init_fitter(self.fit_global_parameters)
+                if self.is_incremental == 1:
+                    if self.current_iteration == 0:
+                        fitter.init_fitter(self.fit_global_parameters)
+                else:
+                    self.current_iteration = 0
+                    fitter.init_fitter(self.fit_global_parameters)
 
                 fitted_fit_global_parameters = self.fit_global_parameters
 
