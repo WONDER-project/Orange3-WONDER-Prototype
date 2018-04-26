@@ -1,6 +1,0 @@
-Orange3>=3.6
-lmfit
-matplotlib
-numpy
-scipy
-silx

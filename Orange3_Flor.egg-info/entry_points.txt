@@ -1,6 +1,0 @@
-[orange.widgets]
-XRD Analyzer = orangecontrib.xrdanalyzer.view.widgets
-
-[orange3.addon]
-Orange3-Flor = orangecontrib.xrdanalyzer
-
