@@ -1,6 +1,6 @@
 import numpy
 import orangecontrib.xrdanalyzer.util.congruence as congruence
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PARAM_HWMAX, PARAM_HWMIN
 
 class Simmetry:
     NONE = "none"
@@ -191,8 +191,8 @@ class CrystalStructure(FitParametersList):
                     fixed = False
 
                     if len(data) > 4:
-                        min_value = -numpy.inf
-                        max_value = numpy.inf
+                        min_value = PARAM_HWMIN
+                        max_value = PARAM_HWMAX
 
                         for j in range(4, len(data)):
                             boundary_data = data[j].strip().split()
@@ -202,7 +202,7 @@ class CrystalStructure(FitParametersList):
                             elif boundary_data[0] == "fixed": fixed = True
 
                         if not fixed:
-                            if min_value != -numpy.inf or max_value != numpy.inf:
+                            if min_value != PARAM_HWMIN or max_value != PARAM_HWMAX:
                                 boundary = Boundary(min_value=min_value, max_value=max_value)
                             else:
                                 boundary = Boundary()

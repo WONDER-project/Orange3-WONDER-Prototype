@@ -86,10 +86,11 @@ class FitParameter:
                 text += ", fixed"
             else:
                 if not self.boundary is None:
-                    if not self.boundary.min_value == -numpy.inf:
+
+                    if not self.boundary.min_value == PARAM_HWMIN:
                         text += ", min " + str(self.boundary.min_value)
 
-                    if not self.boundary.max_value == numpy.inf:
+                    if not self.boundary.max_value == PARAM_HWMAX:
                         text += ", max " + str(self.boundary.max_value)
 
         if self.is_variable() and not self.error is None:
@@ -158,8 +159,8 @@ class FitParametersList(ParametersList):
             parameters.append(fit_parameter.value)
 
             if fit_parameter.boundary is None:
-                boundaries_min.append(-numpy.inf)
-                boundaries_max.append(numpy.inf)
+                boundaries_min.append(PARAM_HWMIN)
+                boundaries_max.append(PARAM_HWMAX)
             else:
                 boundaries_min.append(fit_parameter.boundary.min_value)
                 boundaries_max.append(fit_parameter.boundary.max_value)

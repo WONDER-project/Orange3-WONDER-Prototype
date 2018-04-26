@@ -94,8 +94,17 @@ class OWFitter(OWGenericWidget):
                                    width=self.CONTROL_AREA_WIDTH-25)
 
 
-        gui.button(button_box,  self, "Fit", height=50, callback=self.do_fit)
+        fit_button = gui.button(button_box,  self, "Fit", height=50, width=300, callback=self.do_fit)
 
+        font = QFont(fit_button.font())
+        font.setBold(True)
+        font.setPixelSize(20)
+        fit_button.setFont(font)
+        palette = QPalette(fit_button.palette()) # make a copy of the palette
+        palette.setColor(QPalette.ButtonText, QColor('dark blue'))
+        fit_button.setPalette(palette) # assign new palette
+
+        gui.button(button_box,  self, "Send Current Fit", height=50, callback=self.send_current_fit)
 
         tabs = gui.tabWidget(main_box)
         tab_free_out = gui.createTabPage(tabs, "Free Output Parameters")
@@ -226,6 +235,11 @@ class OWFitter(OWGenericWidget):
 
         self.setStatusMessage("")
         self.progressBarFinished()
+
+
+    def send_current_fit(self):
+        if not self.fit_global_parameters is None:
+            self.send("Fit Global Parameters", self.fit_global_parameters.duplicate())
 
 
     def set_data(self, data):

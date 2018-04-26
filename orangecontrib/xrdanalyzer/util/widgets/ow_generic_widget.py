@@ -14,6 +14,7 @@ from orangecontrib.xrdanalyzer.util.gui.gui_utility import ConfirmDialog, gui, S
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
 from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterListener
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_HWMAX, PARAM_HWMIN
 
 class OWGenericWidget(widget.OWWidget):
 
@@ -125,13 +126,13 @@ class OWGenericWidget(widget.OWWidget):
         else:
             boundary = None
 
-            min_value = -numpy.inf
-            max_value = numpy.inf
+            min_value = PARAM_HWMIN
+            max_value = PARAM_HWMAX
 
             if getattr(self, parameter_name + "_has_min") == 1: min_value = getattr(self, parameter_name + "_min")
             if getattr(self, parameter_name + "_has_max") == 1: max_value = getattr(self, parameter_name + "_max")
 
-            if min_value != -numpy.inf or max_value != numpy.inf:
+            if min_value != PARAM_HWMIN or max_value != PARAM_HWMAX:
                 boundary = Boundary(min_value=min_value, max_value=max_value)
 
             return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(self, parameter_name), boundary=boundary)
