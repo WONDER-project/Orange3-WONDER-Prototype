@@ -65,7 +65,7 @@ class OWGenericWidget(widget.OWWidget):
         gui.button(self.general_options_box, self, "Show Available Parameters", callback=self.show_available_parameters)
 
 
-    def create_box(self, parent_box, var):
+    def create_box(self, parent_box, var, label=None):
         box = gui.widgetBox(parent_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50)
 
         box_label = gui.widgetBox(box, "", orientation="horizontal", width=40)
@@ -75,7 +75,7 @@ class OWGenericWidget(widget.OWWidget):
         box_function = gui.widgetBox(box, "", orientation="horizontal")
         box_function_value = gui.widgetBox(box, "", orientation="horizontal")
 
-        gui.widgetLabel(box_label, var)
+        gui.widgetLabel(box_label, var if label is None else label)
         le_var = gui.lineEdit(box_value, self, var, "", valueType=float)
 
         def set_flags():

@@ -56,7 +56,7 @@ class InvariantPAH(FitParametersList):
 
     @classmethod
     def get_parameters_prefix(cls):
-        return "strain_"
+        return "invariant_"
 
     def __init__(self,
                  aa,
@@ -342,3 +342,31 @@ class InvariantPAHLaueGroup14(InvariantPAH):
                  e1  = FitParameter(parameter_name="e1" , value=1e-4),
                  e6  = FitParameter(parameter_name="e6" , value=1e-4)):
         super().__init__(aa, bb, 14, e1, e6=e6)
+
+
+class WarrenModel(FitParametersList):
+    average_cell_parameter = None
+
+    @classmethod
+    def get_parameters_prefix(cls):
+        return "warren_"
+
+    def __init__(self,
+                 average_cell_parameter=None):
+        super(FitParametersList, self).__init__()
+
+        self.average_cell_parameter = average_cell_parameter
+
+
+    def to_text(self):
+        text = "STRAIN - WARREN MODEL\n"
+        text += "-----------------------------------\n"
+
+        text += self.average_cell_parameter.to_text() + "\n"
+
+        text += "-----------------------------------\n"
+
+        return text
+
+    def duplicate(self):
+        return WarrenModel(average_cell_parameter=None if self.average_cell_parameter is None else self.average_cell_parameter.duplicate())

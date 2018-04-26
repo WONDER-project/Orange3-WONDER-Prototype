@@ -9,6 +9,8 @@ from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_ERR
 from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener, fit_function
 from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util import *
 
+from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel
+
 PRCSN = 2.5E-7
 
 class MinpackData:
@@ -401,10 +403,13 @@ class FitterMinpack(FitterInterface):
             last_index += fit_global_parameters.size_parameters.get_parameters_count()
 
         if not fit_global_parameters.strain_parameters is None:
-            fit_global_parameters.strain_parameters.aa.value = fitted_parameters[last_index + 1].value
-            fit_global_parameters.strain_parameters.bb.value = fitted_parameters[last_index + 2].value
-            fit_global_parameters.strain_parameters.e1.value = fitted_parameters[last_index + 3].value # in realtà è E1 dell'invariante PAH
-            fit_global_parameters.strain_parameters.e6.value = fitted_parameters[last_index + 4].value # in realtà è E6 dell'invariante PAH
+            if isinstance(fit_global_parameters.strain_parameters, InvariantPAH):
+                fit_global_parameters.strain_parameters.aa.value = fitted_parameters[last_index + 1].value
+                fit_global_parameters.strain_parameters.bb.value = fitted_parameters[last_index + 2].value
+                fit_global_parameters.strain_parameters.e1.value = fitted_parameters[last_index + 3].value # in realtà è E1 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e6.value = fitted_parameters[last_index + 4].value # in realtà è E6 dell'invariante PAH
+            elif isinstance(fit_global_parameters.strain_parameters, WarrenModel):
+                fit_global_parameters.strain_parameters.average_cell_parameter.value = fitted_parameters[last_index + 1].value
 
             last_index += fit_global_parameters.strain_parameters.get_parameters_count()
 
@@ -455,10 +460,13 @@ class FitterMinpack(FitterInterface):
             last_index += fit_global_parameters.size_parameters.get_parameters_count()
 
         if not fit_global_parameters.strain_parameters is None:
-            fit_global_parameters.strain_parameters.aa.error = errors[last_index + 1]
-            fit_global_parameters.strain_parameters.bb.error = errors[last_index + 2]
-            fit_global_parameters.strain_parameters.e1.error = errors[last_index + 3] # in realtà è E1 dell'invariante PAH
-            fit_global_parameters.strain_parameters.e6.error = errors[last_index + 4] # in realtà è E6 dell'invariante PAH
+            if isinstance(fit_global_parameters.strain_parameters, InvariantPAH):
+                fit_global_parameters.strain_parameters.aa.error = errors[last_index + 1]
+                fit_global_parameters.strain_parameters.bb.error = errors[last_index + 2]
+                fit_global_parameters.strain_parameters.e1.error = errors[last_index + 3] # in realtà è E1 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e6.error = errors[last_index + 4] # in realtà è E6 dell'invariante PAH
+            elif isinstance(fit_global_parameters.strain_parameters, WarrenModel):
+                fit_global_parameters.strain_parameters.average_cell_parameter.error = errors[last_index + 1]
 
             last_index += fit_global_parameters.strain_parameters.get_parameters_count()
 

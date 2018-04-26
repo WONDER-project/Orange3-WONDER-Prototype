@@ -78,7 +78,7 @@ class OWStrain(OWGenericWidget):
         super().__init__(show_automatic_box=True)
 
         main_box = gui.widgetBox(self.controlArea,
-                                 "Size", orientation="vertical",
+                                 "Strain", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
 
         self.create_box(main_box, "aa")
