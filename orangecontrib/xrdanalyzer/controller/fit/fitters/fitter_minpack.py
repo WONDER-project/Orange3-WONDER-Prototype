@@ -280,7 +280,7 @@ class FitterMinpack(FitterInterface):
                     j += 1
                     self.parameters[i].set_value(self.initialpar.getitem(j))
 
-            #self.parameters = self.build_fit_global_parameters_out(self.parameters).get_parameters()
+            self.parameters = self.build_fit_global_parameters_out(self.parameters).get_parameters()
 
         fitted_parameters = self.parameters
 
