@@ -134,7 +134,6 @@ class FitterMinpack(FitterInterface):
 
     def do_fit(self, current_fit_global_parameters, current_iteration):
         self.fit_global_parameters = current_fit_global_parameters.duplicate()
-        self.last_a = None
 
         if current_iteration <= current_fit_global_parameters.get_n_max_iterations() and not self.conver:
             # check values of lambda for large number of iterations
@@ -181,8 +180,6 @@ class FitterMinpack(FitterInterface):
                     if jj > 1:
                         for i in range (1, jj):
                             self.a.setitem(l-i, self.c.getitem(l-i))
-
-                self.last_a = CTriMatrix(other=self.a)
 
                 if self.a.chodec() == 0: # Cholesky decomposition
                     # the matrix is inverted, so calculate g (change in the
@@ -314,25 +311,26 @@ class FitterMinpack(FitterInterface):
                                                                                     s=self.s_experimental[index]))
         self.conver = False
 
-        if not self.last_a is None:
-            errors = [0] * len(self.parameters)
+        errors = [0] * len(self.parameters)
 
-            if self.last_a.chodec() == 0: # Cholesky decomposition
-                k = 0
-                for i in range (0, self.nprm):
-                    if self.parameters[i].is_variable():
+        self.a.zero()
+        self.grad.zero()
+        self.set()
 
-                        self.g.zero()
-                        self.g[k] = 1.0
-                        self.last_a.choback(self.g)
-                        errors[i] = numpy.sqrt(numpy.abs(self.g[k]))
-                        k += 1
-            else:
-                print("Errors not calculated: chodec != 0")
+        if self.a.chodec() == 0: # Cholesky decomposition
+            k = 0
+            for i in range (0, self.nprm):
+                if self.parameters[i].is_variable():
 
-            fit_global_parameters_out = self.build_fit_global_parameters_out_errors(errors=errors)
+                    self.g.zero()
+                    self.g[k] = 1.0
+                    self.a.choback(self.g)
+                    errors[i] = numpy.sqrt(numpy.abs(self.g[k]))
+                    k += 1
         else:
-            print("Errors not calculated: a is None")
+            print("Errors not calculated: chodec != 0")
+
+        fit_global_parameters_out = self.build_fit_global_parameters_out_errors(errors=errors)
 
         '''
 	if (dof>0)
