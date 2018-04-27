@@ -366,6 +366,8 @@ class FitterMinpack(FitterInterface):
         pass
 
 
+
+    # TODO: CHANGE IN SET_VALUE!!!!!!!!!!
     def build_fit_global_parameters_out(self, fitted_parameters):
         fit_global_parameters = self.fit_global_parameters
 

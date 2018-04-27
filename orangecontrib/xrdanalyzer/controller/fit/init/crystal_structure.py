@@ -7,11 +7,12 @@ class Simmetry:
     FCC = "fcc"
     BCC = "bcc"
     HCP = "hcp"
-    CUBIC = "cubic"
+    CUBIC = "sc"
 
     @classmethod
     def tuple(cls):
-        return [cls.NONE, cls.FCC, cls.BCC, cls.HCP, cls.CUBIC]
+        #return [cls.NONE, cls.FCC, cls.BCC, cls.HCP, cls.CUBIC]
+        return [cls.NONE, cls.FCC, cls.BCC, cls.CUBIC]
 
 class Reflection():
 
