@@ -1,9 +1,7 @@
 import os, sys, numpy
 
 from PyQt5.QtWidgets import QMessageBox, QScrollArea, QTableWidget, QApplication
-from PyQt5.QtCore import Qt
 
-from silx.gui.plot.PlotWindow import PlotWindow
 
 from Orange.widgets.settings import Setting
 from Orange.widgets import gui as orangegui
@@ -12,11 +10,7 @@ from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWi
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ShowTextDialog
 from orangecontrib.xrdanalyzer.util import congruence
 
-from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPatternFactory
-
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
 from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground
 
 class OWBackground(OWGenericWidget):

@@ -274,6 +274,8 @@ class FitterMinpack(FitterInterface):
 
                     print(self.minpack_data.to_text())
                 else:
+                    self.parameters = self.build_fit_global_parameters_out(self.parameters).get_parameters()
+
                     print("Chlolesky decomposition failed")
 
                 if not self.exitflag  and not self.conver:
@@ -366,59 +368,57 @@ class FitterMinpack(FitterInterface):
         pass
 
 
-
-    # TODO: CHANGE IN SET_VALUE!!!!!!!!!!
     def build_fit_global_parameters_out(self, fitted_parameters):
         fit_global_parameters = self.fit_global_parameters
 
         crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
 
-        crystal_structure.a.value = fitted_parameters[0].value
-        crystal_structure.b.value = fitted_parameters[1].value
-        crystal_structure.c.value = fitted_parameters[2].value
-        crystal_structure.alpha.value = fitted_parameters[3].value
-        crystal_structure.beta.value = fitted_parameters[4].value
-        crystal_structure.gamma.value = fitted_parameters[5].value
+        crystal_structure.a.set_value(fitted_parameters[0].value)
+        crystal_structure.b.set_value(fitted_parameters[1].value)
+        crystal_structure.c.set_value(fitted_parameters[2].value)
+        crystal_structure.alpha.set_value(fitted_parameters[3].value)
+        crystal_structure.beta.set_value(fitted_parameters[4].value)
+        crystal_structure.gamma.set_value(fitted_parameters[5].value)
 
         for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
-            crystal_structure.get_reflection(reflection_index).intensity.value = fitted_parameters[6+reflection_index].value
+            crystal_structure.get_reflection(reflection_index).intensity.set_value(fitted_parameters[6+reflection_index].value)
 
         last_index = crystal_structure.get_parameters_count() - 1
 
         if not fit_global_parameters.background_parameters is None:
-            fit_global_parameters.background_parameters.c0.value = fitted_parameters[last_index + 1].value
-            fit_global_parameters.background_parameters.c1.value = fitted_parameters[last_index + 2].value
-            fit_global_parameters.background_parameters.c2.value = fitted_parameters[last_index + 3].value
-            fit_global_parameters.background_parameters.c3.value = fitted_parameters[last_index + 4].value
-            fit_global_parameters.background_parameters.c4.value = fitted_parameters[last_index + 5].value
-            fit_global_parameters.background_parameters.c5.value = fitted_parameters[last_index + 6].value
+            fit_global_parameters.background_parameters.c0.set_value(fitted_parameters[last_index + 1].value)
+            fit_global_parameters.background_parameters.c1.set_value(fitted_parameters[last_index + 2].value)
+            fit_global_parameters.background_parameters.c2.set_value(fitted_parameters[last_index + 3].value)
+            fit_global_parameters.background_parameters.c3.set_value(fitted_parameters[last_index + 4].value)
+            fit_global_parameters.background_parameters.c4.set_value(fitted_parameters[last_index + 5].value)
+            fit_global_parameters.background_parameters.c5.set_value(fitted_parameters[last_index + 6].value)
 
             last_index += fit_global_parameters.background_parameters.get_parameters_count()
 
         if not fit_global_parameters.instrumental_parameters is None:
-            fit_global_parameters.instrumental_parameters.U.value = fitted_parameters[last_index + 1].value
-            fit_global_parameters.instrumental_parameters.V.value = fitted_parameters[last_index + 2].value
-            fit_global_parameters.instrumental_parameters.W.value = fitted_parameters[last_index + 3].value
-            fit_global_parameters.instrumental_parameters.a.value = fitted_parameters[last_index + 4].value
-            fit_global_parameters.instrumental_parameters.b.value = fitted_parameters[last_index + 5].value
-            fit_global_parameters.instrumental_parameters.c.value = fitted_parameters[last_index + 6].value
+            fit_global_parameters.instrumental_parameters.U.set_value(fitted_parameters[last_index + 1].value)
+            fit_global_parameters.instrumental_parameters.V.set_value(fitted_parameters[last_index + 2].value)
+            fit_global_parameters.instrumental_parameters.W.set_value(fitted_parameters[last_index + 3].value)
+            fit_global_parameters.instrumental_parameters.a.set_value(fitted_parameters[last_index + 4].value)
+            fit_global_parameters.instrumental_parameters.b.set_value(fitted_parameters[last_index + 5].value)
+            fit_global_parameters.instrumental_parameters.c.set_value(fitted_parameters[last_index + 6].value)
 
             last_index += fit_global_parameters.instrumental_parameters.get_parameters_count()
 
         if not fit_global_parameters.size_parameters is None:
-            fit_global_parameters.size_parameters.mu.value    = fitted_parameters[last_index + 1].value
-            fit_global_parameters.size_parameters.sigma.value = fitted_parameters[last_index + 2].value
+            fit_global_parameters.size_parameters.mu.set_value(fitted_parameters[last_index + 1].value)
+            fit_global_parameters.size_parameters.sigma.set_value(fitted_parameters[last_index + 2].value)
 
             last_index += fit_global_parameters.size_parameters.get_parameters_count()
 
         if not fit_global_parameters.strain_parameters is None:
             if isinstance(fit_global_parameters.strain_parameters, InvariantPAH):
-                fit_global_parameters.strain_parameters.aa.value = fitted_parameters[last_index + 1].value
-                fit_global_parameters.strain_parameters.bb.value = fitted_parameters[last_index + 2].value
-                fit_global_parameters.strain_parameters.e1.value = fitted_parameters[last_index + 3].value # in realtà è E1 dell'invariante PAH
-                fit_global_parameters.strain_parameters.e6.value = fitted_parameters[last_index + 4].value # in realtà è E6 dell'invariante PAH
+                fit_global_parameters.strain_parameters.aa.set_value(fitted_parameters[last_index + 1].value)
+                fit_global_parameters.strain_parameters.bb.set_value(fitted_parameters[last_index + 2].value)
+                fit_global_parameters.strain_parameters.e1.set_value(fitted_parameters[last_index + 3].value) # in realtà è E1 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e6.set_value(fitted_parameters[last_index + 4].value) # in realtà è E6 dell'invariante PAH
             elif isinstance(fit_global_parameters.strain_parameters, WarrenModel):
-                fit_global_parameters.strain_parameters.average_cell_parameter.value = fitted_parameters[last_index + 1].value
+                fit_global_parameters.strain_parameters.average_cell_parameter.set_value(fitted_parameters[last_index + 1].value)
 
             last_index += fit_global_parameters.strain_parameters.get_parameters_count()
 
