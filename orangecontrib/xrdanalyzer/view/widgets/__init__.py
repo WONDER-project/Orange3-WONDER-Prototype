@@ -1,11 +1,7 @@
-"""
-XRD Analyzer
-===============
-Widgets for XRPD Analysis
-"""
 
-NAME = "XRD Analyzer"
-DESCRIPTION = "Management and Analysis of XRPD data."
+
+NAME = "WONDER"
+DESCRIPTION = "Whole POdwer PatterN MoDelling in ORange"
 
 ICON = "icons/magnifyXRD.png"
 PRIORITY = 5000

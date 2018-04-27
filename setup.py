@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 with io.open('about.md', 'r', encoding='utf-8') as f:
     ABOUT = f.read()
 
-NAME = 'Orange3-Flor'
+NAME = 'Orange3-WONDER'
 
 MAJOR = 0
 MINOR = 0
@@ -16,9 +16,9 @@ MICRO = 1
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 AUTHOR = 'Alberto Flor, Luca Rebuffi'
-AUTHOR_EMAIL = 'albrto.flor@unitn.it'
+AUTHOR_EMAIL = 'alberto.flor@unitn.it'
 
-URL = 'https://github.com/AlbertKurtz/Orange3-Flor'
+URL = 'https://github.com/WONDER-project/Orange3-WONDER'
 DESCRIPTION = 'Orange3 add-on for image data mining.'
 LONG_DESCRIPTION = ABOUT
 LICENSE = 'GPL3+'
@@ -33,23 +33,21 @@ CLASSIFIERS = [
 
 KEYWORDS = [
     'orange3 add-on',
-    'orange3-flor'
+    'orange3-wonder'
 ]
 
 PACKAGES = find_packages()
 
 PACKAGE_DATA = {
     'orangecontrib.xrdanalyzer.view.widgets': ['icons/*.*'],
-    #'orangecontrib.xrdanalyzer._test.view.widgets_test': ['icons/*.*'],
+    'orangecontrib.xrdanalyzer.view.untrusted': ['icons/*.*'],
 }
 
 NAMESPACE_PACAKGES = ["orangecontrib",
                       "orangecontrib.xrdanalyzer",
                       "orangecontrib.xrdanalyzer.view",
                       "orangecontrib.xrdanalyzer.view.widgets",
-                      #"orangecontrib.xrdanalyzer._test",
-                      #"orangecontrib.xrdanalyzer._test.view",
-                      #"orangecontrib.xrdanalyzer._test.view.widgets"
+                      "orangecontrib.xrdanalyzer.view.untrusted",
                       ]
 
 INSTALL_REQUIRES = sorted(set(
@@ -58,11 +56,11 @@ INSTALL_REQUIRES = sorted(set(
 
 ENTRY_POINTS = {
     'orange.widgets':
-        ('XRD Analyzer = orangecontrib.xrdanalyzer.view.widgets',
-         #'Widget Tests = orangecontrib.xrdanalyzer._test.view.widgets',
+        ('WONDER = orangecontrib.xrdanalyzer.view.widgets',
+         'UNTRUSTED = orangecontrib.xrdanalyzer.view.untrusted',
          ),
     'orange3.addon':
-        ('Orange3-Flor = orangecontrib.xrdanalyzer',)
+        ('Orange3-WONDER = orangecontrib.xrdanalyzer',)
 
 
 
@@ -85,5 +83,4 @@ if __name__ == '__main__':
         install_requires=INSTALL_REQUIRES,
         namespace_packages=['orangecontrib'],
         entry_points=ENTRY_POINTS,
-        #test_suite='orangecontrib.imageanalytics.tests.suite'
     )
