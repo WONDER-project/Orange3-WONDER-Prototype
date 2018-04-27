@@ -256,8 +256,8 @@ def strain_warren_function(L, h, k, l, lattice_parameter, average_lattice_parame
     delta_l  = delta_l_entry[1]
     delta_l2 = delta_l2_entry[1]
 
-    new_delta_l  = modify_delta_l(l_local, delta_l, average_lattice_parameter, lattice_parameter)
-    new_delta_l2 = modify_delta_l2(l_local, delta_l, delta_l2, average_lattice_parameter, lattice_parameter)
+    new_delta_l  = modify_delta_l(l_local, delta_l, lattice_parameter, average_lattice_parameter)
+    new_delta_l2 = modify_delta_l2(l_local, delta_l, delta_l2, lattice_parameter, average_lattice_parameter)
 
     new_delta_l  = numpy.interp(L, l_local, new_delta_l)
     new_delta_l2 = numpy.interp(L, l_local, new_delta_l2)
