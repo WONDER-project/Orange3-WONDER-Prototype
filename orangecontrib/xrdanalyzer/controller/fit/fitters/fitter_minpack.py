@@ -405,6 +405,15 @@ class FitterMinpack(FitterInterface):
 
             last_index += fit_global_parameters.instrumental_parameters.get_parameters_count()
 
+        if not fit_global_parameters.lab6_tan_correction is None:
+            fit_global_parameters.lab6_tan_correction.ax.set_value(fitted_parameters[last_index + 1].value)
+            fit_global_parameters.lab6_tan_correction.bx.set_value(fitted_parameters[last_index + 2].value)
+            fit_global_parameters.lab6_tan_correction.cx.set_value(fitted_parameters[last_index + 3].value)
+            fit_global_parameters.lab6_tan_correction.dx.set_value(fitted_parameters[last_index + 4].value)
+            fit_global_parameters.lab6_tan_correction.ex.set_value(fitted_parameters[last_index + 5].value)
+
+            last_index += fit_global_parameters.lab6_tan_correction.get_parameters_count()
+
         if not fit_global_parameters.size_parameters is None:
             fit_global_parameters.size_parameters.mu.set_value(fitted_parameters[last_index + 1].value)
             fit_global_parameters.size_parameters.sigma.set_value(fitted_parameters[last_index + 2].value)
@@ -462,6 +471,15 @@ class FitterMinpack(FitterInterface):
             fit_global_parameters.instrumental_parameters.c.error = errors[last_index + 6]
 
             last_index += fit_global_parameters.instrumental_parameters.get_parameters_count()
+
+        if not fit_global_parameters.lab6_tan_correction is None:
+            fit_global_parameters.lab6_tan_correction.ax.error = errors[last_index + 1]
+            fit_global_parameters.lab6_tan_correction.bx.error = errors[last_index + 2]
+            fit_global_parameters.lab6_tan_correction.cx.error = errors[last_index + 3]
+            fit_global_parameters.lab6_tan_correction.dx.error = errors[last_index + 4]
+            fit_global_parameters.lab6_tan_correction.ex.error = errors[last_index + 5]
+
+            last_index += fit_global_parameters.lab6_tan_correction.get_parameters_count()
 
         if not fit_global_parameters.size_parameters is None:
             fit_global_parameters.size_parameters.mu.error    = errors[last_index + 1]

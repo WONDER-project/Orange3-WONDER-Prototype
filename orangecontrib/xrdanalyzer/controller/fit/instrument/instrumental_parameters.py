@@ -46,6 +46,48 @@ class Caglioti(FitParametersList):
                         b=None if self.b is None else self.b.duplicate(),
                         c=None if self.c is None else self.c.duplicate())
 
+class Lab6TanCorrection(FitParametersList):
+    ax = None
+    bx = None
+    cx = None
+    dx = None
+    ex = None
+
+    @classmethod
+    def get_parameters_prefix(cls):
+        return "lab6_tancorrection_"
+
+    def __init__(self, ax, bx, cx, dx, ex):
+        super(Lab6TanCorrection, self).__init__()
+
+        self.ax = ax
+        self.bx = bx
+        self.cx = cx
+        self.dx = dx
+        self.ex = ex
+
+    def to_text(self):
+        text = "LAB6 TAN-CORRECTION\n"
+        text += "-----------------------------------\n"
+
+        text += self.ax.to_text() + "\n"
+        text += self.bx.to_text() + "\n"
+        text += self.cx.to_text() + "\n"
+        text += self.dx.to_text() + "\n"
+        text += self.ex.to_text() + "\n"
+
+        text += "-----------------------------------\n"
+
+        return text
+
+    def duplicate(self):
+        return Lab6TanCorrection(ax=None if self.ax is None else self.ax.duplicate(),
+                                 bx=None if self.bx is None else self.bx.duplicate(),
+                                 cx=None if self.cx is None else self.cx.duplicate(),
+                                 dx=None if self.dx is None else self.dx.duplicate(),
+                                 ex=None if self.ex is None else self.ex.duplicate())
+
+
 if __name__=="__main__":
     test = Caglioti(U=FitParameter(parameter_name="U", value=1.0, fixed=True),
                     V=FitParameter(parameter_name="V", value=2.0, boundary=Boundary(max_value=10.0)),

@@ -7,6 +7,7 @@ class FitGlobalParameters(FitParametersList):
     fit_initialization = None
     background_parameters = None
     instrumental_parameters = None
+    lab6_tan_correction = None
     size_parameters = None
     strain_parameters = None
     free_input_parameters = None
@@ -19,6 +20,7 @@ class FitGlobalParameters(FitParametersList):
                  fit_initialization = None,
                  background_parameters = None,
                  instrumental_parameters = None,
+                 lab6_tan_correction = None,
                  size_parameters = None,
                  strain_parameters = None):
         super().__init__()
@@ -26,6 +28,7 @@ class FitGlobalParameters(FitParametersList):
         self.fit_initialization = fit_initialization
         self.background_parameters = background_parameters
         self.instrumental_parameters = instrumental_parameters
+        self.lab6_tan_correction = lab6_tan_correction
         self.size_parameters = size_parameters
         self.strain_parameters = strain_parameters
         self.free_input_parameters = FreeInputParameters()
@@ -61,6 +64,9 @@ class FitGlobalParameters(FitParametersList):
         if not self.instrumental_parameters is None:
             parameters.extend(self.instrumental_parameters.get_parameters())
 
+        if not self.lab6_tan_correction is None:
+            parameters.extend(self.lab6_tan_correction.get_parameters())
+
         if not self.size_parameters is None:
             parameters.extend(self.size_parameters.get_parameters())
 
@@ -81,6 +87,9 @@ class FitGlobalParameters(FitParametersList):
         if not self.instrumental_parameters is None:
             tuple.extend(self.instrumental_parameters.tuple())
 
+        if not self.lab6_tan_correction is None:
+            tuple.extend(self.lab6_tan_correction.tuple())
+
         if not self.size_parameters is None:
             tuple.extend(self.size_parameters.tuple())
 
@@ -99,6 +108,9 @@ class FitGlobalParameters(FitParametersList):
 
         if not self.instrumental_parameters is None:
             parameters, boundaries = self.instrumental_parameters.append_to_tuple(parameters, boundaries)
+
+        if not self.lab6_tan_correction is None:
+            parameters, boundaries = self.lab6_tan_correction.append_to_tuple(parameters, boundaries)
 
         if not self.size_parameters is None:
             parameters, boundaries = self.size_parameters.append_to_tuple(parameters, boundaries)
@@ -122,6 +134,9 @@ class FitGlobalParameters(FitParametersList):
         if not self.instrumental_parameters is None:
             text += self.instrumental_parameters.to_text()
             
+        if not self.lab6_tan_correction is None:
+            text += self.lab6_tan_correction.to_text()
+
         if not self.size_parameters is None:
             text += self.size_parameters.to_text()
 
@@ -162,6 +177,7 @@ class FitGlobalParameters(FitParametersList):
         fit_global_parameters = FitGlobalParameters(fit_initialization=None if self.fit_initialization is None else self.fit_initialization.duplicate(),
                                    background_parameters=None if self.background_parameters is None else self.background_parameters.duplicate(),
                                    instrumental_parameters=None if self.instrumental_parameters is None else self.instrumental_parameters.duplicate(),
+                                   lab6_tan_correction=None if self.lab6_tan_correction is None else self.lab6_tan_correction.duplicate(),
                                    size_parameters=None if self.size_parameters is None else self.size_parameters.duplicate(),
                                    strain_parameters=None if self.strain_parameters is None else self.strain_parameters.duplicate())
 
@@ -181,12 +197,14 @@ class FitSpaceParameters:
         self.L_max = (n_steps - 1) * self.dL
         self.L = numpy.linspace(self.dL, self.L_max + self.dL, n_steps)
 
+
+
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, FreeInputParameters, FreeOutputParameters, Boundary
 from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection
 from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
 from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground
-from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Caglioti
+from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Caglioti, Lab6TanCorrection
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import SizeParameters, Distribution, Shape
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAHLaueGroup14, InvariantPAH
 

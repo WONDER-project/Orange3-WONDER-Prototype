@@ -89,7 +89,7 @@ class CrystalStructure(FitParametersList):
     def init_cube(cls, a0, simmetry=Simmetry.FCC, use_structure=False, formula=None, amplitude_scale_factor=None):
         if not cls.is_cube(simmetry): raise ValueError("Simmetry doesn't belong to a cubic crystal cell")
 
-        if a0.is_variable():
+        if a0.fixed:
             a = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "a", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
             b = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "b", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
             c = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "c", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
@@ -99,7 +99,7 @@ class CrystalStructure(FitParametersList):
             c = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "c", function=True, function_value=CrystalStructure.get_parameters_prefix() + "a" )
 
         alpha = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "alpha", value=90, fixed=True)
-        beta = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "beta",   value=90, fixed=True)
+        beta  = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "beta",  value=90, fixed=True)
         gamma = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "gamma", value=90, fixed=True)
 
         return CrystalStructure(a,

@@ -178,6 +178,15 @@ def create_one_peak(reflection_index, fit_global_parameter):
 
     s += s_hkl
 
+    if not fit_global_parameter.lab6_tan_correction is None:
+        s += lab6_tan_correction(s,
+                                 fit_global_parameter.fit_initialization.diffraction_pattern.wavelength,
+                                 fit_global_parameter.lab6_tan_correction.ax.value,
+                                 fit_global_parameter.lab6_tan_correction.bx.value,
+                                 fit_global_parameter.lab6_tan_correction.cx.value,
+                                 fit_global_parameter.lab6_tan_correction.dx.value,
+                                 fit_global_parameter.lab6_tan_correction.ex.value)
+
     return s, I
 
 
@@ -336,12 +345,21 @@ def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a
 
     k = (1 + (1 - eta)/(eta * numpy.sqrt(numpy.pi*numpy.log(2))))**(-1)
 
+    # TODO: Cosi funziona, formula da manuale PM2K, DA VERIFICARE U.M.
     sigma = hwhm#*numpy.cos(theta)/wavelength
 
     exponent_1 = -((numpy.pi*sigma*L)**2)/numpy.log(2)
     exponent_2 = -2*numpy.pi*sigma*L
 
     return (1-k)*numpy.exp(exponent_1) + k*numpy.exp(exponent_2)
+
+def lab6_tan_correction(s, wavelength, ax, bx, cx, dx, ex):
+    tan_theta = numpy.tan(Utilities.theta(s, wavelength))
+
+    delta_twotheta = numpy.radians(ax*(1/tan_theta) + bx + cx*tan_theta + dx*tan_theta**2 + ex*tan_theta**3)
+
+    return Utilities.s(delta_twotheta, wavelength)
+
 
 ######################################################################
 # BACKGROUND

@@ -13,10 +13,12 @@ class Utilities:
         return numpy.sqrt(h * h + k * k + l * l) / a
 
     @classmethod
-    def get_twotheta_from_s(cls, s, wavelength):
-        if s is None: return None
+    def theta(cls, s, wavelength):
+        return numpy.arcsin(s * wavelength / 2)
 
-        return numpy.degrees(2 * numpy.arcsin(s * wavelength / 2))
+    @classmethod
+    def s(cls, theta, wavelength):
+        return 2*numpy.sin(theta)/wavelength
 
     @classmethod
     def theta_hkl (cls, a, h, k, l , wavelength):
