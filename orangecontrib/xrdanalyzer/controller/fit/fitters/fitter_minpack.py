@@ -3,10 +3,10 @@ import numpy
 
 
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
-
+from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_ERR
 
-from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener, fit_function
+from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, fit_function
 from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util import *
 
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel
@@ -63,7 +63,9 @@ class FitterMinpack(FitterInterface):
     def __init__(self):
         super().__init__()
 
-    def specific_init_fitter(self, fit_global_parameters):
+    def init_fitter(self, fit_global_parameters):
+        self.fit_global_parameters = fit_global_parameters
+
         self.totalWeight = 0.0
 
         self._lambda	= .001
@@ -77,10 +79,10 @@ class FitterMinpack(FitterInterface):
 
         # INITIALIZATION OF FUNCTION VALUES
 
-        fit_global_parameters.evaluate_functions()
+        self.fit_global_parameters.evaluate_functions()
 
-        self.parameters = fit_global_parameters.get_parameters()
-        twotheta_experimental, intensity_experimental, error_experimental, s_experimental = fit_global_parameters.fit_initialization.diffraction_pattern.tuples()
+        self.parameters = self.fit_global_parameters.get_parameters()
+        twotheta_experimental, intensity_experimental, error_experimental, s_experimental = self.fit_global_parameters.fit_initialization.diffraction_pattern.tuples()
 
         self.twotheta_experimental = twotheta_experimental
         self.intensity_experimental = intensity_experimental
@@ -130,8 +132,11 @@ class FitterMinpack(FitterInterface):
                 self.initialpar.setitem(j, parameter.value)
 
 
-    def do_fit(self, fit_global_parameters, current_iteration):
-        if current_iteration <= fit_global_parameters.get_n_max_iterations() and not self.conver:
+    def do_fit(self, current_fit_global_parameters, current_iteration):
+        self.fit_global_parameters = current_fit_global_parameters.duplicate()
+        self.last_a = None
+
+        if current_iteration <= current_fit_global_parameters.get_n_max_iterations() and not self.conver:
             # check values of lambda for large number of iterations
             if (self._totIter > 4 and self._lambda < self._lmin): self._lmin = self._lambda
 
@@ -177,6 +182,8 @@ class FitterMinpack(FitterInterface):
                         for i in range (1, jj):
                             self.a.setitem(l-i, self.c.getitem(l-i))
 
+                self.last_a = CTriMatrix(other=self.a)
+
                 if self.a.chodec() == 0: # Cholesky decomposition
                     # the matrix is inverted, so calculate g (change in the
                     # parameters) by back substitution
@@ -185,7 +192,6 @@ class FitterMinpack(FitterInterface):
 
                     self.a.choback(self.g)
 
-                    recyc = False
                     prevwss = self.oldwss
                     recycle = 1
 
@@ -208,6 +214,7 @@ class FitterMinpack(FitterInterface):
                                 if (abs(self.g.getitem(i))<=abs(PRCSN*self.currpar.getitem(i))): n0 += 1
 
                         # calculate functions
+
                         self.parameters = self.build_fit_global_parameters_out(self.parameters).get_parameters()
 
                         if (n0==self.nfit):
@@ -243,7 +250,6 @@ class FitterMinpack(FitterInterface):
 
                         # update the wss
                         self.wss = self.getWSSQ()
-
 
                     # if all parameters reached convergence then it's time to quit
 
@@ -296,7 +302,7 @@ class FitterMinpack(FitterInterface):
         fit_global_parameters_out.set_convergence_reached(self.conver)
 
         fitted_pattern = DiffractionPattern()
-        fitted_pattern.wavelength = fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
+        fitted_pattern.wavelength = current_fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
 
         fitted_intensity = fit_function(self.s_experimental, fit_global_parameters_out)
         fitted_residual = self.intensity_experimental - fitted_intensity
@@ -306,26 +312,28 @@ class FitterMinpack(FitterInterface):
                                                                                     intensity=fitted_intensity[index],
                                                                                     error=fitted_residual[index],
                                                                                     s=self.s_experimental[index]))
-
         self.conver = False
 
+        if not self.last_a is None:
+            errors = [0] * len(self.parameters)
 
-        errors = [0] * len(self.parameters)
+            if self.last_a.chodec() == 0: # Cholesky decomposition
+                k = 0
+                for i in range (0, self.nprm):
+                    if self.parameters[i].is_variable():
 
-        if self.a.chodec() == 0: # Cholesky decomposition
-            k = 0
-            for i in range (0, self.nprm):
-                if self.parameters[i].is_variable():
+                        self.g.zero()
+                        self.g[k] = 1.0
+                        self.last_a.choback(self.g)
+                        errors[i] = numpy.sqrt(numpy.abs(self.g[k]))
+                        k += 1
+            else:
+                print("Errors not calculated: chodec != 0")
 
-                    self.g.zero()
-                    self.g[k] = 1.0
-                    self.a.choback(self.g)
-                    errors[i] = numpy.sqrt(numpy.abs(self.g[k]))
-                    k += 1
+            fit_global_parameters_out = self.build_fit_global_parameters_out_errors(errors=errors)
         else:
-            print("Errors not calculated")
+            print("Errors not calculated: a is None")
 
-        fit_global_parameters_out = self.build_fit_global_parameters_out_errors(errors=errors)
         '''
 	if (dof>0)
 	{
@@ -361,7 +369,8 @@ class FitterMinpack(FitterInterface):
 
 
     def build_fit_global_parameters_out(self, fitted_parameters):
-        fit_global_parameters = FitterListener.Instance().get_registered_fit_global_parameters().duplicate()
+        fit_global_parameters = self.fit_global_parameters
+
         crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
 
         crystal_structure.a.value = fitted_parameters[0].value
@@ -418,7 +427,8 @@ class FitterMinpack(FitterInterface):
         return fit_global_parameters
 
     def build_fit_global_parameters_out_errors(self, errors):
-        fit_global_parameters = FitterListener.Instance().get_registered_fit_global_parameters().duplicate()
+        fit_global_parameters = self.fit_global_parameters
+
         crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
 
         crystal_structure.a.error = errors[0]
@@ -543,7 +553,7 @@ class FitterMinpack(FitterInterface):
 
         return deriv
 
-    def getWSSQ(self, y=None):
+    def getWSSQ(self, y=None, fit_global_parameter=None):
         if y is None: y = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
 
         wssqlow = 0.0

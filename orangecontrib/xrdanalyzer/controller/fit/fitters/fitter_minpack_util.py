@@ -268,8 +268,6 @@ class CTriMatrix:
     def zero(self):
         self.__init__(self.n)
 
-
-
     def __str__(self):
         str = ""
         if not self.data is None:
@@ -285,6 +283,18 @@ class CTriMatrix:
         j = t
 
         return i, j
+
+    def equals(self, other):
+        if not self.data is None:
+            for i in range(1, self.n+1):
+                for j in range(1, self.n+1):
+                    if self.getitem(i,j) != other.getitem(i,j): return False
+        else:
+            return False
+
+        return True
+
+
 
 
 if __name__=="__main__":

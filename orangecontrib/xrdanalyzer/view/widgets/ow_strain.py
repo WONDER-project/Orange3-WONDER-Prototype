@@ -14,7 +14,7 @@ from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import Invar
 
 class OWStrain(OWGenericWidget):
 
-    name = "Strain"
+    name = "Invariant Strain"
     description = "Define Strain"
     icon = "icons/strain.png"
     priority = 6

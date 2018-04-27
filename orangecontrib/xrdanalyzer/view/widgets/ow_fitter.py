@@ -22,7 +22,7 @@ class OWFitter(OWGenericWidget):
     name = "Fitter"
     description = "Fitter"
     icon = "icons/fit.png"
-    priority = 7
+    priority = 8
 
     want_main_area = True
 
@@ -192,28 +192,31 @@ class OWFitter(OWGenericWidget):
 
                 self.progressBarInit()
 
+                initial_fit_global_parameters = self.fit_global_parameters.duplicate()
+
                 if self.is_incremental == 1:
                     if self.current_iteration == 0:
                         self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
                                                                   fitting_method=self.cb_fitting_method.currentText())
 
-                        self.fitter.init_fitter(self.fit_global_parameters)
+                        self.fitter.init_fitter(initial_fit_global_parameters)
                 else:
                     self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
                                                               fitting_method=self.cb_fitting_method.currentText())
 
-                    self.fitter.init_fitter(self.fit_global_parameters)
+                    self.fitter.init_fitter(initial_fit_global_parameters)
                     self.current_iteration = 0
 
-                fitted_fit_global_parameters = self.fit_global_parameters.duplicate()
+                fitted_fit_global_parameters = initial_fit_global_parameters
 
                 for iteration in range(1, self.n_iterations + 1):
 
                     self.progressBarSet(int(iteration/self.n_iterations)*100)
                     self.setStatusMessage("Fitting iteration nr. " + str(iteration))
 
-                    self.fitted_pattern, fitted_fit_global_parameters, fit_data = self.fitter.do_fit(fit_global_parameters=fitted_fit_global_parameters,
-                                                                                                     current_iteration=iteration)
+                    self.fitted_pattern, fitted_fit_global_parameters, fit_data = self.fitter.do_fit(
+                        current_fit_global_parameters=fitted_fit_global_parameters,
+                        current_iteration=iteration)
                     self.show_data()
 
                     self.text_area_fit_out.setText(fit_data.to_text() + "\n\n" + fitted_fit_global_parameters.to_text())

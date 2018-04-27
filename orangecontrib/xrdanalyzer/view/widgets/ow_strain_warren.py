@@ -16,7 +16,7 @@ class OWStrainWarren(OWGenericWidget):
     name = "Warren Strain"
     description = "Define Strain"
     icon = "icons/strain.png"
-    priority = 6
+    priority = 7
 
     want_main_area =  False
 

@@ -58,8 +58,7 @@ class FourierTransformFull:
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel
 
 def create_one_peak(reflection_index, fit_global_parameter):
-    fit_space_parameters = FitterListener.Instance().get_registered_space_parameters()
-
+    fit_space_parameters = fit_global_parameter.space_parameters()
     crystal_structure = fit_global_parameter.fit_initialization.crystal_structure
     reflection = crystal_structure.get_reflection(reflection_index)
     amplitude = reflection.intensity.value
