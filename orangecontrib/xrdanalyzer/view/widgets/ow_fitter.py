@@ -15,7 +15,7 @@ from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName
-from orangecontrib.xrdanalyzer.controller.fit.fitters.old.fitter_lmfit import LmfitFittingMethods
+#from orangecontrib.xrdanalyzer.controller.fit.fitters.old.fitter_lmfit import LmfitFittingMethods
 
 
 class OWFitter(OWGenericWidget):
@@ -63,7 +63,8 @@ class OWFitter(OWGenericWidget):
                                    height=30)
 
 
-        self.cb_fitting_method = orangegui.comboBox(self.fitter_box_2, self, "fitting_method", label="Method", items=LmfitFittingMethods.tuple(), orientation="horizontal")
+        #self.cb_fitting_method = orangegui.comboBox(self.fitter_box_2, self, "fitting_method", label="Method", items=LmfitFittingMethods.tuple(), orientation="horizontal")
+        self.cb_fitting_method = orangegui.comboBox(self.fitter_box_2, self, "fitting_method", label="Method", items=[], orientation="horizontal")
 
 
         self.set_fitter()

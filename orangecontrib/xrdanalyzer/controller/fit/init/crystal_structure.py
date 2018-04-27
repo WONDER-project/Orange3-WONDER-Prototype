@@ -3,16 +3,13 @@ import orangecontrib.xrdanalyzer.util.congruence as congruence
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PARAM_HWMAX, PARAM_HWMIN
 
 class Simmetry:
-    NONE = "none"
     FCC = "fcc"
     BCC = "bcc"
-    HCP = "hcp"
-    CUBIC = "sc"
+    SIMPLE_CUBIC = "sc"
 
     @classmethod
     def tuple(cls):
-        #return [cls.NONE, cls.FCC, cls.BCC, cls.HCP, cls.CUBIC]
-        return [cls.NONE, cls.FCC, cls.BCC, cls.CUBIC]
+        return [cls.SIMPLE_CUBIC, cls.BCC, cls.FCC]
 
 class Reflection():
 
@@ -55,7 +52,11 @@ class CrystalStructure(FitParametersList):
     beta = None
     gamma = None
 
-    simmetry = Simmetry.NONE
+    simmetry = Simmetry.SIMPLE_CUBIC
+
+    use_structure = False
+    formula = None
+    amplitude_scale_factor = None
 
     reflections = []
 
@@ -64,7 +65,7 @@ class CrystalStructure(FitParametersList):
         return "crystal_structure_"
 
 
-    def __init__(self, a, b, c, alpha, beta, gamma, simmetry=Simmetry.NONE):
+    def __init__(self, a, b, c, alpha, beta, gamma, simmetry=Simmetry.SIMPLE_CUBIC, use_structure=False, formula=None, amplitude_scale_factor=None):
         super(CrystalStructure, self).__init__()
 
         self.a = a
@@ -74,19 +75,29 @@ class CrystalStructure(FitParametersList):
         self.beta = beta
         self.gamma = gamma
         self.simmetry = simmetry
+        self.use_structure = use_structure
+        self.formula = None if formula is None else formula.strip()
+        self.amplitude_scale_factor = amplitude_scale_factor
+
         self.reflections = []
 
     @classmethod
     def is_cube(cls, simmetry):
-        return simmetry in (Simmetry.BCC, Simmetry.FCC, Simmetry.CUBIC)
+        return simmetry in (Simmetry.BCC, Simmetry.FCC, Simmetry.SIMPLE_CUBIC)
 
     @classmethod
-    def init_cube(cls, a0, simmetry=Simmetry.FCC):
+    def init_cube(cls, a0, simmetry=Simmetry.FCC, use_structure=False, formula=None, amplitude_scale_factor=None):
         if not cls.is_cube(simmetry): raise ValueError("Simmetry doesn't belong to a cubic crystal cell")
 
-        a = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "a", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
-        b = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "b", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
-        c = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "c", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+        if a0.is_variable():
+            a = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "a", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+            b = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "b", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+            c = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "c", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+        else:
+            a = a0
+            b = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "b", function=True, function_value=CrystalStructure.get_parameters_prefix() + "a")
+            c = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "c", function=True, function_value=CrystalStructure.get_parameters_prefix() + "a" )
+
         alpha = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "alpha", value=90, fixed=True)
         beta = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "beta",   value=90, fixed=True)
         gamma = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "gamma", value=90, fixed=True)
@@ -97,7 +108,10 @@ class CrystalStructure(FitParametersList):
                                 alpha,
                                 beta,
                                 gamma,
-                                simmetry)
+                                simmetry,
+                                use_structure,
+                                formula,
+                                amplitude_scale_factor)
 
     def add_reflection(self, reflection):
         self.reflections.append(reflection)
@@ -135,10 +149,10 @@ class CrystalStructure(FitParametersList):
     def get_d_spacing(self, h, k, l):
         if self.is_cube(self.simmetry):
             return numpy.sqrt(self.a.value**2/(h**2 + k**2 + l**2))
-        elif self.simmetry == Simmetry.HCP:
-            return 1/numpy.sqrt((4/3)*((h**2 + h*k + k**2)/ self.a.value**2  + (l/self.c.value)**2))
+        #elif self.simmetry == Simmetry.HCP:
+        #    return 1/numpy.sqrt((4/3)*((h**2 + h*k + k**2)/ self.a.value**2  + (l/self.c.value)**2))
         else:
-            NotImplementedError("Only Cubic and Hexagonal supported: TODO!!!!!!")
+            NotImplementedError("Only Cubic supported: TODO!!!!!!")
 
     def parse_reflections(self, text):
         congruence.checkEmptyString(text, "Reflections")
@@ -229,7 +243,10 @@ class CrystalStructure(FitParametersList):
                                              alpha=None if self.alpha is None else self.alpha.duplicate(),
                                              beta=None if self.beta is None else self.beta.duplicate(),
                                              gamma=None if self.gamma is None else self.gamma.duplicate(),
-                                             simmetry=self.simmetry)
+                                             simmetry=self.simmetry,
+                                             use_structure=self.use_structure,
+                                             formula=self.formula,
+                                             amplitude_scale_factor=None if self.amplitude_scale_factor is None else self.amplitude_scale_factor.duplicate())
 
         for reflection in self.reflections:
             reflection_copy = Reflection(h=reflection.h, k=reflection.k, l=reflection.l, intensity=None if reflection.intensity is None else reflection.intensity.duplicate())
@@ -250,6 +267,9 @@ class CrystalStructure(FitParametersList):
         text += self.beta.to_text() + "\n"
         text += self.gamma.to_text() + "\n"
         text += "Simmetry: " + self.simmetry + "\n"
+        text += "Use Strucuture: " + str(self.use_structure) + "\n"
+        text += "Chemical Formula: " + str(self.formula) + "\n"
+        text += ("" if self.amplitude_scale_factor is None else self.amplitude_scale_factor.to_text()) + "\n"
 
         text += "\nREFLECTIONS\n"
         text += "h, k, l, intensity:\n"

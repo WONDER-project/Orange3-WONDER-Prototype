@@ -62,6 +62,8 @@ def fit_function(s, fit_global_parameter):
                                                  fit_global_parameter.background_parameters.c4.value,
                                                  fit_global_parameter.background_parameters.c5.value])
 
+        # TODO: AGGIUNGERE Debye-Waller factors con strutture dati + widget ad hoc
+
         return numpy.interp(s, s_large, I_large)
     else:
         raise NotImplementedError("Only Cubic structures are supported by fit")

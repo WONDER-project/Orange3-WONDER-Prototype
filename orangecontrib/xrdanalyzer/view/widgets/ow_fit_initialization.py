@@ -28,6 +28,14 @@ class OWFitInitialization(OWGenericWidget):
     n_step = Setting(8192)
 
     a = Setting(0.0)
+    a_fixed = Setting(0)
+    a_has_min = Setting(0)
+    a_min = Setting(0.0)
+    a_has_max = Setting(0)
+    a_max = Setting(0.0)
+    a_function = Setting(0)
+    a_function_value = Setting("")
+
     #b = Setting(0.0)
     #c = Setting(0.0)
 
@@ -63,7 +71,9 @@ class OWFitInitialization(OWGenericWidget):
 
         self.cb_simmetry = orangegui.comboBox(crystal_box, self, "simmetry", label="Simmetry", items=Simmetry.tuple(), callback=self.set_simmetry, orientation="horizontal")
 
-        gui.lineEdit(crystal_box, self, "a", "Cell Parameter [nm]", labelWidth=250, valueType=float)
+        #gui.lineEdit(crystal_box, self, "a", "Cell Parameter [nm]", labelWidth=250, valueType=float)
+
+        self.create_box(crystal_box, "a", "a0 [nm]")
 
         reflection_box = gui.widgetBox(crystal_box,
                                        "Reflections", orientation="vertical",
@@ -108,7 +118,8 @@ class OWFitInitialization(OWGenericWidget):
                 congruence.checkStrictlyPositiveNumber(self.n_step, "FFT steps")
                 congruence.checkEmptyString(self.reflections, "Reflections")
 
-                crystal_structure = CrystalStructure.init_cube(a0=FitParameter(value=self.a, fixed=True), simmetry=self.cb_simmetry.currentText())
+                crystal_structure = CrystalStructure.init_cube(a0=self.populate_parameter("a", CrystalStructure.get_parameters_prefix()),
+                                                               simmetry=self.cb_simmetry.currentText())
 
                 crystal_structure.parse_reflections(self.reflections)
 
