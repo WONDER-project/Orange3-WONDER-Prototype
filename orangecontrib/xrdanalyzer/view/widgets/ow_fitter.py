@@ -1,6 +1,6 @@
-import sys, numpy
+import sys, numpy, os
 
-from PyQt5.QtWidgets import QMessageBox, QScrollArea, QApplication, QTableWidget, QHeaderView, QAbstractItemView, QTableWidgetItem
+from PyQt5.QtWidgets import QMessageBox, QScrollArea, QApplication, QTableWidget, QHeaderView, QAbstractItemView, QTableWidgetItem, QFileDialog
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPalette, QColor, QFont, QTextCursor
 
@@ -25,6 +25,7 @@ class OWFitter(OWGenericWidget):
     priority = 8
 
     want_main_area = True
+    standard_output = sys.stdout
 
     fitter_name = Setting(0)
     fitting_method = Setting(0)
@@ -32,16 +33,18 @@ class OWFitter(OWGenericWidget):
     n_iterations = Setting(5)
     is_incremental = Setting(1)
     current_iteration = 0
-    fitted_fit_global_parameters = None
-
     free_output_parameters = Setting("")
+    save_file_name = Setting("fit_output.dat")
 
     horizontal_headers = ["Name", "Value", "Min", "Max", "Fixed", "Function", "Expression", "Var"]
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 
-    standard_output = sys.stdout
+
+    fitted_fit_global_parameters = None
+    current_wss = []
+    current_gof = []
 
     def __init__(self):
         super().__init__(show_automatic_box=True)
@@ -94,21 +97,24 @@ class OWFitter(OWGenericWidget):
         self.le_current_iteration.setPalette(palette)
 
         button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
+                                   "", orientation="vertical",
                                    width=self.CONTROL_AREA_WIDTH-25)
 
 
-        fit_button = gui.button(button_box,  self, "Fit", height=50, width=300, callback=self.do_fit)
+        fit_button = gui.button(button_box,  self, "Fit", height=50, callback=self.do_fit)
 
         font = QFont(fit_button.font())
         font.setBold(True)
-        font.setPixelSize(20)
         fit_button.setFont(font)
         palette = QPalette(fit_button.palette()) # make a copy of the palette
         palette.setColor(QPalette.ButtonText, QColor('dark blue'))
         fit_button.setPalette(palette) # assign new palette
 
-        gui.button(button_box,  self, "Send Current Fit", height=50, callback=self.send_current_fit)
+        button_box_2 = gui.widgetBox(button_box,
+                                     "", orientation="horizontal")
+
+        gui.button(button_box_2,  self, "Send Current Fit", height=50, callback=self.send_current_fit)
+        gui.button(button_box_2,  self, "Save Data", height=50, callback=self.save_data)
 
         tabs = gui.tabWidget(main_box)
         tab_free_out = gui.createTabPage(tabs, "Free Output Parameters")
@@ -130,7 +136,6 @@ class OWFitter(OWGenericWidget):
         self.tab_fit_in = gui.createTabPage(self.tabs, "Fit Input Parameters")
         self.tab_plot = gui.createTabPage(self.tabs, "Plot")
         self.tab_fit_out = gui.createTabPage(self.tabs, "Fit Output Parameters")
-        self.tab_data = gui.createTabPage(self.tabs, "Fit Output Raw Data")
 
         self.tabs_plot = gui.tabWidget(self.tab_plot)
 
@@ -143,13 +148,35 @@ class OWFitter(OWGenericWidget):
         out_box = gui.widgetBox(self.mainArea, "System Output", addSpace=False, orientation="horizontal")
         out_box.layout().addWidget(self.std_output)
 
+        self.tabs_plot_fit = gui.tabWidget(self.tab_plot_fit)
+
+        self.tab_plot_fit_data = gui.createTabPage(self.tabs_plot_fit, "Data")
+        self.tab_plot_fit_wss = gui.createTabPage(self.tabs_plot_fit, "W.S.S.")
+        self.tab_plot_fit_gof = gui.createTabPage(self.tabs_plot_fit, "G.o.F.")
+
         self.plot_fit = PlotWindow()
         self.plot_fit.setDefaultPlotLines(True)
         self.plot_fit.setActiveCurveColor(color="#00008B")
         self.plot_fit.setGraphXLabel(r"2$\theta$")
         self.plot_fit.setGraphYLabel("Intensity")
 
-        self.tab_plot_fit.layout().addWidget(self.plot_fit)
+        self.tab_plot_fit_data.layout().addWidget(self.plot_fit)
+
+        self.plot_fit_wss = PlotWindow()
+        self.plot_fit_wss.setDefaultPlotLines(True)
+        self.plot_fit_wss.setActiveCurveColor(color="#00008B")
+        self.plot_fit_wss.setGraphXLabel("Iteration")
+        self.plot_fit_wss.setGraphYLabel("WSS")
+
+        self.tab_plot_fit_wss.layout().addWidget(self.plot_fit_wss)
+
+        self.plot_fit_gof = PlotWindow()
+        self.plot_fit_gof.setDefaultPlotLines(True)
+        self.plot_fit_gof.setActiveCurveColor(color="#00008B")
+        self.plot_fit_gof.setGraphXLabel("Iteration")
+        self.plot_fit_gof.setGraphYLabel("GOF")
+
+        self.tab_plot_fit_gof.layout().addWidget(self.plot_fit_gof)
 
         self.plot_size = PlotWindow()
         self.plot_size.setDefaultPlotLines(True)
@@ -169,17 +196,6 @@ class OWFitter(OWGenericWidget):
         self.plot_strain.setGraphYLabel("$\sqrt{{\Delta}L^{2}}$ [nm]")
 
         self.tab_plot_strain.layout().addWidget(self.plot_strain)
-
-        self.scrollarea = QScrollArea(self.tab_data)
-        self.scrollarea.setMinimumWidth(805)
-        self.scrollarea.setMinimumHeight(505)
-
-        self.text_area = gui.textArea(height=500, width=800, readOnly=True)
-
-        self.scrollarea.setWidget(self.text_area)
-        self.scrollarea.setWidgetResizable(1)
-
-        self.tab_data.layout().addWidget(self.scrollarea, alignment=Qt.AlignHCenter)
 
         # -------------------
 
@@ -237,6 +253,8 @@ class OWFitter(OWGenericWidget):
                                                                   fitting_method=self.cb_fitting_method.currentText())
 
                         self.fitter.init_fitter(initial_fit_global_parameters)
+                        self.current_wss = []
+                        self.current_gof = []
                     else:
                         if len(initial_fit_global_parameters.get_parameters()) != len(self.fitter.fit_global_parameters.get_parameters()):
                             raise Exception("Incremental Fit is not possibile!\n\nParameters in the last fitting procedure are incompatible with the received ones")
@@ -246,6 +264,8 @@ class OWFitter(OWGenericWidget):
 
                     self.fitter.init_fitter(initial_fit_global_parameters)
                     self.current_iteration = 0
+                    self.current_wss = []
+                    self.current_gof = []
 
                 self.fitted_fit_global_parameters = initial_fit_global_parameters
                 self.current_running_iteration = 0
@@ -384,6 +404,38 @@ class OWFitter(OWGenericWidget):
         table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
         table_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
+    def save_data(self):
+        try:
+            if hasattr(self, "fitted_pattern") and not self.fitted_pattern is None:
+                file_path = QFileDialog.getOpenFileName(self, "Select File", os.path.dirname(self.save_file_name))[0]
+
+                if not file_path is None and not file_path.strip() == "":
+                    self.save_file_name=file_path
+
+                    text = "2Theta [deg], s [Å-1], Intensity, Residual"
+
+                    for index in range(0, self.fitted_pattern.diffraction_points_count()):
+                        text += "\n" + str(self.fitted_pattern.get_diffraction_point(index).twotheta) + "  " + \
+                                str(self.fitted_pattern.get_diffraction_point(index).s) + " " + \
+                                str(self.fitted_pattern.get_diffraction_point(index).intensity) + " " + \
+                                str(self.fitted_pattern.get_diffraction_point(index).error) + " "
+
+                    file = open(self.save_file_name, "w")
+                    file.write(text)
+                    file.flush()
+                    file.close()
+
+                    QMessageBox.information(self,
+                                            "Save Data",
+                                            "Fitted data saved on file:\n" + self.save_file_name,
+                                            QMessageBox.Ok)
+        except Exception as e:
+            QMessageBox.critical(self, "Error",
+                                 str(e),
+                                 QMessageBox.Ok)
+
+            if self.IS_DEVELOP: raise e
+
     def show_data(self):
         diffraction_pattern = self.fit_global_parameters.fit_initialization.diffraction_pattern
 
@@ -394,30 +446,23 @@ class OWFitter(OWGenericWidget):
         res = []
 
         for index in range(0, self.fitted_pattern.diffraction_points_count()):
-            text += "\n" + str(self.fitted_pattern.get_diffraction_point(index).twotheta) + "  " + \
-                    str(self.fitted_pattern.get_diffraction_point(index).s) + " " + \
-                    str(self.fitted_pattern.get_diffraction_point(index).intensity) + " " + \
-                    str(self.fitted_pattern.get_diffraction_point(index).error) + " "
-
             x.append(diffraction_pattern.get_diffraction_point(index).twotheta)
             y.append(diffraction_pattern.get_diffraction_point(index).intensity)
             yf.append(self.fitted_pattern.get_diffraction_point(index).intensity)
             res.append(self.fitted_pattern.get_diffraction_point(index).error)
 
-        self.text_area.setText(text)
-
-        max_res = numpy.max(res)
-
-        res = -10 + (res-max_res)
+        res = -10 + (res-numpy.max(res))
 
         self.plot_fit.addCurve(x, y, legend="data", symbol='o', color="blue")
         self.plot_fit.addCurve(x, yf, legend="fit", color="red")
         self.plot_fit.addCurve(x, res, legend="residual", color="green")
 
-        title =  "WSS, SS: " + str(self.fit_data.wss) + ", " + str(self.fit_data.ss) + "\n"
-        title += "GOF: " + str(self.fit_data.gof())
+        x = numpy.arange(1, self.current_iteration + 1)
+        self.current_wss.append(self.fit_data.wss)
+        self.current_gof.append(self.fit_data.gof())
 
-        self.plot_fit.setGraphTitle(title)
+        self.plot_fit_wss.addCurve(x, self.current_wss, legend="wss", symbol='o', color="blue")
+        self.plot_fit_gof.addCurve(x, self.current_gof, legend="gof", symbol='o', color="blue")
 
         if not self.fit_global_parameters.size_parameters is None:
             x, y = self.fit_global_parameters.size_parameters.get_distribution()
