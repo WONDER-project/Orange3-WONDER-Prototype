@@ -1,4 +1,4 @@
-import sys, numpy
+import sys, numpy, os
 
 from Orange.widgets import gui as orange_gui
 from Orange.widgets import widget
@@ -34,6 +34,8 @@ class OWGenericWidget(widget.OWWidget):
     TABS_AREA_HEIGHT = 560
 
     fit_global_parameters = None
+
+    IS_DEVELOP = False if not "ORANGEDEVELOP" in os.environ.keys() else str(os.environ.get('ORANGEDEVELOP')) == "1"
 
     def __init__(self, show_automatic_box=True):
         super().__init__()

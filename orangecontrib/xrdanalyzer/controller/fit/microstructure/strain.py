@@ -1,5 +1,6 @@
 import numpy
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter
+from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
 
 class LaueGroup:
 
@@ -167,6 +168,16 @@ class InvariantPAH(FitParametersList):
                             e13= None if self.e13 is None else self.e13.duplicate(),
                             e14= None if self.e14 is None else self.e14.duplicate(),
                             e15= None if self.e15 is None else self.e15.duplicate())
+
+
+
+    def get_warren_plot(self, h, k, l, L_max=50):
+        step = L_max/100
+
+        x = numpy.arange(start=step, stop=L_max + step, step=step)
+        y = numpy.sqrt((self.e1.value + self.e6.value*(Utilities.Hinvariant(h,k,l)**2))*(self.aa.value*x + self.bb.value*(x**2)))
+
+        return x, y
 
 class InvariantPAHLaueGroup1(InvariantPAH):
 
@@ -370,3 +381,5 @@ class WarrenModel(FitParametersList):
 
     def duplicate(self):
         return WarrenModel(average_cell_parameter=None if self.average_cell_parameter is None else self.average_cell_parameter.duplicate())
+
+

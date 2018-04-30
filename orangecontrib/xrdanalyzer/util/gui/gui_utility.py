@@ -1,6 +1,6 @@
 import os, sys
 
-from PyQt5.QtCore import Qt, QCoreApplication
+from PyQt5.QtCore import Qt, QCoreApplication, QObject, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QGridLayout, QFileDialog, QMessageBox, QLabel, QComboBox, QTextEdit, QPushButton, QDialog, \
     QVBoxLayout, QScrollArea, QDialogButtonBox
 
@@ -8,6 +8,15 @@ from Orange.widgets import gui as orange_gui
 
 current_module = sys.modules[__name__]
 gui_point_size=12
+
+class EmittingStream(QObject):
+    textWritten = pyqtSignal(str)
+
+    def write(self, text):
+        self.textWritten.emit(str(text))
+
+    def flush(self):
+        pass
 
 class gui:
 

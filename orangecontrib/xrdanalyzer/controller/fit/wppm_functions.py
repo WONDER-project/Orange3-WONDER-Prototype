@@ -358,7 +358,7 @@ def lab6_tan_correction(s, wavelength, ax, bx, cx, dx, ex):
 
     delta_twotheta = numpy.radians(ax*(1/tan_theta) + bx + cx*tan_theta + dx*tan_theta**2 + ex*tan_theta**3)
 
-    return Utilities.s(delta_twotheta, wavelength)
+    return Utilities.s(0.5*delta_twotheta, wavelength)
 
 
 ######################################################################

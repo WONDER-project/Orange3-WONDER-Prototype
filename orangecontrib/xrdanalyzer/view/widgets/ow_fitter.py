@@ -2,7 +2,7 @@ import sys, numpy
 
 from PyQt5.QtWidgets import QMessageBox, QScrollArea, QApplication
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPalette, QColor, QFont
+from PyQt5.QtGui import QPalette, QColor, QFont, QTextCursor
 
 from silx.gui.plot.PlotWindow import PlotWindow
 
@@ -10,12 +10,11 @@ from Orange.widgets.settings import Setting
 from Orange.widgets import gui as orangegui
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
-from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui
+from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, EmittingStream
 from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName
-#from orangecontrib.xrdanalyzer.controller.fit.fitters.old.fitter_lmfit import LmfitFittingMethods
 
 
 class OWFitter(OWGenericWidget):
@@ -32,11 +31,14 @@ class OWFitter(OWGenericWidget):
     n_iterations = Setting(5)
     is_incremental = Setting(1)
     current_iteration = 0
+    fitted_fit_global_parameters = None
 
     free_output_parameters = Setting("")
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
+
+    standard_output = sys.stdout
 
     def __init__(self):
         super().__init__(show_automatic_box=True)
@@ -63,9 +65,7 @@ class OWFitter(OWGenericWidget):
                                    height=30)
 
 
-        #self.cb_fitting_method = orangegui.comboBox(self.fitter_box_2, self, "fitting_method", label="Method", items=LmfitFittingMethods.tuple(), orientation="horizontal")
         self.cb_fitting_method = orangegui.comboBox(self.fitter_box_2, self, "fitting_method", label="Method", items=[], orientation="horizontal")
-
 
         self.set_fitter()
 
@@ -122,8 +122,6 @@ class OWFitter(OWGenericWidget):
 
         tab_free_out.layout().addWidget(self.scrollarea_free_out, alignment=Qt.AlignHCenter)
 
-
-
         self.tabs = gui.tabWidget(self.mainArea)
 
         self.tab_fit_in = gui.createTabPage(self.tabs, "Fit Input Parameters")
@@ -131,19 +129,49 @@ class OWFitter(OWGenericWidget):
         self.tab_data = gui.createTabPage(self.tabs, "Fit Output Raw Data")
         self.tab_fit_out = gui.createTabPage(self.tabs, "Fit Output Parameters")
 
-        self.plot = PlotWindow()
-        self.plot.setDefaultPlotLines(True)
-        self.plot.setActiveCurveColor(color="#00008B")
-        self.plot.setGraphXLabel(r"2$\theta$")
-        self.plot.setGraphYLabel("Intensity")
+        self.tabs_plot = gui.tabWidget(self.tab_plot)
 
-        self.tab_plot.layout().addWidget(self.plot)
+        self.tab_plot_fit = gui.createTabPage(self.tabs_plot, "Fit")
+        self.tab_plot_size = gui.createTabPage(self.tabs_plot, "Size Distribution")
+        self.tab_plot_strain = gui.createTabPage(self.tabs_plot, "Warren's Plot")
+
+        self.std_output = gui.textArea(height=100, width=800)
+
+        out_box = gui.widgetBox(self.mainArea, "System Output", addSpace=False, orientation="horizontal")
+        out_box.layout().addWidget(self.std_output)
+
+        self.plot_fit = PlotWindow()
+        self.plot_fit.setDefaultPlotLines(True)
+        self.plot_fit.setActiveCurveColor(color="#00008B")
+        self.plot_fit.setGraphXLabel(r"2$\theta$")
+        self.plot_fit.setGraphYLabel("Intensity")
+
+        self.tab_plot_fit.layout().addWidget(self.plot_fit)
+
+        self.plot_size = PlotWindow()
+        self.plot_size.setDefaultPlotLines(True)
+        self.plot_size.setActiveCurveColor(color="#00008B")
+        self.plot_size.setGraphTitle("Crystalline Domains Size Distribution")
+        self.plot_size.setGraphXLabel(r"D [nm]")
+        self.plot_size.setGraphYLabel("Frequency")
+
+        self.tab_plot_size.layout().addWidget(self.plot_size)
+
+        self.plot_strain = PlotWindow(control=True)
+        self.plot_strain.getLegendsDockWidget().show()
+        self.plot_strain.setDefaultPlotLines(True)
+        self.plot_strain.setActiveCurveColor(color="#00008B")
+        self.plot_strain.setGraphTitle("Warren's plot")
+        self.plot_strain.setGraphXLabel(r"L [nm]")
+        self.plot_strain.setGraphYLabel("$\sqrt{{\Delta}L^{2}}$ [nm]")
+
+        self.tab_plot_strain.layout().addWidget(self.plot_strain)
 
         self.scrollarea = QScrollArea(self.tab_data)
         self.scrollarea.setMinimumWidth(805)
-        self.scrollarea.setMinimumHeight(605)
+        self.scrollarea.setMinimumHeight(505)
 
-        self.text_area = gui.textArea(height=600, width=800, readOnly=True)
+        self.text_area = gui.textArea(height=500, width=800, readOnly=True)
 
         self.scrollarea.setWidget(self.text_area)
         self.scrollarea.setWidgetResizable(1)
@@ -154,9 +182,9 @@ class OWFitter(OWGenericWidget):
 
         self.scrollarea_fit_in = QScrollArea(self.tab_fit_in)
         self.scrollarea_fit_in.setMinimumWidth(805)
-        self.scrollarea_fit_in.setMinimumHeight(605)
+        self.scrollarea_fit_in.setMinimumHeight(505)
 
-        self.text_area_fit_in = gui.textArea(height=600, width=800, readOnly=True)
+        self.text_area_fit_in = gui.textArea(height=500, width=800, readOnly=True)
 
         self.scrollarea_fit_in.setWidget(self.text_area_fit_in)
         self.scrollarea_fit_in.setWidgetResizable(1)
@@ -167,14 +195,21 @@ class OWFitter(OWGenericWidget):
 
         self.scrollarea_fit_out = QScrollArea(self.tab_fit_out)
         self.scrollarea_fit_out.setMinimumWidth(805)
-        self.scrollarea_fit_out.setMinimumHeight(605)
+        self.scrollarea_fit_out.setMinimumHeight(505)
 
-        self.text_area_fit_out = gui.textArea(height=600, width=800, readOnly=True)
+        self.text_area_fit_out = gui.textArea(height=500, width=800, readOnly=True)
 
         self.scrollarea_fit_out.setWidget(self.text_area_fit_out)
         self.scrollarea_fit_out.setWidgetResizable(1)
 
         self.tab_fit_out.layout().addWidget(self.scrollarea_fit_out, alignment=Qt.AlignHCenter)
+
+    def write_stdout(self, text):
+        cursor = self.std_output.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(text)
+        self.std_output.setTextCursor(cursor)
+        self.std_output.ensureCursorVisible()
 
     def set_fitter(self):
         self.fitter_box_1.setVisible(self.fitter_name <= 1)
@@ -191,8 +226,6 @@ class OWFitter(OWGenericWidget):
                 self.fit_global_parameters.set_convergence_reached(False)
                 self.fit_global_parameters.free_output_parameters.parse_formulas(self.free_output_parameters)
 
-                self.progressBarInit()
-
                 initial_fit_global_parameters = self.fit_global_parameters.duplicate()
 
                 if self.is_incremental == 1:
@@ -208,49 +241,32 @@ class OWFitter(OWGenericWidget):
                     self.fitter.init_fitter(initial_fit_global_parameters)
                     self.current_iteration = 0
 
-                fitted_fit_global_parameters = initial_fit_global_parameters
+                self.fitted_fit_global_parameters = initial_fit_global_parameters
+                self.current_running_iteration = 0
 
-                for iteration in range(1, self.n_iterations + 1):
+                sys.stdout = EmittingStream(textWritten=self.write_stdout)
 
-                    self.progressBarSet(int(iteration/self.n_iterations)*100)
-                    self.setStatusMessage("Fitting iteration nr. " + str(iteration))
-
-                    self.fitted_pattern, fitted_fit_global_parameters, fit_data = self.fitter.do_fit(
-                        current_fit_global_parameters=fitted_fit_global_parameters,
-                        current_iteration=iteration)
-                    self.show_data()
-
-                    self.text_area_fit_out.setText(fit_data.to_text() + "\n\n" + fitted_fit_global_parameters.to_text())
-
-                    self.tabs.setCurrentIndex(1)
-
-                    self.current_iteration = iteration
-
-                    if fitted_fit_global_parameters.is_convergence_reached(): break
-
-                self.setStatusMessage("Fitting procedure completed")
-
-                if self.is_incremental == 1:
-                    self.fit_global_parameters = fitted_fit_global_parameters.duplicate()
-                    self.text_area_fit_in.setText(self.fit_global_parameters.to_text())
-
-                self.send("Fit Global Parameters", fitted_fit_global_parameters)
+                fit_thread = FitThread(self)
+                fit_thread.begin.connect(self.fit_begin)
+                fit_thread.update.connect(self.fit_update)
+                fit_thread.finished.connect(self.fit_completed)
+                fit_thread.start()
 
         except Exception as e:
             QMessageBox.critical(self, "Error",
                                  str(e),
                                  QMessageBox.Ok)
 
-            raise e
+            sys.stdout = self.standard_ouput
+
+            if self.IS_DEVELOP: raise e
 
         self.setStatusMessage("")
         self.progressBarFinished()
 
-
     def send_current_fit(self):
         if not self.fit_global_parameters is None:
             self.send("Fit Global Parameters", self.fit_global_parameters.duplicate())
-
 
     def set_data(self, data):
         if not data is None:
@@ -287,16 +303,131 @@ class OWFitter(OWGenericWidget):
             yf.append(self.fitted_pattern.get_diffraction_point(index).intensity)
             res.append(self.fitted_pattern.get_diffraction_point(index).error)
 
+        self.text_area.setText(text)
+
         max_res = numpy.max(res)
 
         res = -10 + (res-max_res)
 
-        self.plot.addCurve(x, y, legend="data", symbol='o', color="blue")
-        self.plot.addCurve(x, yf, legend="fit", color="red")
-        self.plot.addCurve(x, res, legend="residual", color="green")
+        self.plot_fit.addCurve(x, y, legend="data", symbol='o', color="blue")
+        self.plot_fit.addCurve(x, yf, legend="fit", color="red")
+        self.plot_fit.addCurve(x, res, legend="residual", color="green")
 
-        self.text_area.setText(text)
+        title =  "WSS, SS: " + str(self.fit_data.wss) + ", " + str(self.fit_data.ss) + "\n"
+        title += "GOF: " + str(self.fit_data.gof())
 
+        self.plot_fit.setGraphTitle(title)
+
+        if not self.fit_global_parameters.size_parameters is None:
+            x, y = self.fit_global_parameters.size_parameters.get_distribution()
+
+            self.plot_size.addCurve(x, y, legend="distribution", color="blue")
+
+        if not self.fit_global_parameters.strain_parameters is None:
+            crystal_structure = self.fit_global_parameters.fit_initialization.crystal_structure
+
+            colors = ['blue', 'red', 'green']
+
+            for index in range (0, 3):
+                h = crystal_structure.get_reflection(index).h
+                k = crystal_structure.get_reflection(index).k
+                l = crystal_structure.get_reflection(index).l
+
+                x, y = self.fit_global_parameters.strain_parameters.get_warren_plot(h, k, l)
+
+                self.plot_strain.addCurve(x, y, legend=str(h) + str(k) + str(l), color=colors[index])
+
+
+
+
+
+##########################################
+# THREADING
+##########################################
+    def fit_begin(self):
+        from PyQt5.QtCore import QMutex
+
+        mutex = QMutex()
+        mutex.lock()
+
+        self.progressBarInit()
+        self.setStatusMessage("Fitting procedure started")
+
+        mutex.unlock()
+
+    def fit_update(self):
+        from PyQt5.QtCore import QMutex
+
+        mutex = QMutex()
+        mutex.lock()
+
+        try:
+            self.current_iteration += 1
+            self.current_running_iteration += 1
+
+            self.progressBarSet(int(self.current_running_iteration*100/self.n_iterations))
+            self.setStatusMessage("Fit iteration nr. " + str(self.current_iteration) + "/" + str(self.n_iterations) + " completed")
+
+            self.show_data()
+
+            self.text_area_fit_out.setText(self.fitted_fit_global_parameters.to_text())
+
+            if self.current_iteration == 1:
+                self.tabs.setCurrentIndex(1)
+                self.tabs_plot.setCurrentIndex(0)
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error",
+                                 str(e),
+                                 QMessageBox.Ok)
+
+        mutex.unlock()
+
+
+    def fit_completed(self):
+        sys.stdout = self.standard_output
+
+        self.setStatusMessage("Fitting procedure completed")
+
+        if self.is_incremental == 1:
+            self.fit_global_parameters = self.fitted_fit_global_parameters.duplicate()
+            self.text_area_fit_in.setText(self.fit_global_parameters.to_text())
+
+        self.send("Fit Global Parameters", self.fitted_fit_global_parameters)
+
+        self.progressBarFinished()
+
+from PyQt5.QtCore import QThread, pyqtSignal
+
+class FitThread(QThread):
+
+    begin = pyqtSignal()
+    update = pyqtSignal()
+
+    def __init__(self, fitter_widget):
+        super(FitThread, self).__init__(fitter_widget)
+        self.fitter_widget = fitter_widget
+
+    def run(self):
+        try:
+            self.begin.emit()
+
+            for iteration in range(1, self.fitter_widget.n_iterations + 1):
+                self.fitter_widget.fitted_pattern, \
+                self.fitter_widget.fitted_fit_global_parameters, \
+                self.fitter_widget.fit_data = \
+                    self.fitter_widget.fitter.do_fit(current_fit_global_parameters=self.fitter_widget.fitted_fit_global_parameters,
+                                                     current_iteration=iteration)
+
+                if self.fitter_widget.fitted_fit_global_parameters.is_convergence_reached(): break
+
+                self.update.emit()
+        except Exception as e:
+            QMessageBox.critical(self.fitter_widget, "Error",
+                                 str(e),
+                                 QMessageBox.Ok)
+
+            if self.fitter_widget.IS_DEVELOP: raise e
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)

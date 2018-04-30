@@ -124,7 +124,9 @@ class FitGlobalParameters(FitParametersList):
         
         text = "FIT GLOBAL PARAMETERS\n"
         text += "###################################\n\n"
-        
+
+        text += self.free_input_parameters.to_text()
+
         if not self.fit_initialization is None:
             text += self.fit_initialization.to_text()
 
@@ -143,10 +145,9 @@ class FitGlobalParameters(FitParametersList):
         if not self.strain_parameters is None:
             text += self.strain_parameters.to_text()
         
-        text += "\n###################################\n"
-
-        text += self.free_input_parameters.to_text()
         text += self.free_output_parameters.to_text()
+
+        text += "\n###################################\n"
 
         return text
 
