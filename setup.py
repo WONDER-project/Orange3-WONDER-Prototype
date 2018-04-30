@@ -12,7 +12,7 @@ NAME = 'Orange3-WONDER'
 
 MAJOR = 0
 MINOR = 0
-MICRO = 1
+MICRO = 2
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 AUTHOR = 'Alberto Flor, Luca Rebuffi'
@@ -40,7 +40,8 @@ PACKAGES = find_packages()
 
 PACKAGE_DATA = {
     'orangecontrib.xrdanalyzer.view.widgets': ['icons/*.*'],
-    'orangecontrib.xrdanalyzer.view.untrusted': ['icons/*.*'],
+    'orangecontrib.xrdanalyzer.view.widgets': ['icons/*.*'],
+    'orangecontrib.xrdanalyzer.controller.fit.data': ['*.*', 'delta_l_files/*.*'],
 }
 
 NAMESPACE_PACAKGES = ["orangecontrib",

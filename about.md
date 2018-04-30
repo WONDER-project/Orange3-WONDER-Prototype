@@ -1,4 +1,3 @@
-XRD Analyzer
----------------
+# Orange3-WONDER
 
-Brao Toso
+WONDER (Whole POwder PatterN moDelling in ORange)
