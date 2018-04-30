@@ -1,6 +1,6 @@
 import sys, numpy
 
-from PyQt5.QtWidgets import QMessageBox, QScrollArea, QApplication
+from PyQt5.QtWidgets import QMessageBox, QScrollArea, QApplication, QTableWidget, QHeaderView, QAbstractItemView, QTableWidgetItem
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPalette, QColor, QFont, QTextCursor
 
@@ -13,6 +13,7 @@ from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWi
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, EmittingStream
 from orangecontrib.xrdanalyzer.util import congruence
 
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_HWMAX, PARAM_HWMIN
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName
 
@@ -34,6 +35,8 @@ class OWFitter(OWGenericWidget):
     fitted_fit_global_parameters = None
 
     free_output_parameters = Setting("")
+
+    horizontal_headers = ["Name", "Value", "Min", "Max", "Fixed", "Function", "Expression", "Var"]
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
@@ -126,8 +129,8 @@ class OWFitter(OWGenericWidget):
 
         self.tab_fit_in = gui.createTabPage(self.tabs, "Fit Input Parameters")
         self.tab_plot = gui.createTabPage(self.tabs, "Plot")
-        self.tab_data = gui.createTabPage(self.tabs, "Fit Output Raw Data")
         self.tab_fit_out = gui.createTabPage(self.tabs, "Fit Output Parameters")
+        self.tab_data = gui.createTabPage(self.tabs, "Fit Output Raw Data")
 
         self.tabs_plot = gui.tabWidget(self.tab_plot)
 
@@ -184,9 +187,9 @@ class OWFitter(OWGenericWidget):
         self.scrollarea_fit_in.setMinimumWidth(805)
         self.scrollarea_fit_in.setMinimumHeight(505)
 
-        self.text_area_fit_in = gui.textArea(height=500, width=800, readOnly=True)
+        self.table_fit_in = self.create_table_widget()
 
-        self.scrollarea_fit_in.setWidget(self.text_area_fit_in)
+        self.scrollarea_fit_in.setWidget(self.table_fit_in)
         self.scrollarea_fit_in.setWidgetResizable(1)
 
         self.tab_fit_in.layout().addWidget(self.scrollarea_fit_in, alignment=Qt.AlignHCenter)
@@ -197,9 +200,9 @@ class OWFitter(OWGenericWidget):
         self.scrollarea_fit_out.setMinimumWidth(805)
         self.scrollarea_fit_out.setMinimumHeight(505)
 
-        self.text_area_fit_out = gui.textArea(height=500, width=800, readOnly=True)
+        self.table_fit_out = self.create_table_widget()
 
-        self.scrollarea_fit_out.setWidget(self.text_area_fit_out)
+        self.scrollarea_fit_out.setWidget(self.table_fit_out)
         self.scrollarea_fit_out.setWidgetResizable(1)
 
         self.tab_fit_out.layout().addWidget(self.scrollarea_fit_out, alignment=Qt.AlignHCenter)
@@ -234,6 +237,9 @@ class OWFitter(OWGenericWidget):
                                                                   fitting_method=self.cb_fitting_method.currentText())
 
                         self.fitter.init_fitter(initial_fit_global_parameters)
+                    else:
+                        if len(initial_fit_global_parameters.get_parameters()) != len(self.fitter.fit_global_parameters.get_parameters()):
+                            raise Exception("Incremental Fit is not possibile!\n\nParameters in the last fitting procedure are incompatible with the received ones")
                 else:
                     self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
                                                               fitting_method=self.cb_fitting_method.currentText())
@@ -277,11 +283,106 @@ class OWFitter(OWGenericWidget):
             self.text_area_free_out.setText(self.fit_global_parameters.free_output_parameters.to_python_code())
             self.free_output_parameters = self.text_area_free_out.toPlainText()
 
-            self.text_area_fit_in.setText(self.fit_global_parameters.to_text())
+            parameters = self.fit_global_parameters.free_input_parameters.as_parameters()
+            parameters.extend(self.fit_global_parameters.get_parameters())
+
+            self.populate_table(self.table_fit_in, parameters)
+
             self.tabs.setCurrentIndex(0)
 
             if self.is_automatic_run:
                 self.do_fit()
+
+    def create_table_widget(self):
+        table_fit = QTableWidget(1, 8)
+        table_fit.setStyleSheet("background-color: #FBFBFB;")
+        table_fit.setAlternatingRowColors(True)
+        table_fit.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        table_fit.verticalHeader().setVisible(False)
+
+        table_fit.setColumnWidth(0, 200)
+        table_fit.setColumnWidth(1, 120)
+        table_fit.setColumnWidth(2, 120)
+        table_fit.setColumnWidth(3, 120)
+        table_fit.setColumnWidth(4, 60)
+        table_fit.setColumnWidth(5, 60)
+        table_fit.setColumnWidth(6, 250)
+        table_fit.setColumnWidth(7, 120)
+
+        table_fit.resizeRowsToContents()
+        table_fit.setSelectionBehavior(QAbstractItemView.SelectRows)
+
+        return table_fit
+
+    def populate_table(self, table_widget, parameters):
+        table_widget.clear()
+
+        row_count = table_widget.rowCount()
+        for n in range(0, row_count):
+            table_widget.removeRow(0)
+
+        for index in range(0, len(parameters)):
+            table_widget.insertRow(0)
+
+        for index in range(0, len(parameters)):
+            table_item = QTableWidgetItem(parameters[index].parameter_name)
+            table_item.setTextAlignment(Qt.AlignLeft)
+            table_widget.setItem(index, 0, table_item)
+            table_item = QTableWidgetItem(str(round(0.0 if parameters[index].value is None else parameters[index].value, 6)))
+            table_item.setTextAlignment(Qt.AlignRight)
+            table_widget.setItem(index, 1, table_item)
+
+            if (not parameters[index].is_variable()) or parameters[index].boundary is None:
+                table_item = QTableWidgetItem("")
+                table_item.setTextAlignment(Qt.AlignRight)
+                table_widget.setItem(index, 2, table_item)
+                table_item = QTableWidgetItem("")
+                table_item.setTextAlignment(Qt.AlignRight)
+                table_widget.setItem(index, 3, table_item)
+            else:
+                if parameters[index].boundary.min_value == PARAM_HWMIN:
+                    table_item = QTableWidgetItem("")
+                    table_item.setTextAlignment(Qt.AlignRight)
+                    table_widget.setItem(index, 2, table_item)
+                else:
+                    table_item = QTableWidgetItem(str(round(0.0 if parameters[index].boundary.min_value is None else parameters[index].boundary.min_value, 6)))
+                    table_item.setTextAlignment(Qt.AlignRight)
+                    table_widget.setItem(index, 2, table_item)
+
+                if parameters[index].boundary.max_value == PARAM_HWMAX:
+                    table_item = QTableWidgetItem("")
+                    table_item.setTextAlignment(Qt.AlignRight)
+                    table_widget.setItem(index, 3, table_item)
+                else:
+                    table_item = QTableWidgetItem(str(round(0.0 if parameters[index].boundary.max_value is None else parameters[index].boundary.max_value, 6)))
+                    table_item.setTextAlignment(Qt.AlignRight)
+                    table_widget.setItem(index, 3, table_item)
+
+            table_item = QTableWidgetItem(str(parameters[index].fixed))
+            table_item.setTextAlignment(Qt.AlignCenter)
+            table_widget.setItem(index, 4, table_item)
+
+            table_item = QTableWidgetItem(str(parameters[index].function))
+            table_item.setTextAlignment(Qt.AlignCenter)
+            table_widget.setItem(index, 5, table_item)
+
+            if parameters[index].function:
+                table_item = QTableWidgetItem(str(parameters[index].function_value))
+                table_item.setTextAlignment(Qt.AlignLeft)
+                table_widget.setItem(index, 6, table_item)
+            else:
+                table_item = QTableWidgetItem("")
+                table_item.setTextAlignment(Qt.AlignLeft)
+                table_widget.setItem(index, 6, table_item)
+
+            table_item = QTableWidgetItem(str(round(0.0 if parameters[index].error is None else parameters[index].error, 6)))
+            table_item.setTextAlignment(Qt.AlignRight)
+            table_widget.setItem(index, 7, table_item)
+
+        table_widget.setHorizontalHeaderLabels(self.horizontal_headers)
+        table_widget.resizeRowsToContents()
+        table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        table_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
     def show_data(self):
         diffraction_pattern = self.fit_global_parameters.fit_initialization.diffraction_pattern
@@ -370,7 +471,11 @@ class OWFitter(OWGenericWidget):
 
             self.show_data()
 
-            self.text_area_fit_out.setText(self.fitted_fit_global_parameters.to_text())
+            parameters = self.fitted_fit_global_parameters.free_input_parameters.as_parameters()
+            parameters.extend(self.fitted_fit_global_parameters.get_parameters())
+            parameters.extend(self.fitted_fit_global_parameters.free_output_parameters.as_parameters())
+
+            self.populate_table(self.table_fit_out, parameters)
 
             if self.current_iteration == 1:
                 self.tabs.setCurrentIndex(1)
@@ -391,7 +496,11 @@ class OWFitter(OWGenericWidget):
 
         if self.is_incremental == 1:
             self.fit_global_parameters = self.fitted_fit_global_parameters.duplicate()
-            self.text_area_fit_in.setText(self.fit_global_parameters.to_text())
+
+            parameters = self.fit_global_parameters.free_input_parameters.as_parameters()
+            parameters.extend(self.fit_global_parameters.get_parameters())
+
+            self.populate_table(self.table_fit_in, parameters)
 
         self.send("Fit Global Parameters", self.fitted_fit_global_parameters)
 

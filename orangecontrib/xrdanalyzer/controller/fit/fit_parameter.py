@@ -253,6 +253,19 @@ class FreeInputParameters(ParametersList):
 
         return text
 
+    def as_parameters(self):
+        parameters = []
+
+        if not self.parameters_dictionary is None:
+            for name in self.parameters_dictionary.keys():
+                fit_parameter = FitParameter(value=self.parameters_dictionary[name],
+                                             parameter_name=name,
+                                             fixed=True)
+
+                parameters.append(fit_parameter)
+
+        return parameters
+
     def parse_values(self, text):
         is_empty = False
 
@@ -431,6 +444,22 @@ class FreeOutputParameters(ParametersList):
         text += "-----------------------------------\n"
 
         return text
+
+    def as_parameters(self):
+        parameters = []
+
+        if not self.parameters_dictionary is None:
+            for name in self.parameters_dictionary.keys():
+                parameter = self.parameters_dictionary[name]
+
+                fit_parameter = FitParameter(value=parameter.value,
+                                             parameter_name=name,
+                                             function=True,
+                                             function_value=parameter.expression)
+
+                parameters.append(fit_parameter)
+
+        return parameters
 
     def get_functions_data(self):
         self._check_dictionary()
