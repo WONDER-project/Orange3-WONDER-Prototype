@@ -493,9 +493,9 @@ class OWFitter(OWGenericWidget):
 
         res = -10 + (res-numpy.max(res))
 
-        self.plot_fit.addCurve(x, y, legend="data", symbol='o', color="blue")
+        self.plot_fit.addCurve(x, y, legend="data", linewidth=4, color="blue")
         self.plot_fit.addCurve(x, yf, legend="fit", color="red")
-        self.plot_fit.addCurve(x, res, legend="residual", color="green")
+        self.plot_fit.addCurve(x, res, legend="residual", color="#2D811B")
 
         if not self.fit_data is None:
             x = numpy.arange(1, self.current_iteration + 1)
@@ -503,7 +503,7 @@ class OWFitter(OWGenericWidget):
             self.current_gof.append(self.fit_data.gof())
 
             self.plot_fit_wss.addCurve(x, self.current_wss, legend="wss", symbol='o', color="blue")
-            self.plot_fit_gof.addCurve(x, self.current_gof, legend="gof", symbol='o', color="blue")
+            self.plot_fit_gof.addCurve(x, self.current_gof, legend="gof", symbol='o', color="red")
 
         if not self.fit_global_parameters.size_parameters is None:
             x, y = self.fit_global_parameters.size_parameters.get_distribution()
