@@ -175,7 +175,7 @@ class InvariantPAH(FitParametersList):
         step = L_max/100
 
         x = numpy.arange(start=step, stop=L_max + step, step=step)
-        y = numpy.sqrt((self.e1.value + self.e6.value*(Utilities.Hinvariant(h,k,l)**2))*(self.aa.value*x + self.bb.value*(x**2)))
+        y = numpy.sqrt(self.get_invariant(h, k, l)*(self.aa.value*x + self.bb.value*(x**2)))
 
         return x, y
 

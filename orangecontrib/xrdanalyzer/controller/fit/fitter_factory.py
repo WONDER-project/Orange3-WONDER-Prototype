@@ -1,17 +1,17 @@
-#from orangecontrib.xrdanalyzer.controller.fit.fitters.old.fitter_scipy import FitterScipy
 #from orangecontrib.xrdanalyzer.controller.fit.fitters.old.fitter_lmfit import FitterLmfit
+from orangecontrib.xrdanalyzer.controller.fit.fitters.old.fitter_scipy import FitterScipy
 from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack import FitterMinpack
 
 import orangecontrib.xrdanalyzer.util.congruence as congruence
 
 class FitterName:
-    #SCIPY = "scipy"
-    #LMFIT = "lmfit"
+    SCIPY = "scipy"
+    LMFIT = "lmfit"
     MINPACK  = "minpack"
 
     @classmethod
     def tuple(cls):
-        return [cls.MINPACK]#, cls.SCIPY, cls.LMFIT]
+        return [cls.MINPACK]#, cls.SCIPY]#, cls.LMFIT]
 
 class FitterFactory():
 
@@ -21,8 +21,8 @@ class FitterFactory():
 
         if fitter_name == FitterName.MINPACK:
             return FitterMinpack()
-        #elif fitter_name == FitterName.SCIPY:
-        #    return FitterScipy()
+        elif fitter_name == FitterName.SCIPY:
+            return FitterScipy()
         #elif fitter_name == FitterName.LMFIT:
         #    return FitterLmfit(fitting_method=fitting_method)
         else:

@@ -39,6 +39,7 @@ from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilitie
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
 from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import create_one_peak, add_chebyshev_background
 
+
 def fit_function(s, fit_global_parameter):
     if CrystalStructure.is_cube(fit_global_parameter.fit_initialization.crystal_structure.simmetry):
         separated_peaks_functions = []

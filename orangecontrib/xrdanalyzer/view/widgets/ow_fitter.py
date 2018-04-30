@@ -1,16 +1,18 @@
 import sys, numpy, os
 
 from PyQt5.QtWidgets import QMessageBox, QScrollArea, QApplication, QTableWidget, QHeaderView, QAbstractItemView, QTableWidgetItem, QFileDialog
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPalette, QColor, QFont, QTextCursor
+from PyQt5.QtCore import Qt, QMutex
+from PyQt5.QtGui import QColor, QFont, QTextCursor
 
 from silx.gui.plot.PlotWindow import PlotWindow
+from silx.gui.plot.LegendSelector import LegendsDockWidget
+from silx.gui import qt
 
 from Orange.widgets.settings import Setting
 from Orange.widgets import gui as orangegui
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
-from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, EmittingStream
+from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ConfirmDialog, EmittingStream
 from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_HWMAX, PARAM_HWMIN
@@ -46,6 +48,8 @@ class OWFitter(OWGenericWidget):
     current_wss = []
     current_gof = []
 
+    stop_fit = False
+
     def __init__(self):
         super().__init__(show_automatic_box=True)
 
@@ -75,46 +79,44 @@ class OWFitter(OWGenericWidget):
 
         self.set_fitter()
 
-        iteration_box = gui.widgetBox(main_box,
-                                 "", orientation="horizontal",
-                                 width=250)
+        iteration_box = gui.widgetBox(main_box, "", orientation="horizontal", width=250)
 
         gui.lineEdit(iteration_box, self, "n_iterations", "Nr. Iterations", labelWidth=80, valueType=int)
         orangegui.checkBox(iteration_box, self, "is_incremental", "Incremental")
 
-        iteration_box = gui.widgetBox(main_box,
-                                 "", orientation="vertical",
-                                 width=250)
+        iteration_box = gui.widgetBox(main_box, "", orientation="vertical", width=250)
 
         self.le_current_iteration = gui.lineEdit(iteration_box, self, "current_iteration", "Current Iteration", labelWidth=120, valueType=int, orientation="horizontal")
         self.le_current_iteration.setReadOnly(True)
+        self.le_current_iteration.setStyleSheet("background-color: #FAFAB0; color: #252468")
         font = QFont(self.le_current_iteration.font())
         font.setBold(True)
         self.le_current_iteration.setFont(font)
-        palette = QPalette(self.le_current_iteration.palette())
-        palette.setColor(QPalette.Text, QColor('dark blue'))
-        palette.setColor(QPalette.Base, QColor(243, 240, 160))
-        self.le_current_iteration.setPalette(palette)
 
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="vertical",
-                                   width=self.CONTROL_AREA_WIDTH-25)
+        button_box = gui.widgetBox(main_box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-25, height=90)
 
+        button_box_1 = gui.widgetBox(button_box, "", orientation="horizontal")
 
-        fit_button = gui.button(button_box,  self, "Fit", height=50, callback=self.do_fit)
-
-        font = QFont(fit_button.font())
+        self.fit_button = gui.button(button_box_1,  self, "Fit", height=50, callback=self.do_fit)
+        self.fit_button.setStyleSheet("color: #252468")
+        font = QFont(self.fit_button.font())
         font.setBold(True)
-        fit_button.setFont(font)
-        palette = QPalette(fit_button.palette()) # make a copy of the palette
-        palette.setColor(QPalette.ButtonText, QColor('dark blue'))
-        fit_button.setPalette(palette) # assign new palette
+        font.setPixelSize(18)
+        self.fit_button.setFont(font)
 
-        button_box_2 = gui.widgetBox(button_box,
-                                     "", orientation="horizontal")
+        self.stop_fit_button = gui.button(button_box_1,  self, "STOP", height=50, callback=self.stop_fit)
+        self.stop_fit_button.setStyleSheet("color: red")
+        font = QFont(self.stop_fit_button.font())
+        font.setBold(True)
+        font.setItalic(True)
+        self.stop_fit_button.setFont(font)
+
+        button_box_2 = gui.widgetBox(button_box, "", orientation="horizontal")
 
         gui.button(button_box_2,  self, "Send Current Fit", height=50, callback=self.send_current_fit)
         gui.button(button_box_2,  self, "Save Data", height=50, callback=self.save_data)
+
+        orangegui.separator(main_box, 5)
 
         tabs = gui.tabWidget(main_box)
         tab_free_out = gui.createTabPage(tabs, "Free Output Parameters")
@@ -133,14 +135,14 @@ class OWFitter(OWGenericWidget):
 
         self.tabs = gui.tabWidget(self.mainArea)
 
-        self.tab_fit_in = gui.createTabPage(self.tabs, "Fit Input Parameters")
-        self.tab_plot = gui.createTabPage(self.tabs, "Plot")
+        self.tab_fit_in  = gui.createTabPage(self.tabs, "Fit Input Parameters")
+        self.tab_plot    = gui.createTabPage(self.tabs, "Plots")
         self.tab_fit_out = gui.createTabPage(self.tabs, "Fit Output Parameters")
 
         self.tabs_plot = gui.tabWidget(self.tab_plot)
 
-        self.tab_plot_fit = gui.createTabPage(self.tabs_plot, "Fit")
-        self.tab_plot_size = gui.createTabPage(self.tabs_plot, "Size Distribution")
+        self.tab_plot_fit    = gui.createTabPage(self.tabs_plot, "Fit")
+        self.tab_plot_size   = gui.createTabPage(self.tabs_plot, "Size Distribution")
         self.tab_plot_strain = gui.createTabPage(self.tabs_plot, "Warren's Plot")
 
         self.std_output = gui.textArea(height=100, width=800)
@@ -151,8 +153,8 @@ class OWFitter(OWGenericWidget):
         self.tabs_plot_fit = gui.tabWidget(self.tab_plot_fit)
 
         self.tab_plot_fit_data = gui.createTabPage(self.tabs_plot_fit, "Data")
-        self.tab_plot_fit_wss = gui.createTabPage(self.tabs_plot_fit, "W.S.S.")
-        self.tab_plot_fit_gof = gui.createTabPage(self.tabs_plot_fit, "G.o.F.")
+        self.tab_plot_fit_wss  = gui.createTabPage(self.tabs_plot_fit, "W.S.S.")
+        self.tab_plot_fit_gof  = gui.createTabPage(self.tabs_plot_fit, "G.o.F.")
 
         self.plot_fit = PlotWindow()
         self.plot_fit.setDefaultPlotLines(True)
@@ -188,7 +190,13 @@ class OWFitter(OWGenericWidget):
         self.tab_plot_size.layout().addWidget(self.plot_size)
 
         self.plot_strain = PlotWindow(control=True)
+        legendsDockWidget = LegendsDockWidget(plot=self.plot_strain)
+        self.plot_strain._legendsDockWidget = legendsDockWidget
+        self.plot_strain._dockWidgets.append(legendsDockWidget)
+        self.plot_strain.addDockWidget(qt.Qt.RightDockWidgetArea, legendsDockWidget)
+        self.plot_strain._legendsDockWidget.setFixedWidth(120)
         self.plot_strain.getLegendsDockWidget().show()
+
         self.plot_strain.setDefaultPlotLines(True)
         self.plot_strain.setActiveCurveColor(color="#00008B")
         self.plot_strain.setGraphTitle("Warren's plot")
@@ -234,9 +242,16 @@ class OWFitter(OWGenericWidget):
         self.fitter_box_1.setVisible(self.fitter_name <= 1)
         self.fitter_box_2.setVisible(self.fitter_name == 2)
 
+    def stop_fit(self):
+        if ConfirmDialog.confirmed(self, "Confirm STOP?"):
+            self.stop_fit = True
+
     def do_fit(self):
         try:
             if not self.fit_global_parameters is None:
+                self.fit_button.setEnabled(False)
+                self.stop_fit = False
+
                 self.free_output_parameters = self.text_area_free_out.toPlainText()
 
                 congruence.checkStrictlyPositiveNumber(self.n_iterations, "Nr. Iterations")
@@ -272,11 +287,14 @@ class OWFitter(OWGenericWidget):
 
                 sys.stdout = EmittingStream(textWritten=self.write_stdout)
 
-                fit_thread = FitThread(self)
-                fit_thread.begin.connect(self.fit_begin)
-                fit_thread.update.connect(self.fit_update)
-                fit_thread.finished.connect(self.fit_completed)
-                fit_thread.start()
+                try:
+                    self.fit_thread = FitThread(self)
+                    self.fit_thread.begin.connect(self.fit_begin)
+                    self.fit_thread.update.connect(self.fit_update)
+                    self.fit_thread.finished.connect(self.fit_completed)
+                    self.fit_thread.start()
+                except Exception as e:
+                    raise FitNotStartedException(str(e))
 
         except Exception as e:
             QMessageBox.critical(self, "Error",
@@ -285,6 +303,7 @@ class OWFitter(OWGenericWidget):
 
             sys.stdout = self.standard_ouput
 
+            if isinstance(e, FitNotStartedException): self.fit_button.setEnabled(True)
             if self.IS_DEVELOP: raise e
 
         self.setStatusMessage("")
@@ -315,10 +334,10 @@ class OWFitter(OWGenericWidget):
 
     def create_table_widget(self):
         table_fit = QTableWidget(1, 8)
-        table_fit.setStyleSheet("background-color: #FBFBFB;")
         table_fit.setAlternatingRowColors(True)
         table_fit.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
         table_fit.verticalHeader().setVisible(False)
+        table_fit.setHorizontalHeaderLabels(self.horizontal_headers)
 
         table_fit.setColumnWidth(0, 200)
         table_fit.setColumnWidth(1, 120)
@@ -345,58 +364,78 @@ class OWFitter(OWGenericWidget):
             table_widget.insertRow(0)
 
         for index in range(0, len(parameters)):
+            change_color = not parameters[index].is_variable()
+            color = QColor(167, 167, 167)
+
             table_item = QTableWidgetItem(parameters[index].parameter_name)
             table_item.setTextAlignment(Qt.AlignLeft)
+            if change_color: table_item.setBackground(color)
             table_widget.setItem(index, 0, table_item)
+
+
             table_item = QTableWidgetItem(str(round(0.0 if parameters[index].value is None else parameters[index].value, 6)))
             table_item.setTextAlignment(Qt.AlignRight)
+            if change_color: table_item.setBackground(color)
             table_widget.setItem(index, 1, table_item)
+
 
             if (not parameters[index].is_variable()) or parameters[index].boundary is None:
                 table_item = QTableWidgetItem("")
                 table_item.setTextAlignment(Qt.AlignRight)
+                if change_color: table_item.setBackground(color)
                 table_widget.setItem(index, 2, table_item)
+
                 table_item = QTableWidgetItem("")
                 table_item.setTextAlignment(Qt.AlignRight)
+                if change_color: table_item.setBackground(color)
                 table_widget.setItem(index, 3, table_item)
             else:
                 if parameters[index].boundary.min_value == PARAM_HWMIN:
                     table_item = QTableWidgetItem("")
                     table_item.setTextAlignment(Qt.AlignRight)
+                    if change_color: table_item.setBackground(color)
                     table_widget.setItem(index, 2, table_item)
                 else:
                     table_item = QTableWidgetItem(str(round(0.0 if parameters[index].boundary.min_value is None else parameters[index].boundary.min_value, 6)))
                     table_item.setTextAlignment(Qt.AlignRight)
+                    if change_color: table_item.setBackground(color)
                     table_widget.setItem(index, 2, table_item)
 
                 if parameters[index].boundary.max_value == PARAM_HWMAX:
                     table_item = QTableWidgetItem("")
                     table_item.setTextAlignment(Qt.AlignRight)
+                    if change_color: table_item.setBackground(color)
                     table_widget.setItem(index, 3, table_item)
                 else:
                     table_item = QTableWidgetItem(str(round(0.0 if parameters[index].boundary.max_value is None else parameters[index].boundary.max_value, 6)))
                     table_item.setTextAlignment(Qt.AlignRight)
+                    if change_color: table_item.setBackground(color)
                     table_widget.setItem(index, 3, table_item)
 
             table_item = QTableWidgetItem(str(parameters[index].fixed))
             table_item.setTextAlignment(Qt.AlignCenter)
+            if change_color: table_item.setBackground(color)
             table_widget.setItem(index, 4, table_item)
 
             table_item = QTableWidgetItem(str(parameters[index].function))
             table_item.setTextAlignment(Qt.AlignCenter)
+            if change_color: table_item.setBackground(color)
             table_widget.setItem(index, 5, table_item)
 
             if parameters[index].function:
                 table_item = QTableWidgetItem(str(parameters[index].function_value))
                 table_item.setTextAlignment(Qt.AlignLeft)
+                if change_color: table_item.setBackground(color)
                 table_widget.setItem(index, 6, table_item)
             else:
                 table_item = QTableWidgetItem("")
                 table_item.setTextAlignment(Qt.AlignLeft)
+                if change_color: table_item.setBackground(color)
                 table_widget.setItem(index, 6, table_item)
 
             table_item = QTableWidgetItem(str(round(0.0 if parameters[index].error is None else parameters[index].error, 6)))
             table_item.setTextAlignment(Qt.AlignRight)
+            if change_color: table_item.setBackground(color)
             table_widget.setItem(index, 7, table_item)
 
         table_widget.setHorizontalHeaderLabels(self.horizontal_headers)
@@ -412,11 +451,12 @@ class OWFitter(OWGenericWidget):
                 if not file_path is None and not file_path.strip() == "":
                     self.save_file_name=file_path
 
-                    text = "2Theta [deg], s [Å-1], Intensity, Residual"
+                    text = "2Theta [deg], s [Å-1], Intensity, Fit, Residual"
 
                     for index in range(0, self.fitted_pattern.diffraction_points_count()):
                         text += "\n" + str(self.fitted_pattern.get_diffraction_point(index).twotheta) + "  " + \
                                 str(self.fitted_pattern.get_diffraction_point(index).s) + " " + \
+                                str(self.fit_global_parameters.fit_initialization.diffraction_pattern.get_diffraction_point(index).intensity) + " " + \
                                 str(self.fitted_pattern.get_diffraction_point(index).intensity) + " " + \
                                 str(self.fitted_pattern.get_diffraction_point(index).error) + " "
 
@@ -457,12 +497,13 @@ class OWFitter(OWGenericWidget):
         self.plot_fit.addCurve(x, yf, legend="fit", color="red")
         self.plot_fit.addCurve(x, res, legend="residual", color="green")
 
-        x = numpy.arange(1, self.current_iteration + 1)
-        self.current_wss.append(self.fit_data.wss)
-        self.current_gof.append(self.fit_data.gof())
+        if not self.fit_data is None:
+            x = numpy.arange(1, self.current_iteration + 1)
+            self.current_wss.append(self.fit_data.wss)
+            self.current_gof.append(self.fit_data.gof())
 
-        self.plot_fit_wss.addCurve(x, self.current_wss, legend="wss", symbol='o', color="blue")
-        self.plot_fit_gof.addCurve(x, self.current_gof, legend="gof", symbol='o', color="blue")
+            self.plot_fit_wss.addCurve(x, self.current_wss, legend="wss", symbol='o', color="blue")
+            self.plot_fit_gof.addCurve(x, self.current_gof, legend="gof", symbol='o', color="blue")
 
         if not self.fit_global_parameters.size_parameters is None:
             x, y = self.fit_global_parameters.size_parameters.get_distribution()
@@ -470,22 +511,12 @@ class OWFitter(OWGenericWidget):
             self.plot_size.addCurve(x, y, legend="distribution", color="blue")
 
         if not self.fit_global_parameters.strain_parameters is None:
-            crystal_structure = self.fit_global_parameters.fit_initialization.crystal_structure
-
-            colors = ['blue', 'red', 'green']
-
-            for index in range (0, 3):
-                h = crystal_structure.get_reflection(index).h
-                k = crystal_structure.get_reflection(index).k
-                l = crystal_structure.get_reflection(index).l
-
-                x, y = self.fit_global_parameters.strain_parameters.get_warren_plot(h, k, l)
-
-                self.plot_strain.addCurve(x, y, legend=str(h) + str(k) + str(l), color=colors[index])
-
-
-
-
+            x, y = self.fit_global_parameters.strain_parameters.get_warren_plot(1, 0, 0)
+            self.plot_strain.addCurve(x, y, legend="h00", color='blue')
+            x, y = self.fit_global_parameters.strain_parameters.get_warren_plot(1, 1, 1)
+            self.plot_strain.addCurve(x, y, legend="hhh", color='red')
+            x, y = self.fit_global_parameters.strain_parameters.get_warren_plot(1, 1, 0)
+            self.plot_strain.addCurve(x, y, legend="hh0", color='green')
 
 ##########################################
 # THREADING
@@ -502,10 +533,8 @@ class OWFitter(OWGenericWidget):
         mutex.unlock()
 
     def fit_update(self):
-        from PyQt5.QtCore import QMutex
 
-        mutex = QMutex()
-        mutex.lock()
+        self.fit_thread.mutex.tryLock()
 
         try:
             self.current_iteration += 1
@@ -531,7 +560,7 @@ class OWFitter(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-        mutex.unlock()
+        self.fit_thread.mutex.unlock()
 
 
     def fit_completed(self):
@@ -549,6 +578,8 @@ class OWFitter(OWGenericWidget):
 
         self.send("Fit Global Parameters", self.fitted_fit_global_parameters)
 
+        self.fit_button.setEnabled(True)
+        self.stop_fit = False
         self.progressBarFinished()
 
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -557,6 +588,7 @@ class FitThread(QThread):
 
     begin = pyqtSignal()
     update = pyqtSignal()
+    mutex = QMutex()
 
     def __init__(self, fitter_widget):
         super(FitThread, self).__init__(fitter_widget)
@@ -567,21 +599,28 @@ class FitThread(QThread):
             self.begin.emit()
 
             for iteration in range(1, self.fitter_widget.n_iterations + 1):
+                if self.fitter_widget.stop_fit: break
+
                 self.fitter_widget.fitted_pattern, \
                 self.fitter_widget.fitted_fit_global_parameters, \
                 self.fitter_widget.fit_data = \
                     self.fitter_widget.fitter.do_fit(current_fit_global_parameters=self.fitter_widget.fitted_fit_global_parameters,
                                                      current_iteration=iteration)
 
-                if self.fitter_widget.fitted_fit_global_parameters.is_convergence_reached(): break
-
                 self.update.emit()
+
+                if self.fitter_widget.stop_fit: break
+                if self.fitter_widget.fitted_fit_global_parameters.is_convergence_reached(): break
         except Exception as e:
             QMessageBox.critical(self.fitter_widget, "Error",
                                  str(e),
                                  QMessageBox.Ok)
 
             if self.fitter_widget.IS_DEVELOP: raise e
+
+class FitNotStartedException(Exception):
+    def __init__(self, *args, **kwargs): # real signature unknown
+        super(FitNotStartedException, self).__init__(args, kwargs)
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)
