@@ -1,5 +1,5 @@
 #from orangecontrib.xrdanalyzer.controller.fit.fitters.old.fitter_lmfit import FitterLmfit
-from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_scipy import FitterScipy
+#from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_scipy import FitterScipy
 from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack import FitterMinpack
 
 import orangecontrib.xrdanalyzer.util.congruence as congruence
@@ -21,8 +21,8 @@ class FitterFactory():
 
         if fitter_name == FitterName.MINPACK:
             return FitterMinpack()
-        elif fitter_name == FitterName.SCIPY:
-            return FitterScipy()
+        #elif fitter_name == FitterName.SCIPY:
+        #    return FitterScipy()
         #elif fitter_name == FitterName.LMFIT:
         #    return FitterLmfit(fitting_method=fitting_method)
         else:

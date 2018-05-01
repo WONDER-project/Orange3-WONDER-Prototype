@@ -380,8 +380,14 @@ class FitterMinpack(FitterInterface):
         crystal_structure.beta.set_value(fitted_parameters[4].value)
         crystal_structure.gamma.set_value(fitted_parameters[5].value)
 
+        last_index = 5
+
+        if crystal_structure.use_structure:
+            crystal_structure.intensity_scale_factor.set_value(fitted_parameters[6].value)
+            last_index += 1
+
         for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
-            crystal_structure.get_reflection(reflection_index).intensity.set_value(fitted_parameters[6+reflection_index].value)
+            crystal_structure.get_reflection(reflection_index).intensity.set_value(fitted_parameters[last_index + reflection_index].value)
 
         last_index = crystal_structure.get_parameters_count() - 1
 
@@ -457,8 +463,14 @@ class FitterMinpack(FitterInterface):
         crystal_structure.beta.error = errors[4]
         crystal_structure.gamma.error = errors[5]
 
+        last_index = 5
+
+        if crystal_structure.use_structure:
+            crystal_structure.intensity_scale_factor.error = errors[6]
+            last_index += 1
+
         for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
-            crystal_structure.get_reflection(reflection_index).intensity.error = errors[6+reflection_index]
+            crystal_structure.get_reflection(reflection_index).intensity.error = errors[last_index+reflection_index]
 
         last_index = crystal_structure.get_parameters_count() - 1
 

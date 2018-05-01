@@ -204,7 +204,7 @@ def create_one_peak(reflection_index, fit_global_parameters):
     s_hkl = Utilities.s_hkl(crystal_structure.a.value, reflection.h, reflection.k, reflection.l)
 
     if crystal_structure.use_structure:
-        I *= crystal_structure.amplitude_scale_factor.value
+        I *= crystal_structure.intensity_scale_factor.value
         I *= multiplicity_cubic(reflection.h, reflection.k, reflection.l)
         I *= squared_modulus_structure_factor(s_hkl,
                                               crystal_structure.formula,
@@ -402,7 +402,7 @@ def multiplicity_cubic(h, k, l):
         return p[5]
 
 def atomic_scattering_factor(s, element):
-    coefficients = atomic_scattering_factor_coefficients[str(element).capitalize()]
+    coefficients = atomic_scattering_factor_coefficients[str(element).upper()]
     ab = coefficients[0]
     c = coefficients[1]
 

@@ -56,7 +56,7 @@ class CrystalStructure(FitParametersList):
 
     use_structure = False
     formula = None
-    amplitude_scale_factor = None
+    intensity_scale_factor = None
 
     reflections = []
 
@@ -65,7 +65,7 @@ class CrystalStructure(FitParametersList):
         return "crystal_structure_"
 
 
-    def __init__(self, a, b, c, alpha, beta, gamma, simmetry=Simmetry.SIMPLE_CUBIC, use_structure=False, formula=None, amplitude_scale_factor=None):
+    def __init__(self, a, b, c, alpha, beta, gamma, simmetry=Simmetry.SIMPLE_CUBIC, use_structure=False, formula=None, intensity_scale_factor=None):
         super(CrystalStructure, self).__init__()
 
         self.a = a
@@ -77,7 +77,7 @@ class CrystalStructure(FitParametersList):
         self.simmetry = simmetry
         self.use_structure = use_structure
         self.formula = None if formula is None else formula.strip()
-        self.amplitude_scale_factor = amplitude_scale_factor
+        self.intensity_scale_factor = intensity_scale_factor
 
         self.reflections = []
 
@@ -86,7 +86,7 @@ class CrystalStructure(FitParametersList):
         return simmetry in (Simmetry.BCC, Simmetry.FCC, Simmetry.SIMPLE_CUBIC)
 
     @classmethod
-    def init_cube(cls, a0, simmetry=Simmetry.FCC, use_structure=False, formula=None, amplitude_scale_factor=None):
+    def init_cube(cls, a0, simmetry=Simmetry.FCC, use_structure=False, formula=None, intensity_scale_factor=None):
         if not cls.is_cube(simmetry): raise ValueError("Simmetry doesn't belong to a cubic crystal cell")
 
         if a0.fixed:
@@ -111,7 +111,7 @@ class CrystalStructure(FitParametersList):
                                 simmetry,
                                 use_structure,
                                 formula,
-                                amplitude_scale_factor)
+                                intensity_scale_factor)
 
     def add_reflection(self, reflection):
         self.reflections.append(reflection)
@@ -246,7 +246,7 @@ class CrystalStructure(FitParametersList):
                                              simmetry=self.simmetry,
                                              use_structure=self.use_structure,
                                              formula=self.formula,
-                                             amplitude_scale_factor=None if self.amplitude_scale_factor is None else self.amplitude_scale_factor.duplicate())
+                                             intensity_scale_factor=None if self.intensity_scale_factor is None else self.intensity_scale_factor.duplicate())
 
         for reflection in self.reflections:
             reflection_copy = Reflection(h=reflection.h, k=reflection.k, l=reflection.l, intensity=None if reflection.intensity is None else reflection.intensity.duplicate())
@@ -269,7 +269,7 @@ class CrystalStructure(FitParametersList):
         text += "Simmetry: " + self.simmetry + "\n"
         text += "Use Strucuture: " + str(self.use_structure) + "\n"
         text += "Chemical Formula: " + str(self.formula) + "\n"
-        text += ("" if self.amplitude_scale_factor is None else self.amplitude_scale_factor.to_text()) + "\n"
+        text += ("" if self.intensity_scale_factor is None else self.intensity_scale_factor.to_text()) + "\n"
 
         text += "\nREFLECTIONS\n"
         text += "h, k, l, intensity:\n"

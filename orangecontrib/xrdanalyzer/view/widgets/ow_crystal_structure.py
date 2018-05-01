@@ -41,6 +41,17 @@ class OWCrystalStructure(OWGenericWidget):
 
     simmetry = Setting(4)
 
+    use_structure = Setting(0)
+    formula = Setting("")
+    intensity_scale_factor = Setting(1.0)
+    intensity_scale_factor_fixed = Setting(0)
+    intensity_scale_factor_has_min = Setting(0)
+    intensity_scale_factor_min = Setting(0.0)
+    intensity_scale_factor_has_max = Setting(0)
+    intensity_scale_factor_max = Setting(0.0)
+    intensity_scale_factor_function = Setting(0)
+    intensity_scale_factor_function_value = Setting("")
+
     reflections = Setting("")
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
@@ -49,17 +60,35 @@ class OWCrystalStructure(OWGenericWidget):
     def __init__(self):
         super().__init__(show_automatic_box=True)
 
-        main_box = gui.widgetBox(self.controlArea,
-                                 "Crystal Setting", orientation="vertical",
+        crystal_box = gui.widgetBox(self.controlArea,
+                                 "Crystal Structure", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
-
-        crystal_box = gui.widgetBox(main_box,
-                                    "Crystal Structure", orientation="vertical",
-                                    width=self.CONTROL_AREA_WIDTH - 10)
 
         self.cb_simmetry = orangegui.comboBox(crystal_box, self, "simmetry", label="Simmetry", items=Simmetry.tuple(), callback=self.set_simmetry, orientation="horizontal")
 
         self.create_box(crystal_box, "a", "a0 [nm]")
+
+        structure_box = gui.widgetBox(crystal_box,
+                                       "", orientation="vertical",
+                                       width=self.CONTROL_AREA_WIDTH - 20)
+
+        orangegui.comboBox(structure_box, self, "use_structure", label="Use Structural Model", items=["No", "Yes"],
+                           callback=self.set_structure, labelWidth=350, orientation="horizontal")
+
+
+        self.structure_box_1 = gui.widgetBox(structure_box,
+                                       "", orientation="vertical",
+                                       width=self.CONTROL_AREA_WIDTH - 30, height=60)
+
+        gui.lineEdit(self.structure_box_1, self, "formula", "Chemical Formula", labelWidth=150, valueType=str)
+        self.create_box(self.structure_box_1, "intensity_scale_factor", "I0")
+
+        self.structure_box_2 = gui.widgetBox(structure_box,
+                                       "", orientation="vertical",
+                                       width=self.CONTROL_AREA_WIDTH - 30, height=60)
+
+
+        self.set_structure()
 
         reflection_box = gui.widgetBox(crystal_box,
                                        "Reflections", orientation="vertical",
@@ -80,12 +109,16 @@ class OWCrystalStructure(OWGenericWidget):
 
         reflection_box.layout().addWidget(self.scrollarea, alignment=Qt.AlignHCenter)
 
-        button_box = gui.widgetBox(main_box,
+        button_box = gui.widgetBox(crystal_box,
                                    "", orientation="horizontal",
                                    width=self.CONTROL_AREA_WIDTH-25)
 
         gui.button(button_box,  self, "Send Crystal Structure", height=50, callback=self.send_fit_initialization)
 
+
+    def set_structure(self):
+        self.structure_box_1.setVisible(self.use_structure==1)
+        self.structure_box_2.setVisible(self.use_structure==0)
 
     def set_simmetry(self):
         if not CrystalStructure.is_cube(self.cb_simmetry.currentText()):
@@ -100,10 +133,24 @@ class OWCrystalStructure(OWGenericWidget):
             if not self.fit_global_parameters is None:
                 self.reflections = self.text_area.toPlainText()
 
-                crystal_structure = CrystalStructure.init_cube(a0=self.populate_parameter("a", CrystalStructure.get_parameters_prefix()),
-                                                               simmetry=self.cb_simmetry.currentText())
+                if self.use_structure == 0:
+                    crystal_structure = CrystalStructure.init_cube(a0=self.populate_parameter("a", CrystalStructure.get_parameters_prefix()),
+                                                                   simmetry=self.cb_simmetry.currentText())
 
-                crystal_structure.parse_reflections(self.reflections)
+                    crystal_structure.parse_reflections(self.reflections)
+
+                elif self.use_structure == 1:
+                    crystal_structure = CrystalStructure.init_cube(a0=self.populate_parameter("a", CrystalStructure.get_parameters_prefix()),
+                                                                   simmetry=self.cb_simmetry.currentText(),
+                                                                   use_structure=True,
+                                                                   formula=congruence.checkEmptyString(self.formula, "Chemical Formula"),
+                                                                   intensity_scale_factor=self.populate_parameter("intensity_scale_factor", CrystalStructure.get_parameters_prefix()))
+
+                    crystal_structure.parse_reflections(self.reflections)
+
+                    #intensities will be ignored
+                    for reflection in crystal_structure.get_reflections():
+                        reflection.intensity.fixed = True
 
                 self.fit_global_parameters.fit_initialization.crystal_structure = crystal_structure
 
@@ -121,12 +168,24 @@ class OWCrystalStructure(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.fit_initialization.crystal_structure is None:
-                existing_crystal_structure = CrystalStructure.init_cube(a0=FitParameter(value=self.a, fixed=True), simmetry=self.cb_simmetry.currentText())
+                if self.use_structure == 0:
+                    existing_crystal_structure = CrystalStructure.init_cube(a0=self.populate_parameter("a", CrystalStructure.get_parameters_prefix()),
+                                                                   simmetry=self.cb_simmetry.currentText())
+
+                elif self.use_structure == 1:
+                    existing_crystal_structure = CrystalStructure.init_cube(a0=self.populate_parameter("a", CrystalStructure.get_parameters_prefix()),
+                                                                   simmetry=self.cb_simmetry.currentText(),
+                                                                   use_structure=True,
+                                                                   formula=congruence.checkEmptyString(self.formula, "Chemical Formula"),
+                                                                   intensity_scale_factor=self.populate_parameter("intensity_scale_factor", CrystalStructure.get_parameters_prefix()))
+
                 existing_crystal_structure.parse_reflections(self.text_area.toPlainText())
 
                 crystal_structure = self.fit_global_parameters.fit_initialization.crystal_structure
 
                 self.populate_fields("a", self.fit_global_parameters.crystal_structure.a)
+                self.use_structure = 1 if crystal_structure.use_structure else 0
+                self.populate_fields("intensity_scale_factor", self.fit_global_parameters.crystal_structure.intensity_scale_factor)
 
                 simmetries = Simmetry.tuple()
                 for index in range(0, len(simmetries)):
