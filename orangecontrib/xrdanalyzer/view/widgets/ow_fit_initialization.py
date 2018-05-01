@@ -12,8 +12,8 @@ from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection, Simmetry
-from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure,  Simmetry
+from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters, FFTTypes
 
 class OWFitInitialization(OWGenericWidget):
 
@@ -26,6 +26,7 @@ class OWFitInitialization(OWGenericWidget):
 
     s_max = Setting(9.0)
     n_step = Setting(8192)
+    fft_type = Setting(0)
 
     a = Setting(0.0)
     a_fixed = Setting(0)
@@ -64,6 +65,8 @@ class OWFitInitialization(OWGenericWidget):
 
         gui.lineEdit(fft_box, self, "s_max", "S_max [nm-1]", labelWidth=250, valueType=float)
         gui.lineEdit(fft_box, self, "n_step", "FFT Steps", labelWidth=250, valueType=float)
+
+        orangegui.comboBox(fft_box, self, "fft_type", label="FFT Type", items=FFTTypes.tuple(), orientation="horizontal")
 
         crystal_box = gui.widgetBox(main_box,
                                     "Crystal Structure", orientation="vertical",
@@ -116,6 +119,7 @@ class OWFitInitialization(OWGenericWidget):
 
                 congruence.checkStrictlyPositiveNumber(self.s_max, "S Max")
                 congruence.checkStrictlyPositiveNumber(self.n_step, "FFT steps")
+
                 congruence.checkEmptyString(self.reflections, "Reflections")
 
                 crystal_structure = CrystalStructure.init_cube(a0=self.populate_parameter("a", CrystalStructure.get_parameters_prefix()),
@@ -125,7 +129,8 @@ class OWFitInitialization(OWGenericWidget):
 
                 self.fit_global_parameters.fit_initialization.crystal_structure = crystal_structure
                 self.fit_global_parameters.fit_initialization.fft_parameters = FFTInitParameters(s_max=self.s_max,
-                                                                                                 n_step=self.n_step)
+                                                                                                 n_step=self.n_step,
+                                                                                                 fft_type=self.fft_type)
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -143,6 +148,7 @@ class OWFitInitialization(OWGenericWidget):
             if not self.fit_global_parameters.fit_initialization.fft_parameters is None:
                 self.n_step = self.fit_global_parameters.fit_initialization.fft_parameters.n_step
                 self.s_max = self.fit_global_parameters.fit_initialization.fft_parameters.s_max
+                self.fft_type = self.fit_global_parameters.fit_initialization.fft_parameters.fft_type
 
             if not self.fit_global_parameters.fit_initialization.crystal_structure is None:
                 existing_crystal_structure = CrystalStructure.init_cube(a0=FitParameter(value=self.a, fixed=True), simmetry=self.cb_simmetry.currentText())

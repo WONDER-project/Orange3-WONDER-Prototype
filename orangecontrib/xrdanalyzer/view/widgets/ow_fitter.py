@@ -201,7 +201,7 @@ class OWFitter(OWGenericWidget):
         self.plot_strain.setActiveCurveColor(color="#00008B")
         self.plot_strain.setGraphTitle("Warren's plot")
         self.plot_strain.setGraphXLabel(r"L [nm]")
-        self.plot_strain.setGraphYLabel("$\sqrt{{\Delta}L^{2}}$ [nm]")
+        self.plot_strain.setGraphYLabel("$\sqrt{<{\Delta}L^{2}>}$ [nm]")
 
         self.tab_plot_strain.layout().addWidget(self.plot_strain)
 

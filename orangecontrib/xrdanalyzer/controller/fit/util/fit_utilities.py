@@ -5,16 +5,16 @@ class Utilities:
     @classmethod
     def Hinvariant(cls, h, k, l):
         numerator = (h * h * k * k + k * k * l * l + l * l * h * h)
-        denominator = (h * h + k * k + l * l) ** 2
+        denominator = (h**2 + k**2 + l**2)**2
         return numerator / denominator
 
     @classmethod
     def s_hkl(cls, a, h, k, l):
-        return numpy.sqrt(h * h + k * k + l * l) / a
+        return numpy.sqrt(h**2 + k**2 + l**2) / a
 
     @classmethod
     def theta(cls, s, wavelength):
-        return numpy.arcsin(s * wavelength / 2)
+        return numpy.arcsin (s * wavelength / 2)
 
     @classmethod
     def s(cls, theta, wavelength):
@@ -22,7 +22,7 @@ class Utilities:
 
     @classmethod
     def theta_hkl (cls, a, h, k, l , wavelength):
-        return numpy.arcsin(cls.s_hkl(a, h, k, l) * wavelength / 2)
+        return cls.theta(cls.s_hkl(a, h, k, l), wavelength)
 
     @classmethod
     def isolate_peak(cls, s, I, smin, smax):
@@ -49,7 +49,6 @@ class Utilities:
 
 import operator
 import itertools
-import math
 import numpy
 
 def is_even(a):
@@ -66,20 +65,11 @@ def is_fcc(h, k, l):
     else:
         return False
 
-
 def is_bcc(h, k, l):
     if is_even(h+k+l):
         return True
     else:
         return False
-
-
-def hkl_gcd(hkl_list):
-    h, k, l = hkl_list
-    return math.gcd(math.gcd(h,k), l)
-
-def simplify_hkl(hkl_list):
-    return [i/hkl_gcd(hkl_list) for i in hkl_list]
 
 def list_of_s_bragg(n_peaks, lattice_param, cell_type):
     if cell_type == 'fcc':
@@ -111,4 +101,4 @@ def list_of_s_bragg(n_peaks, lattice_param, cell_type):
         return []
 
 
-print(list_of_s_bragg(10, 3.89, 'bcc'))
+#print(list_of_s_bragg(10, 3.89, 'bcc'))

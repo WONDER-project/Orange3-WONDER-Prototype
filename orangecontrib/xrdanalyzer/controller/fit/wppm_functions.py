@@ -2,7 +2,6 @@
 # FOURIER FUNCTIONS
 # -----------------------------------
 
-
 class FourierTransformRealOnly:
 
     @classmethod
@@ -53,11 +52,11 @@ class FourierTransformFull:
 #########################################################################
 # MAIN FUNCTION
 
+from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel
 
 def create_one_peak(reflection_index, fit_global_parameter):
-    is_old = True
-
+    fft_type = fit_global_parameter.fit_initialization.fft_parameters.fft_type
     fit_space_parameters = fit_global_parameter.space_parameters()
     crystal_structure = fit_global_parameter.fit_initialization.crystal_structure
     reflection = crystal_structure.get_reflection(reflection_index)
@@ -135,28 +134,28 @@ def create_one_peak(reflection_index, fit_global_parameter):
                                                                                   reflection.l,
                                                                                   crystal_structure.a.value,
                                                                                   fit_global_parameter.strain_parameters.average_cell_parameter.value)
-            if not is_old:
+            if fft_type == FFTTypes.FULL:
                 if fourier_amplitudes is None:
                     fourier_amplitudes = fourier_amplitudes_re + 1j*fourier_amplitudes_im
                 else:
                     fourier_amplitudes = (fourier_amplitudes*fourier_amplitudes_re) + 1j*(fourier_amplitudes*fourier_amplitudes_im)
-            else:
+            elif fft_type == FFTTypes.REAL_ONLY:
                 if fourier_amplitudes is None:
                     fourier_amplitudes = fourier_amplitudes_re
                 else:
                     fourier_amplitudes *= fourier_amplitudes_re
 
-    if not is_old:
+    if fft_type == FFTTypes.FULL:
         sr, fft_real = FourierTransformFull.fft_real(numpy.real(fourier_amplitudes),
-                                            n_steps=fit_global_parameter.fit_initialization.fft_parameters.n_step,
-                                            dL=fit_space_parameters.dL)
+                                                     n_steps=fit_global_parameter.fit_initialization.fft_parameters.n_step,
+                                                     dL=fit_space_parameters.dL)
 
         si, fft_imag = FourierTransformFull.fft_imag(numpy.imag(fourier_amplitudes),
-                                            n_steps=fit_global_parameter.fit_initialization.fft_parameters.n_step,
-                                            dL=fit_space_parameters.dL)
+                                                     n_steps=fit_global_parameter.fit_initialization.fft_parameters.n_step,
+                                                     dL=fit_space_parameters.dL)
 
         s, I = FourierTransformFull.normalize(sr, fft_real - fft_imag)
-    else:
+    elif fft_type == FFTTypes.REAL_ONLY:
         s, I = FourierTransformRealOnly.fft(fourier_amplitudes,
                                             n_steps=fit_global_parameter.fit_initialization.fft_parameters.n_step,
                                             dL=fit_space_parameters.dL)
@@ -199,64 +198,12 @@ def create_one_peak(reflection_index, fit_global_parameter):
 import numpy
 from scipy.special import erfc
 from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
-
-######################################################################
-# LOAD FILES
-######################################################################
-
 import os
 from Orange.canvas import resources
 
-def load_warren_files():
-    delta_l_dict = {}
-    delta_l2_dict = {}
-
-    path = os.path.join(resources.package_dirname("orangecontrib.xrdanalyzer.controller.fit"), "data")
-    path = os.path.join(path, "delta_l_files")
-
-    filenames = os.listdir(path)
-
-    for filename in filenames:
-        if filename.endswith('FTinfo'):
-            hkl = filename[0:3]
-            name =  os.path.join(path, filename)
-            data = numpy.loadtxt(name)
-            L = data[:,0]
-
-            delta_l_dict[hkl] = [L, data[:, 1]] # deltal_fun
-            delta_l2_dict[hkl] = [L, data[:,2]] # deltal2_fun
-
-    return delta_l_dict, delta_l2_dict
-
-delta_l_dict, delta_l2_dict = load_warren_files()
-
-
-def load_atomic_scattering_factor_coefficients():
-    atomic_scattering_factor_coefficients = {}
-
-    path = os.path.join(resources.package_dirname("orangecontrib.xrdanalyzer.controller.fit"), "data")
-    file_name = os.path.join(path, "atomic_scattering_factor_coefficients.dat")
-
-    file = open(file_name, "r")
-    rows = file.readlines()
-    for row in rows:
-        tokens = row.strip().split(sep=" ")
-
-        element = tokens[0]
-
-        coefficients =[[[float(tokens[1]), float(tokens[2])],
-                        [float(tokens[3]), float(tokens[4])],
-                        [float(tokens[5]), float(tokens[6])],
-                        [float(tokens[7]), float(tokens[8])]],
-                       float(tokens[9])]
-
-        atomic_scattering_factor_coefficients[element] = coefficients
-
-    file.close()
-
-    return atomic_scattering_factor_coefficients
-
-atomic_scattering_factor_coefficients = load_atomic_scattering_factor_coefficients()
+######################################################################
+# THERMAL AND POLARIZATION
+######################################################################
 
 def debye_waller(s, B):
     return numpy.exp(-0.5*B*(s**2)) # it's the exp(-2M) = exp(-Bs^2/2)
@@ -294,9 +241,32 @@ def size_function_lognormal(L, sigma, mu):
 def strain_invariant_function(L, h, k, l, lattice_parameter, a, b, invariant):
     s_hkl = Utilities.s_hkl(lattice_parameter, h, k, l)
 
-    return numpy.exp(-(2*(numpy.pi*s_hkl)**2)*invariant*(a*L + b*(L**2)))
+    return numpy.exp(-(1/(2*(s_hkl**2)*(lattice_parameter**4)))*invariant*(a*L + b*(L**2)))
 
 # WARREN MODEL --------------------------------
+
+def load_warren_files():
+    delta_l_dict = {}
+    delta_l2_dict = {}
+
+    path = os.path.join(resources.package_dirname("orangecontrib.xrdanalyzer.controller.fit"), "data")
+    path = os.path.join(path, "delta_l_files")
+
+    filenames = os.listdir(path)
+
+    for filename in filenames:
+        if filename.endswith('FTinfo'):
+            hkl = filename[0:3]
+            name =  os.path.join(path, filename)
+            data = numpy.loadtxt(name)
+            L = data[:,0]
+
+            delta_l_dict[hkl] = [L, data[:, 1]] # deltal_fun
+            delta_l2_dict[hkl] = [L, data[:,2]] # deltal2_fun
+
+    return delta_l_dict, delta_l2_dict
+
+delta_l_dict, delta_l2_dict = load_warren_files()
 
 def modify_delta_l(l, delta_l, lattice_parameter, average_lattice_parameter):
     return delta_l - (average_lattice_parameter/lattice_parameter -1)*l
@@ -335,6 +305,113 @@ def strain_warren_function(L, h, k, l, lattice_parameter, average_lattice_parame
     return re_warren_strain(s_hkl, new_delta_l2), im_warren_strain(s_hkl, new_delta_l)
 
 ######################################################################
+# STRUCTURE
+######################################################################
+
+def load_atomic_scattering_factor_coefficients():
+    atomic_scattering_factor_coefficients = {}
+
+    path = os.path.join(resources.package_dirname("orangecontrib.xrdanalyzer.controller.fit"), "data")
+    file_name = os.path.join(path, "atomic_scattering_factor_coefficients.dat")
+
+    file = open(file_name, "r")
+    rows = file.readlines()
+    for row in rows:
+        tokens = numpy.array(row.strip().split(sep=" "))
+        tokens = tokens[numpy.where(tokens != '')]
+
+        if not tokens is None and len(tokens) == 10:
+            element = tokens[0].strip()
+
+            coefficients =[[[float(tokens[1].strip()), float(tokens[2].strip())],
+                            [float(tokens[3].strip()), float(tokens[4].strip())],
+                            [float(tokens[5].strip()), float(tokens[6].strip())],
+                            [float(tokens[7].strip()), float(tokens[8].strip())]],
+                           float(tokens[9].strip())]
+
+            atomic_scattering_factor_coefficients[element] = coefficients
+
+    file.close()
+
+    return atomic_scattering_factor_coefficients
+
+atomic_scattering_factor_coefficients = load_atomic_scattering_factor_coefficients()
+
+def multiplicity_cubic(h, k, l):
+    p = [6, 12, 24, 8, 24, 48]
+    hkl = sorted([h, k, l], reverse=True)
+    h, k, l = hkl[0], hkl[1], hkl[2]
+
+    if (h != 0 and k == 0 and l ==0):
+        return p[0]
+    elif (h == k and l == 0):
+        return p[1]
+    elif ((h == k and l != h and l != k) or (k==l and h != k and h != l)):
+        return p[2]
+    elif (h == k and k == l):
+        return p[3]
+    elif (h != k and l == 0):
+        return p[4]
+    elif (h != k and k != l and h!=l):
+        return p[5]
+
+def atomic_scattering_factor(s, element):
+    coefficients = atomic_scattering_factor_coefficients[str(element).capitalize()]
+    ab = coefficients[0]
+    c = coefficients[1]
+
+    f_s = numpy.zeros(numpy.size(s))
+    s_angstrom = s/10 # to angstrom-1
+    for index in range(0, len(ab)):
+        a = ab[index][0]
+        b = ab[index][1]
+
+        f_s += a*numpy.exp(-b*(s_angstrom**2))
+
+    # TODO: AGGIUNGERE DFi e DFii
+
+    return f_s + c
+
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import Simmetry
+from orangecontrib.xrdanalyzer.util.general_functions import ChemicalFormulaParser
+
+def structure_factor(s, formula, h, k, l, simmetry=Simmetry.FCC):
+    hkl = [h, k ,l]
+    cell = get_cell(simmetry)
+
+    elements = ChemicalFormulaParser.parse_formula(formula)
+    total_weight = 0.0
+    total_structure_factor = 0.0
+
+    for element in elements:
+        weight = element._n_atoms
+
+        element_structure_factor = 0.0
+
+        for atom in cell:
+            element_structure_factor += atomic_scattering_factor(s, element._element) * numpy.exp(2 * numpy.pi * 1j * (numpy.dot(atom, hkl)))
+        element_structure_factor *= weight
+
+        total_weight += weight
+        total_structure_factor += element_structure_factor
+
+    total_structure_factor /= total_weight
+
+    return total_structure_factor
+
+def get_cell(simmetry=Simmetry.FCC):
+    if simmetry == Simmetry.SIMPLE_CUBIC:
+        return [[0, 0, 0]]
+    elif simmetry == Simmetry.BCC:
+        return [[0, 0, 0], [0.5, 0.5, 0.5]]
+    elif simmetry == Simmetry.FCC:
+        return [[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]]
+
+def squared_modulus_structure_factor(s, formula, h, k, l, simmetry=Simmetry.FCC):
+    return numpy.absolute(structure_factor(s, formula, h, k, l, simmetry))**2
+
+
+######################################################################
 # INSTRUMENTAL
 ######################################################################
 
@@ -343,18 +420,13 @@ def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a
     theta_deg = numpy.degrees(theta)
 
     eta = a + b * theta_deg + c * theta_deg**2
-    hwhm = 0.5 * numpy.sqrt(U * (numpy.tan(theta))**2
-                            + V * numpy.tan(theta) + W)
+    fwhm = numpy.sqrt(U * (numpy.tan(theta)**2) + V * numpy.tan(theta) + W)
 
     k = (1 + (1 - eta)/(eta * numpy.sqrt(numpy.pi*numpy.log(2))))**(-1)
-
     # TODO: Cosi funziona, formula da manuale PM2K, DA VERIFICARE U.M.
-    sigma = hwhm#*numpy.cos(theta)/wavelength
+    sigma = fwhm/2#*numpy.cos(theta)/wavelength
 
-    exponent_1 = -((numpy.pi*sigma*L)**2)/numpy.log(2)
-    exponent_2 = -2*numpy.pi*sigma*L
-
-    return (1-k)*numpy.exp(exponent_1) + k*numpy.exp(exponent_2)
+    return (1-k)*numpy.exp(-((numpy.pi*sigma*L)**2)/numpy.log(2)) + k*numpy.exp(-2*numpy.pi*sigma*L)
 
 def lab6_tan_correction(s, wavelength, ax, bx, cx, dx, ex):
     tan_theta = numpy.tan(Utilities.theta(s, wavelength))
@@ -411,78 +483,3 @@ def add_expdecay_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
             q = parameters[j+1]
 
             I[i] += p*numpy.exp(-numpy.abs(s[i]-parameters[0])*q)
-
-######################################################################
-# STRUCTURE
-######################################################################
-
-def multiplicity_cubic(h, k, l):
-    p = [6, 12, 24, 8, 24, 48]
-    hkl = sorted([h, k, l], reverse=True)
-    h, k, l = hkl[0], hkl[1], hkl[2]
-
-    if (h != 0 and k == 0 and l ==0):
-        return p[0]
-    elif (h == k and l == 0):
-        return p[1]
-    elif ((h == k and l != h and l != k) or (k==l and h != k and h != l)):
-        return p[2]
-    elif (h == k and k == l):
-        return p[3]
-    elif (h != k and l == 0):
-        return p[4]
-    elif (h != k and k != l and h!=l):
-        return p[5]
-
-def atomic_scattering_factor(s, element):
-    coefficients = atomic_scattering_factor_coefficients[element]
-    ab = coefficients[0]
-    c = coefficients[1]
-
-    f_s = numpy.zeros(numpy.size(s))
-    s_angstrom = s/10 # to angstrom-1
-    for index in range(0, len(ab)):
-        f_s += ab[index][0]*numpy.exp(-ab[index][1]*(0.5*s_angstrom)**2)
-
-    return f_s + c
-
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import Simmetry
-from orangecontrib.xrdanalyzer.util.general_functions import ChemicalFormulaParser
-
-def structure_factor(s, formula, h, k, l, simmetry=Simmetry.FCC):
-    hkl = [h, k ,l]
-    cell = get_cell(simmetry)
-
-    elements = ChemicalFormulaParser.parse_formula(formula)
-    total_weight = 0.0
-    total_structure_factor = 0.0
-
-    for element in elements:
-        weight = element._n_atoms
-
-        element_structure_factor = 0.0
-
-        for atom in cell:
-            element_structure_factor += atomic_scattering_factor(s, element._element) * numpy.exp(2 * numpy.pi * 1j * (numpy.dot(atom, hkl)))
-        element_structure_factor *= weight
-
-        total_weight += weight
-        total_structure_factor += element_structure_factor
-
-    total_structure_factor /= total_weight
-
-    return total_structure_factor
-
-def get_cell(simmetry=Simmetry.FCC):
-    if simmetry == Simmetry.SIMPLE_CUBIC:
-        return [[0, 0, 0]]
-    elif simmetry == Simmetry.BCC:
-        return [[0, 0, 0], [0.5, 0.5, 0.5]]
-    elif simmetry == Simmetry.FCC:
-        return [[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]]
-
-def squared_modulus_structure_factor(s, formula, h, k, l, simmetry=Simmetry.FCC):
-    return numpy.absolute(structure_factor(s, formula, h, k, l, simmetry))**2
-
-if __name__=="__main__":
-    print(squared_modulus_structure_factor(1, "Fe98Mo2", 1, 1, 0, Simmetry.BCC))
