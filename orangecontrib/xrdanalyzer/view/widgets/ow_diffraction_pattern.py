@@ -135,7 +135,7 @@ class OWDiffractionPattern(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            raise e
+            if self.IS_DEVELOP: raise e
 
     def show_data(self):
         text = "2Theta [deg], s [Å-1], Intensity"

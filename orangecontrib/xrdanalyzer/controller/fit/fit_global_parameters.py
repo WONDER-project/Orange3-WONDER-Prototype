@@ -228,7 +228,7 @@ if __name__ == "__main__":
     fit_global_parameters.strain_parameters = InvariantPAHLaueGroup14(aa=FitParameter(parameter_name=parameter_prefix + "aa", value=2.0, boundary=Boundary(min_value=0, max_value=10)),
                                                                       bb=FitParameter(parameter_name=parameter_prefix + "bb", value=3.0, boundary=Boundary(min_value=0, max_value=10)),
                                                                       e1=FitParameter(parameter_name=parameter_prefix + "e1", function=True, function_value=parameter_prefix + "aa + " + parameter_prefix + "bb"),
-                                                                      e6=FitParameter(parameter_name=parameter_prefix + "e6", function=True, function_value=parameter_prefix + "aa**2 + " + parameter_prefix + "bb**2"))
+                                                                      e4=FitParameter(parameter_name=parameter_prefix + "e4", function=True, function_value=parameter_prefix + "aa**2 + " + parameter_prefix + "bb**2"))
 
 
     fit_global_parameters.free_output_parameters.set_formula("out1 = caglioti_U + numpy.abs(caglioti_W)")

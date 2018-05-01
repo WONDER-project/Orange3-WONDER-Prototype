@@ -10,7 +10,7 @@ from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ShowTextDialog
 from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, InvariantPAHLaueGroup14, LaueGroup
+from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, InvariantPAHLaueGroup14, InvariantPAHLaueGroup13, LaueGroup
 
 class OWStrain(OWGenericWidget):
 
@@ -48,28 +48,28 @@ class OWStrain(OWGenericWidget):
     bb_function_value = Setting("")
 
     e1 = Setting(0.0)
-    e6 = Setting(0.0)
+    e4 = Setting(0.0)
 
     e1_fixed = Setting(0)
-    e6_fixed = Setting(0)
+    e4_fixed = Setting(0)
 
     e1_has_min = Setting(0)
-    e6_has_min = Setting(0)
+    e4_has_min = Setting(0)
 
     e1_min = Setting(0.0)
-    e6_min = Setting(0.0)
+    e4_min = Setting(0.0)
 
     e1_has_max = Setting(0)
-    e6_has_max = Setting(0)
+    e4_has_max = Setting(0)
 
     e1_max = Setting(0.0)
-    e6_max = Setting(0.0)
+    e4_max = Setting(0.0)
 
     e1_function = Setting(0)
-    e6_function = Setting(0)
+    e4_function = Setting(0)
 
     e1_function_value = Setting("")
-    e6_function_value = Setting("")
+    e4_function_value = Setting("")
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
@@ -92,7 +92,7 @@ class OWStrain(OWGenericWidget):
         self.cb_laue_id = orangegui.comboBox(invariant_box, self, "laue_id", label="Laue Group", items=LaueGroup.tuple(), callback=self.set_laue_id, orientation="horizontal")
 
         self.create_box(invariant_box, "e1")
-        self.create_box(invariant_box, "e6")
+        self.create_box(invariant_box, "e4")
 
         button_box = gui.widgetBox(main_box,
                                    "", orientation="horizontal",
@@ -101,9 +101,9 @@ class OWStrain(OWGenericWidget):
         gui.button(button_box,  self, "Send Strain", height=50, callback=self.send_strain)
 
     def set_laue_id(self):
-        if not self.laue_id == 13:
+        if not (self.laue_id == 12 or self.laue_id == 13):
             QMessageBox.critical(self, "Error",
-                                 "Only " + LaueGroup.get_laue_group(14) + " is supported",
+                                 "Only " + LaueGroup.get_laue_group(14) + " and " + LaueGroup.get_laue_group(13) + " are supported",
                                  QMessageBox.Ok)
 
             self.laue_id = 13
@@ -111,10 +111,16 @@ class OWStrain(OWGenericWidget):
     def send_strain(self):
         try:
             if not self.fit_global_parameters is None:
-                self.fit_global_parameters.strain_parameters = InvariantPAHLaueGroup14(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
-                                                                                       bb=self.populate_parameter("bb", InvariantPAH.get_parameters_prefix()),
-                                                                                       e1=self.populate_parameter("e1", InvariantPAH.get_parameters_prefix()),
-                                                                                       e6=self.populate_parameter("e6", InvariantPAH.get_parameters_prefix()))
+                if self.laue_id == 12:
+                    self.fit_global_parameters.strain_parameters = InvariantPAHLaueGroup13(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
+                                                                                           bb=self.populate_parameter("bb", InvariantPAH.get_parameters_prefix()),
+                                                                                           e1=self.populate_parameter("e1", InvariantPAH.get_parameters_prefix()),
+                                                                                           e4=self.populate_parameter("e4", InvariantPAH.get_parameters_prefix()))
+                elif self.laue_id == 13:
+                    self.fit_global_parameters.strain_parameters = InvariantPAHLaueGroup14(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
+                                                                                           bb=self.populate_parameter("bb", InvariantPAH.get_parameters_prefix()),
+                                                                                           e1=self.populate_parameter("e1", InvariantPAH.get_parameters_prefix()),
+                                                                                           e4=self.populate_parameter("e4", InvariantPAH.get_parameters_prefix()))
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -123,7 +129,7 @@ class OWStrain(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            #raise e
+            if self.IS_DEVELOP: raise e
 
 
 
@@ -135,7 +141,7 @@ class OWStrain(OWGenericWidget):
                 self.aa = self.fit_global_parameters.strain_parameters.aa.value
                 self.bb = self.fit_global_parameters.strain_parameters.bb.value
                 self.e1 = self.fit_global_parameters.strain_parameters.e1.value
-                self.e6 = self.fit_global_parameters.strain_parameters.e6.value
+                self.e4 = self.fit_global_parameters.strain_parameters.e4.value
 
             if self.is_automatic_run:
                 self.send_strain()

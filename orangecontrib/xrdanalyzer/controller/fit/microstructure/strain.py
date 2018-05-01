@@ -200,7 +200,7 @@ class InvariantPAHLaueGroup1(InvariantPAH):
                  e14 = FitParameter(parameter_name="e14", value=1e-4),
                  e15 = FitParameter(parameter_name="e15", value=1e-4)):
         super().__init__(aa, bb, 1, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15)
-
+        raise NotImplementedError("TO BE CHECKED")
 
 class InvariantPAHLaueGroup2(InvariantPAH):
 
@@ -217,6 +217,7 @@ class InvariantPAHLaueGroup2(InvariantPAH):
                  e9  = FitParameter(parameter_name="e9" , value=1e-4),
                  e15 = FitParameter(parameter_name="e15", value=1e-4)):
         super().__init__(aa, bb, 2, e1, e2, e3, e4, e5, e6, e7, e9=e9, e15=e15)
+        raise NotImplementedError("TO BE CHECKED")
 
 class InvariantPAHLaueGroup3(InvariantPAH):
 
@@ -231,6 +232,7 @@ class InvariantPAHLaueGroup3(InvariantPAH):
                  e6  = FitParameter(parameter_name="e6" , value=1e-4),
                  e7  = FitParameter(parameter_name="e7" , value=1e-4)):
         super().__init__(aa, bb, 3, e1, e2, e3, e4, e5, e6, e7)
+        raise NotImplementedError("TO BE CHECKED")
 
 class InvariantPAHLaueGroup4(InvariantPAH):
 
@@ -243,6 +245,7 @@ class InvariantPAHLaueGroup4(InvariantPAH):
                  e6  = FitParameter(parameter_name="e6" , value=1e-4),
                  e7  = FitParameter(parameter_name="e7" , value=1e-4)):
         super().__init__(aa, bb, 4, e1, e3=e3, e4=e4, e6=e6, e7=e7)
+        raise NotImplementedError("TO BE CHECKED")
 
 class InvariantPAHLaueGroup5(InvariantPAH):
 
@@ -254,7 +257,7 @@ class InvariantPAHLaueGroup5(InvariantPAH):
                  e4  = FitParameter(parameter_name="e4" , value=1e-4),
                  e6  = FitParameter(parameter_name="e6" , value=1e-4)):
         super().__init__(aa, bb, 5, e1, e3=e3, e4=e4, e6=e6)
-
+        raise NotImplementedError("TO BE CHECKED")
 
 
 class InvariantPAHLaueGroup6(InvariantPAH):
@@ -270,6 +273,7 @@ class InvariantPAHLaueGroup6(InvariantPAH):
                  e9  = FitParameter(parameter_name="e9" , value=1e-4),
                  e15 = FitParameter(parameter_name="e15", value=1e-4)):
         super().__init__(aa, bb, 6, e1, e3=e3, e4=e4, e6=e6, e7=e7, e9=e9, e15=e15)
+        raise NotImplementedError("TO BE CHECKED")
 
 class InvariantPAHLaueGroup7(InvariantPAH):
     def __init__(self,
@@ -283,6 +287,7 @@ class InvariantPAHLaueGroup7(InvariantPAH):
                  e9  = FitParameter(parameter_name="e9" , value=1e-4),
                  e15 = FitParameter(parameter_name="e15", value=1e-4)):
         super().__init__(aa, bb, 7, e1, e3=e3, e4=e4, e6=e6, e7=e7, e9=e9, e15=e15)
+        raise NotImplementedError("TO BE CHECKED")
 
 class InvariantPAHLaueGroup8(InvariantPAH):
     def __init__(self,
@@ -296,6 +301,7 @@ class InvariantPAHLaueGroup8(InvariantPAH):
                  e9  = FitParameter(parameter_name="e9" , value=1e-4),
                  e15 = FitParameter(parameter_name="e15", value=1e-4)):
         super().__init__(aa, bb, 8, e1, e3=e3, e4=e4, e6=e6, e7=e7, e9=e9, e15=e15)
+        raise NotImplementedError("TO BE CHECKED")
 
 class InvariantPAHLaueGroup9(InvariantPAH):
     def __init__(self,
@@ -306,7 +312,7 @@ class InvariantPAHLaueGroup9(InvariantPAH):
                  e6  = FitParameter(parameter_name="e6" , value=1e-4),
                  e13 = FitParameter(parameter_name="e13", value=1e-4)):
         super().__init__(aa, bb, 9, e1, e3=e3, e6=e6, e13=e13)
-
+        raise NotImplementedError("TO BE CHECKED")
 
 class InvariantPAHLaueGroup10(InvariantPAH):
     def __init__(self,
@@ -317,6 +323,7 @@ class InvariantPAHLaueGroup10(InvariantPAH):
                  e6  = FitParameter(parameter_name="e6" , value=1e-4),
                  e13 = FitParameter(parameter_name="e13", value=1e-4)):
         super().__init__(aa, bb, 10, e1, e3=e3, e6=e6, e13=e13)
+        raise NotImplementedError("TO BE CHECKED")
 
 class InvariantPAHLaueGroup11(InvariantPAH):
     def __init__(self,
@@ -326,6 +333,7 @@ class InvariantPAHLaueGroup11(InvariantPAH):
                  e3  = FitParameter(parameter_name="e3" , value=1e-4),
                  e6  = FitParameter(parameter_name="e6" , value=1e-4)):
         super().__init__(aa, bb, 11, e1, e3=e3, e6=e6)
+        raise NotImplementedError("TO BE CHECKED")
 
 
 class InvariantPAHLaueGroup12(InvariantPAH):
@@ -338,21 +346,48 @@ class InvariantPAHLaueGroup12(InvariantPAH):
         super().__init__(aa, bb, 12, e1, e3=e3, e6=e6)
 
 
-class InvariantPAHLaueGroup13(InvariantPAH):
+class InvariantPAHCubic(InvariantPAH):
     def __init__(self,
                  aa=FitParameter(parameter_name="aa", value=1e-3),
                  bb=FitParameter(parameter_name="bb", value=1e-3),
-                 e1  = FitParameter(parameter_name="e1" , value=1e-4),
-                 e6  = FitParameter(parameter_name="e6" , value=1e-4)):
-        super().__init__(aa, bb, 13, e1, e6=e6)
+                 laue_id = 13,
+                 e1 = FitParameter(parameter_name="e1" , value=1e-4),
+                 e4 = FitParameter(parameter_name="e4" , value=1e-4)):
+        super(InvariantPAHCubic, self).__init__(aa, bb, laue_id,
+                                                e1=e1,
+                                                e2=FitParameter(parameter_name=self.get_parameters_prefix() + "e2",
+                                                                value=e1.value,
+                                                                function=True,
+                                                                function_value=e1.parameter_name),
+                                                e3=FitParameter(parameter_name=self.get_parameters_prefix() + "e3",
+                                                                value=e1.value,
+                                                                function=True,
+                                                                function_value=e1.parameter_name),
+                                                e4=e4,
+                                                e5=FitParameter(parameter_name=self.get_parameters_prefix() + "e5",
+                                                                value=e4.value,
+                                                                function=True,
+                                                                function_value=e4.parameter_name),
+                                                e6=FitParameter(parameter_name=self.get_parameters_prefix() + "e6",
+                                                                value=e4.value,
+                                                                function=True,
+                                                                function_value=e4.parameter_name))
 
-class InvariantPAHLaueGroup14(InvariantPAH):
+class InvariantPAHLaueGroup13(InvariantPAHCubic):
     def __init__(self,
                  aa=FitParameter(parameter_name="aa", value=1e-3),
                  bb=FitParameter(parameter_name="bb", value=1e-3),
                  e1  = FitParameter(parameter_name="e1" , value=1e-4),
-                 e6  = FitParameter(parameter_name="e6" , value=1e-4)):
-        super().__init__(aa, bb, 14, e1, e6=e6)
+                 e4  = FitParameter(parameter_name="e4" , value=1e-4)):
+        super(InvariantPAHLaueGroup13, self).__init__(aa, bb, 13, e1, e4)
+
+class InvariantPAHLaueGroup14(InvariantPAHCubic):
+    def __init__(self,
+                 aa=FitParameter(parameter_name="aa", value=1e-3),
+                 bb=FitParameter(parameter_name="bb", value=1e-3),
+                 e1  = FitParameter(parameter_name="e1" , value=1e-4),
+                 e4  = FitParameter(parameter_name="e4" , value=1e-4)):
+        super(InvariantPAHLaueGroup14, self).__init__(aa, bb, 14, e1, e4)
 
 
 class WarrenModel(FitParametersList):

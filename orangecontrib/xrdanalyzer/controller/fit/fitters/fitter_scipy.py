@@ -136,7 +136,7 @@ def build_fit_global_parameters_out(fit_global_parameters, fitted_parameters):
             fit_global_parameters.strain_parameters.aa.set_value(fitted_parameters[last_index + 1])
             fit_global_parameters.strain_parameters.bb.set_value(fitted_parameters[last_index + 2])
             fit_global_parameters.strain_parameters.e1.set_value(fitted_parameters[last_index + 3]) # in realtà è E1 dell'invariante PAH
-            fit_global_parameters.strain_parameters.e6.set_value(fitted_parameters[last_index + 4]) # in realtà è E6 dell'invariante PAH
+            fit_global_parameters.strain_parameters.e4.set_value(fitted_parameters[last_index + 4]) # in realtà è E4 dell'invariante PAH
         elif isinstance(fit_global_parameters.strain_parameters, WarrenModel):
             fit_global_parameters.strain_parameters.average_cell_parameter.set_value(fitted_parameters[last_index + 1])
 

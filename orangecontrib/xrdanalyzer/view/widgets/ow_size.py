@@ -115,7 +115,7 @@ class OWSize(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            #raise e
+            if self.IS_DEVELOP: raise e
 
 
 

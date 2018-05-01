@@ -303,7 +303,8 @@ class OWFitter(OWGenericWidget):
 
             sys.stdout = self.standard_ouput
 
-            if isinstance(e, FitNotStartedException): self.fit_button.setEnabled(True)
+            self.fit_button.setEnabled(True)
+
             if self.IS_DEVELOP: raise e
 
         self.setStatusMessage("")
@@ -317,8 +318,6 @@ class OWFitter(OWGenericWidget):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
 
-            self.fit_global_parameters.free_output_parameters.parse_formulas(self.text_area_free_out.toPlainText()) # existing parameters
-
             self.text_area_free_out.setText(self.fit_global_parameters.free_output_parameters.to_python_code())
             self.free_output_parameters = self.text_area_free_out.toPlainText()
 
@@ -328,6 +327,21 @@ class OWFitter(OWGenericWidget):
             self.populate_table(self.table_fit_in, parameters)
 
             self.tabs.setCurrentIndex(0)
+
+
+            if self.fit_global_parameters.size_parameters is None:
+                self.tab_plot_size.setEnabled(False)
+                self.plot_size._backend.fig.set_facecolor("#D7DBDD")
+            else:
+                self.tab_plot_size.setEnabled(True)
+                self.plot_size._backend.fig.set_facecolor("#FEFEFE")
+
+            if self.fit_global_parameters.strain_parameters is None:
+                self.tab_plot_strain.setEnabled(False)
+                self.plot_strain._backend.fig.set_facecolor("#D7DBDD")
+            else:
+                self.tab_plot_strain.setEnabled(True)
+                self.plot_strain._backend.fig.set_facecolor("#FEFEFE")
 
             if self.is_automatic_run:
                 self.do_fit()
@@ -477,9 +491,8 @@ class OWFitter(OWGenericWidget):
             if self.IS_DEVELOP: raise e
 
     def show_data(self):
-        diffraction_pattern = self.fit_global_parameters.fit_initialization.diffraction_pattern
+        diffraction_pattern = self.fitted_fit_global_parameters.fit_initialization.diffraction_pattern
 
-        text = "2Theta [deg], s [Å-1], Intensity, Residual"
         x = []
         y = []
         yf = []
@@ -505,17 +518,17 @@ class OWFitter(OWGenericWidget):
             self.plot_fit_wss.addCurve(x, self.current_wss, legend="wss", symbol='o', color="blue")
             self.plot_fit_gof.addCurve(x, self.current_gof, legend="gof", symbol='o', color="red")
 
-        if not self.fit_global_parameters.size_parameters is None:
-            x, y = self.fit_global_parameters.size_parameters.get_distribution()
+        if not self.fitted_fit_global_parameters.size_parameters is None:
+            x, y = self.fitted_fit_global_parameters.size_parameters.get_distribution()
 
             self.plot_size.addCurve(x, y, legend="distribution", color="blue")
 
-        if not self.fit_global_parameters.strain_parameters is None:
-            x, y = self.fit_global_parameters.strain_parameters.get_warren_plot(1, 0, 0)
+        if not self.fitted_fit_global_parameters.strain_parameters is None:
+            x, y = self.fitted_fit_global_parameters.strain_parameters.get_warren_plot(1, 0, 0)
             self.plot_strain.addCurve(x, y, legend="h00", color='blue')
-            x, y = self.fit_global_parameters.strain_parameters.get_warren_plot(1, 1, 1)
+            x, y = self.fitted_fit_global_parameters.strain_parameters.get_warren_plot(1, 1, 1)
             self.plot_strain.addCurve(x, y, legend="hhh", color='red')
-            x, y = self.fit_global_parameters.strain_parameters.get_warren_plot(1, 1, 0)
+            x, y = self.fitted_fit_global_parameters.strain_parameters.get_warren_plot(1, 1, 0)
             self.plot_strain.addCurve(x, y, legend="hh0", color='green')
 
 ##########################################
@@ -590,6 +603,8 @@ class FitThread(QThread):
     update = pyqtSignal()
     mutex = QMutex()
 
+    DEBUG = False
+
     def __init__(self, fitter_widget):
         super(FitThread, self).__init__(fitter_widget)
         self.fitter_widget = fitter_widget
@@ -616,7 +631,7 @@ class FitThread(QThread):
                                  str(e),
                                  QMessageBox.Ok)
 
-            if self.fitter_widget.IS_DEVELOP: raise e
+            if self.fitter_widget.DEBUG: raise e
 
 class FitNotStartedException(Exception):
     def __init__(self, *args, **kwargs): # real signature unknown

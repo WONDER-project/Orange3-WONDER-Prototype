@@ -124,7 +124,7 @@ class OWBackground(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            #raise e
+            if self.IS_DEVELOP: raise e
 
 
     def set_data(self, data):

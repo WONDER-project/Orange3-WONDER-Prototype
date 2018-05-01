@@ -113,8 +113,9 @@ def create_one_peak(reflection_index, fit_global_parameter):
                                                                crystal_structure.a.value,
                                                                fit_global_parameter.strain_parameters.aa.value,
                                                                fit_global_parameter.strain_parameters.bb.value,
-                                                               fit_global_parameter.strain_parameters.e1.value,
-                                                               fit_global_parameter.strain_parameters.e6.value)
+                                                               fit_global_parameter.strain_parameters.get_invariant(reflection.h,
+                                                                                                                    reflection.k,
+                                                                                                                    reflection.l))
             else:
                 fourier_amplitudes *= strain_invariant_function(fit_space_parameters.L,
                                                                 reflection.h,
@@ -123,8 +124,9 @@ def create_one_peak(reflection_index, fit_global_parameter):
                                                                 crystal_structure.a.value,
                                                                 fit_global_parameter.strain_parameters.aa.value,
                                                                 fit_global_parameter.strain_parameters.bb.value,
-                                                                fit_global_parameter.strain_parameters.e1.value,
-                                                                fit_global_parameter.strain_parameters.e6.value)
+                                                                fit_global_parameter.strain_parameters.get_invariant(reflection.h,
+                                                                                                                     reflection.k,
+                                                                                                                     reflection.l))
 
         elif isinstance(fit_global_parameter.strain_parameters, WarrenModel):
             fourier_amplitudes_re, fourier_amplitudes_im = strain_warren_function(fit_space_parameters.L,
@@ -271,14 +273,14 @@ def size_function_common_volume (L, D):
     return 1 - 1.5*LfracD + 0.5*LfracD**3
 
 def size_function_lognormal(L, sigma, mu):
-    L = numpy.abs(L)
-    lnL = numpy.log(L)
+    modL = numpy.abs(L)
+    lnModL = numpy.log(modL)
     sqrt2 = numpy.sqrt(2)
 
-    a = 0.5*erfc((lnL - mu -3*sigma**2)/(sigma*sqrt2))
-    b = -0.75*L*erfc((lnL - mu -2*sigma**2)/(sigma*sqrt2))\
+    a = 0.5*erfc((lnModL - mu -3*sigma**2)/(sigma*sqrt2))
+    b = -0.75*modL*erfc((lnModL - mu -2*sigma**2)/(sigma*sqrt2))\
                 *numpy.exp(-mu - 2.5*sigma**2)
-    c = 0.25*(L**3)*erfc((lnL - mu)/(sigma*sqrt2)) \
+    c = 0.25*(L**3)*erfc((lnModL - mu)/(sigma*sqrt2)) \
                 *numpy.exp(-3*mu - 4.5*sigma**2)
 
     return  a + b + c
@@ -287,13 +289,14 @@ def size_function_lognormal(L, sigma, mu):
 # STRAIN
 ######################################################################
 
-def strain_invariant_function (L, h, k, l, lattice_parameter, a, b, A, B):
-    shkl = Utilities.s_hkl(lattice_parameter, h, k, l)
-    H = Utilities.Hinvariant(h,k,l)
-    C = A +B*H*H
-    exponent = -2*((numpy.pi*shkl)**2)*C*(a*L + b*L*L)
+# INVARIANT PAH --------------------------------
 
-    return numpy.exp(exponent)
+def strain_invariant_function(L, h, k, l, lattice_parameter, a, b, invariant):
+    s_hkl = Utilities.s_hkl(lattice_parameter, h, k, l)
+
+    return numpy.exp(-(2*(numpy.pi*s_hkl)**2)*invariant*(a*L + b*(L**2)))
+
+# WARREN MODEL --------------------------------
 
 def modify_delta_l(l, delta_l, lattice_parameter, average_lattice_parameter):
     return delta_l - (average_lattice_parameter/lattice_parameter -1)*l

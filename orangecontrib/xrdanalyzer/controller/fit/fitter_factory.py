@@ -1,5 +1,5 @@
 #from orangecontrib.xrdanalyzer.controller.fit.fitters.old.fitter_lmfit import FitterLmfit
-from orangecontrib.xrdanalyzer.controller.fit.fitters.old.fitter_scipy import FitterScipy
+from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_scipy import FitterScipy
 from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack import FitterMinpack
 
 import orangecontrib.xrdanalyzer.util.congruence as congruence

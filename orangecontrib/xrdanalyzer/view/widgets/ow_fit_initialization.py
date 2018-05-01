@@ -134,7 +134,7 @@ class OWFitInitialization(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            #raise e
+            if self.IS_DEVELOP: raise e
 
     def set_data(self, data):
         if not data is None:

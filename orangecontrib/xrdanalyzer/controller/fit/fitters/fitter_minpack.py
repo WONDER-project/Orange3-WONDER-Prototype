@@ -425,7 +425,11 @@ class FitterMinpack(FitterInterface):
                 fit_global_parameters.strain_parameters.aa.set_value(fitted_parameters[last_index + 1].value)
                 fit_global_parameters.strain_parameters.bb.set_value(fitted_parameters[last_index + 2].value)
                 fit_global_parameters.strain_parameters.e1.set_value(fitted_parameters[last_index + 3].value) # in realtà è E1 dell'invariante PAH
-                fit_global_parameters.strain_parameters.e6.set_value(fitted_parameters[last_index + 4].value) # in realtà è E6 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e2.set_value(fitted_parameters[last_index + 4].value) # in realtà è E1 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e3.set_value(fitted_parameters[last_index + 5].value) # in realtà è E1 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e4.set_value(fitted_parameters[last_index + 6].value) # in realtà è E4 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e5.set_value(fitted_parameters[last_index + 7].value) # in realtà è E4 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e6.set_value(fitted_parameters[last_index + 8].value) # in realtà è E4 dell'invariante PAH
             elif isinstance(fit_global_parameters.strain_parameters, WarrenModel):
                 fit_global_parameters.strain_parameters.average_cell_parameter.set_value(fitted_parameters[last_index + 1].value)
 
@@ -492,7 +496,11 @@ class FitterMinpack(FitterInterface):
                 fit_global_parameters.strain_parameters.aa.error = errors[last_index + 1]
                 fit_global_parameters.strain_parameters.bb.error = errors[last_index + 2]
                 fit_global_parameters.strain_parameters.e1.error = errors[last_index + 3] # in realtà è E1 dell'invariante PAH
-                fit_global_parameters.strain_parameters.e6.error = errors[last_index + 4] # in realtà è E6 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e2.error = errors[last_index + 4] # in realtà è E1 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e3.error = errors[last_index + 5] # in realtà è E1 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e4.error = errors[last_index + 6] # in realtà è E4 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e5.error = errors[last_index + 7] # in realtà è E4 dell'invariante PAH
+                fit_global_parameters.strain_parameters.e6.error = errors[last_index + 8] # in realtà è E4 dell'invariante PAH
             elif isinstance(fit_global_parameters.strain_parameters, WarrenModel):
                 fit_global_parameters.strain_parameters.average_cell_parameter.error = errors[last_index + 1]
 
