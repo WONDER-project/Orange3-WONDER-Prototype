@@ -211,19 +211,19 @@ class OWInstrumentalProfile(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.instrumental_parameters is None:
-                self.U = self.fit_global_parameters.instrumental_parameters.U.value
-                self.V = self.fit_global_parameters.instrumental_parameters.V.value
-                self.W = self.fit_global_parameters.instrumental_parameters.W.value
-                self.a = self.fit_global_parameters.instrumental_parameters.a.value
-                self.b = self.fit_global_parameters.instrumental_parameters.b.value
-                self.c = self.fit_global_parameters.instrumental_parameters.c.value
+                self.populate_fields("U", self.fit_global_parameters.instrumental_parameters.U)
+                self.populate_fields("V", self.fit_global_parameters.instrumental_parameters.V)
+                self.populate_fields("W", self.fit_global_parameters.instrumental_parameters.W)
+                self.populate_fields("a", self.fit_global_parameters.instrumental_parameters.a)
+                self.populate_fields("b", self.fit_global_parameters.instrumental_parameters.b)
+                self.populate_fields("c", self.fit_global_parameters.instrumental_parameters.c)
 
             if not self.fit_global_parameters.lab6_tan_correction is None:
-                self.ax = self.fit_global_parameters.lab6_tan_correction.ax.value
-                self.bx = self.fit_global_parameters.lab6_tan_correction.bx.value
-                self.cx = self.fit_global_parameters.lab6_tan_correction.cx.value
-                self.dx = self.fit_global_parameters.lab6_tan_correction.dx.value
-                self.ex = self.fit_global_parameters.lab6_tan_correction.ex.value
+                self.populate_fields("ax", self.fit_global_parameters.lab6_tan_correction.ax)
+                self.populate_fields("bx", self.fit_global_parameters.lab6_tan_correction.bx)
+                self.populate_fields("cx", self.fit_global_parameters.lab6_tan_correction.cx)
+                self.populate_fields("dx", self.fit_global_parameters.lab6_tan_correction.dx)
+                self.populate_fields("ex", self.fit_global_parameters.lab6_tan_correction.ex)
 
             if self.is_automatic_run:
                 self.send_intrumental_profile()

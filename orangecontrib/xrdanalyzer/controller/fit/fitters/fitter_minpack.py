@@ -3,11 +3,11 @@ import numpy
 
 
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
-from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_ERR
 
-from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, fit_function
+from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface
 from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util import *
+from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import fit_function
 
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel
 
@@ -385,6 +385,12 @@ class FitterMinpack(FitterInterface):
 
         last_index = crystal_structure.get_parameters_count() - 1
 
+        if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None \
+                and not fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor is None:
+            fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor.set_value(fitted_parameters[last_index + 1].value)
+
+            last_index += fit_global_parameters.fit_initialization.thermal_polarization_parameters.get_parameters_count()
+
         if not fit_global_parameters.background_parameters is None:
             fit_global_parameters.background_parameters.c0.set_value(fitted_parameters[last_index + 1].value)
             fit_global_parameters.background_parameters.c1.set_value(fitted_parameters[last_index + 2].value)
@@ -455,6 +461,12 @@ class FitterMinpack(FitterInterface):
             crystal_structure.get_reflection(reflection_index).intensity.error = errors[6+reflection_index]
 
         last_index = crystal_structure.get_parameters_count() - 1
+
+        if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None  \
+                and not fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor is None:
+            fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor.error = errors[last_index + 1]
+
+            last_index += fit_global_parameters.fit_initialization.thermal_polarization_parameters.get_parameters_count()
 
         if not fit_global_parameters.background_parameters is None:
             fit_global_parameters.background_parameters.c0.error = errors[last_index + 1]

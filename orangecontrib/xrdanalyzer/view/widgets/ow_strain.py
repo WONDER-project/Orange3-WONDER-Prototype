@@ -138,10 +138,10 @@ class OWStrain(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.strain_parameters is None:
-                self.aa = self.fit_global_parameters.strain_parameters.aa.value
-                self.bb = self.fit_global_parameters.strain_parameters.bb.value
-                self.e1 = self.fit_global_parameters.strain_parameters.e1.value
-                self.e4 = self.fit_global_parameters.strain_parameters.e4.value
+                self.populate_fields("aa", self.fit_global_parameters.strain_parameters.aa)
+                self.populate_fields("bb", self.fit_global_parameters.strain_parameters.bb)
+                self.populate_fields("e1", self.fit_global_parameters.strain_parameters.e1)
+                self.populate_fields("e4", self.fit_global_parameters.strain_parameters.e4)
 
             if self.is_automatic_run:
                 self.send_strain()

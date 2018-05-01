@@ -12,8 +12,6 @@ from PyQt5.QtCore import QRect
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import ConfirmDialog, gui, ShowTextDialog
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
-from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterListener
-from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_HWMAX, PARAM_HWMIN
 
 class OWGenericWidget(widget.OWWidget):
@@ -34,6 +32,7 @@ class OWGenericWidget(widget.OWWidget):
     TABS_AREA_HEIGHT = 560
 
     fit_global_parameters = None
+    parameter_functions = {}
 
     IS_DEVELOP = False if not "ORANGEDEVELOP" in os.environ.keys() else str(os.environ.get('ORANGEDEVELOP')) == "1"
 
@@ -60,7 +59,7 @@ class OWGenericWidget(widget.OWWidget):
         self.general_options_box = gui.widgetBox(self.controlArea, "General Options", addSpace=True, orientation="horizontal")
 
         if show_automatic_box :
-            orange_gui.checkBox(self.general_options_box, self, 'is_automatic_run', 'Automatic Execution')
+            orange_gui.checkBox(self.general_options_box, self, 'is_automatic_run', 'Automatic')
 
         gui.button(self.general_options_box, self, "Reset Fields", callback=self.callResetSettings)
 
@@ -108,6 +107,8 @@ class OWGenericWidget(widget.OWWidget):
                 box_function.setVisible(True)
                 box_function_value.setVisible(False)
 
+        self.parameter_functions[var] = set_flags
+
         orangegui.checkBox(box_fixed, self, var + "_fixed", "fixed", callback=set_flags)
 
         orangegui.checkBox(box_min_max, self, var + "_has_min", "min")
@@ -138,6 +139,29 @@ class OWGenericWidget(widget.OWWidget):
                 boundary = Boundary(min_value=min_value, max_value=max_value)
 
             return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(self, parameter_name), boundary=boundary)
+
+    def populate_fields(self, var, parameter):
+        setattr(self, var, parameter.value if not parameter.value is None else 0.0)
+        setattr(self, var + "_function", 1 if parameter.function else 0)
+        setattr(self, var + "_function_value", parameter.function_value if parameter.function else "")
+        setattr(self, var + "_fixed", 1 if parameter.fixed else 0)
+
+        if not parameter.boundary is None:
+            if parameter.boundary.min_value != PARAM_HWMIN:
+                setattr(self, var + "_has_min", 1)
+                setattr(self, var + "_min", parameter.boundary.min_value)
+            else:
+                setattr(self, var + "_has_min", 0)
+                setattr(self, var + "_min", 0.0)
+
+            if parameter.boundary.max_value != PARAM_HWMAX:
+                setattr(self, var + "_has_max", 1)
+                setattr(self, var + "_max", parameter.boundary.max_value)
+            else:
+                setattr(self, var + "_has_max", 0)
+                setattr(self, var + "_max", 0.0)
+
+        self.parameter_functions[var]()
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):

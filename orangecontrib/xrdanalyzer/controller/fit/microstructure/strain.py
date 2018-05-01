@@ -174,6 +174,7 @@ class InvariantPAH(FitParametersList):
     def get_warren_plot(self, h, k, l, L_max=50):
         step = L_max/100
 
+        # TODO: VA BENE PER I CUBICI, DA VERIFICARE PER IL CASO GENERICO
         x = numpy.arange(start=step, stop=L_max + step, step=step)
         y = numpy.sqrt((self.get_invariant(h, k, l)*(self.aa.value*x + self.bb.value*(x**2)))/((h**2+k**2+l**2)**2))
 

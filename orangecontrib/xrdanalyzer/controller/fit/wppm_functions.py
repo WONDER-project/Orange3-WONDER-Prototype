@@ -52,88 +52,129 @@ class FourierTransformFull:
 #########################################################################
 # MAIN FUNCTION
 
+#################################################
+#
+# FIT FUNCTION
+#
+#################################################
+
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
+
+def fit_function(s, fit_global_parameters):
+    if CrystalStructure.is_cube(fit_global_parameters.fit_initialization.crystal_structure.simmetry):
+        separated_peaks_functions = []
+
+        for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
+            sanalitycal, Ianalitycal = create_one_peak(reflection_index, fit_global_parameters)
+
+            separated_peaks_functions.append([sanalitycal, Ianalitycal])
+
+        s_large, I_large = Utilities.merge_functions(separated_peaks_functions,
+                                                     fit_global_parameters.fit_initialization.fft_parameters.s_max,
+                                                     fit_global_parameters.fit_initialization.fft_parameters.n_step)
+
+        if not fit_global_parameters.background_parameters is None:
+            add_chebyshev_background(s_large,
+                                     I_large,
+                                     parameters=[fit_global_parameters.background_parameters.c0.value,
+                                                 fit_global_parameters.background_parameters.c1.value,
+                                                 fit_global_parameters.background_parameters.c2.value,
+                                                 fit_global_parameters.background_parameters.c3.value,
+                                                 fit_global_parameters.background_parameters.c4.value,
+                                                 fit_global_parameters.background_parameters.c5.value])
+
+        if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None \
+                and not fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor is None:
+            I_large *= debye_waller(s_large, fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor.value)
+
+        return numpy.interp(s, s_large, I_large)
+    else:
+        raise NotImplementedError("Only Cubic structures are supported by fit")
+
+
+
 from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel
 
-def create_one_peak(reflection_index, fit_global_parameter):
-    fft_type = fit_global_parameter.fit_initialization.fft_parameters.fft_type
-    fit_space_parameters = fit_global_parameter.space_parameters()
-    crystal_structure = fit_global_parameter.fit_initialization.crystal_structure
+def create_one_peak(reflection_index, fit_global_parameters):
+    fft_type = fit_global_parameters.fit_initialization.fft_parameters.fft_type
+    fit_space_parameters = fit_global_parameters.space_parameters()
+    crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
     reflection = crystal_structure.get_reflection(reflection_index)
 
     fourier_amplitudes = None
 
-    if not fit_global_parameter.instrumental_parameters is None:
+    if not fit_global_parameters.instrumental_parameters is None:
         if fourier_amplitudes is None:
             fourier_amplitudes = instrumental_function(fit_space_parameters.L,
                                                        reflection.h,
                                                        reflection.k,
                                                        reflection.l,
                                                        crystal_structure.a.value,
-                                                       fit_global_parameter.fit_initialization.diffraction_pattern.wavelength,
-                                                       fit_global_parameter.instrumental_parameters.U.value,
-                                                       fit_global_parameter.instrumental_parameters.V.value,
-                                                       fit_global_parameter.instrumental_parameters.W.value,
-                                                       fit_global_parameter.instrumental_parameters.a.value,
-                                                       fit_global_parameter.instrumental_parameters.b.value,
-                                                       fit_global_parameter.instrumental_parameters.c.value)
+                                                       fit_global_parameters.fit_initialization.diffraction_pattern.wavelength,
+                                                       fit_global_parameters.instrumental_parameters.U.value,
+                                                       fit_global_parameters.instrumental_parameters.V.value,
+                                                       fit_global_parameters.instrumental_parameters.W.value,
+                                                       fit_global_parameters.instrumental_parameters.a.value,
+                                                       fit_global_parameters.instrumental_parameters.b.value,
+                                                       fit_global_parameters.instrumental_parameters.c.value)
         else:
             fourier_amplitudes *= instrumental_function(fit_space_parameters.L,
                                                         reflection.h,
                                                         reflection.k,
                                                         reflection.l,
                                                         crystal_structure.a.value,
-                                                        fit_global_parameter.fit_initialization.diffraction_pattern.wavelength,
-                                                        fit_global_parameter.instrumental_parameters.U.value,
-                                                        fit_global_parameter.instrumental_parameters.V.value,
-                                                        fit_global_parameter.instrumental_parameters.W.value,
-                                                        fit_global_parameter.instrumental_parameters.a.value,
-                                                        fit_global_parameter.instrumental_parameters.b.value,
-                                                        fit_global_parameter.instrumental_parameters.c.value)
+                                                        fit_global_parameters.fit_initialization.diffraction_pattern.wavelength,
+                                                        fit_global_parameters.instrumental_parameters.U.value,
+                                                        fit_global_parameters.instrumental_parameters.V.value,
+                                                        fit_global_parameters.instrumental_parameters.W.value,
+                                                        fit_global_parameters.instrumental_parameters.a.value,
+                                                        fit_global_parameters.instrumental_parameters.b.value,
+                                                        fit_global_parameters.instrumental_parameters.c.value)
 
 
-    if not fit_global_parameter.size_parameters is None:
+    if not fit_global_parameters.size_parameters is None:
         if fourier_amplitudes is None:
             fourier_amplitudes = size_function_lognormal(fit_space_parameters.L,
-                                                         fit_global_parameter.size_parameters.sigma.value,
-                                                         fit_global_parameter.size_parameters.mu.value)
+                                                         fit_global_parameters.size_parameters.sigma.value,
+                                                         fit_global_parameters.size_parameters.mu.value)
         else:
             fourier_amplitudes *= size_function_lognormal(fit_space_parameters.L,
-                                                          fit_global_parameter.size_parameters.sigma.value,
-                                                          fit_global_parameter.size_parameters.mu.value)
+                                                          fit_global_parameters.size_parameters.sigma.value,
+                                                          fit_global_parameters.size_parameters.mu.value)
 
-    if not fit_global_parameter.strain_parameters is None:
-        if isinstance(fit_global_parameter.strain_parameters, InvariantPAH):
+    if not fit_global_parameters.strain_parameters is None:
+        if isinstance(fit_global_parameters.strain_parameters, InvariantPAH):
             if fourier_amplitudes is None:
                 fourier_amplitudes = strain_invariant_function(fit_space_parameters.L,
                                                                reflection.h,
                                                                reflection.k,
                                                                reflection.l,
                                                                crystal_structure.a.value,
-                                                               fit_global_parameter.strain_parameters.aa.value,
-                                                               fit_global_parameter.strain_parameters.bb.value,
-                                                               fit_global_parameter.strain_parameters.get_invariant(reflection.h,
-                                                                                                                    reflection.k,
-                                                                                                                    reflection.l))
+                                                               fit_global_parameters.strain_parameters.aa.value,
+                                                               fit_global_parameters.strain_parameters.bb.value,
+                                                               fit_global_parameters.strain_parameters.get_invariant(reflection.h,
+                                                                                                                     reflection.k,
+                                                                                                                     reflection.l))
             else:
                 fourier_amplitudes *= strain_invariant_function(fit_space_parameters.L,
                                                                 reflection.h,
                                                                 reflection.k,
                                                                 reflection.l,
                                                                 crystal_structure.a.value,
-                                                                fit_global_parameter.strain_parameters.aa.value,
-                                                                fit_global_parameter.strain_parameters.bb.value,
-                                                                fit_global_parameter.strain_parameters.get_invariant(reflection.h,
-                                                                                                                     reflection.k,
-                                                                                                                     reflection.l))
+                                                                fit_global_parameters.strain_parameters.aa.value,
+                                                                fit_global_parameters.strain_parameters.bb.value,
+                                                                fit_global_parameters.strain_parameters.get_invariant(reflection.h,
+                                                                                                                      reflection.k,
+                                                                                                                      reflection.l))
 
-        elif isinstance(fit_global_parameter.strain_parameters, WarrenModel):
+        elif isinstance(fit_global_parameters.strain_parameters, WarrenModel):
             fourier_amplitudes_re, fourier_amplitudes_im = strain_warren_function(fit_space_parameters.L,
                                                                                   reflection.h,
                                                                                   reflection.k,
                                                                                   reflection.l,
                                                                                   crystal_structure.a.value,
-                                                                                  fit_global_parameter.strain_parameters.average_cell_parameter.value)
+                                                                                  fit_global_parameters.strain_parameters.average_cell_parameter.value)
             if fft_type == FFTTypes.FULL:
                 if fourier_amplitudes is None:
                     fourier_amplitudes = fourier_amplitudes_re + 1j*fourier_amplitudes_im
@@ -147,17 +188,17 @@ def create_one_peak(reflection_index, fit_global_parameter):
 
     if fft_type == FFTTypes.FULL:
         sr, fft_real = FourierTransformFull.fft_real(numpy.real(fourier_amplitudes),
-                                                     n_steps=fit_global_parameter.fit_initialization.fft_parameters.n_step,
+                                                     n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
                                                      dL=fit_space_parameters.dL)
 
         si, fft_imag = FourierTransformFull.fft_imag(numpy.imag(fourier_amplitudes),
-                                                     n_steps=fit_global_parameter.fit_initialization.fft_parameters.n_step,
+                                                     n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
                                                      dL=fit_space_parameters.dL)
 
         s, I = FourierTransformFull.normalize(sr, fft_real - fft_imag)
     elif fft_type == FFTTypes.REAL_ONLY:
         s, I = FourierTransformRealOnly.fft(fourier_amplitudes,
-                                            n_steps=fit_global_parameter.fit_initialization.fft_parameters.n_step,
+                                            n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
                                             dL=fit_space_parameters.dL)
 
     s_hkl = Utilities.s_hkl(crystal_structure.a.value, reflection.h, reflection.k, reflection.l)
@@ -174,19 +215,22 @@ def create_one_peak(reflection_index, fit_global_parameter):
     else:
         I *= reflection.intensity.value
 
-    # TODO: AGGIUNGERE GESTIONE LP factor con strutture dati + widget ad hoc
-    # TODO: AGGIUNGERE GESTIONE TDS con strutture dati + widget ad hoc
+    #TODO: AGGIUNGERE GESTIONE TDS con strutture dati + widget ad hoc
 
     s += s_hkl
 
-    if not fit_global_parameter.lab6_tan_correction is None:
+    if not fit_global_parameters.lab6_tan_correction is None:
         s += lab6_tan_correction(s,
-                                 fit_global_parameter.fit_initialization.diffraction_pattern.wavelength,
-                                 fit_global_parameter.lab6_tan_correction.ax.value,
-                                 fit_global_parameter.lab6_tan_correction.bx.value,
-                                 fit_global_parameter.lab6_tan_correction.cx.value,
-                                 fit_global_parameter.lab6_tan_correction.dx.value,
-                                 fit_global_parameter.lab6_tan_correction.ex.value)
+                                 fit_global_parameters.fit_initialization.diffraction_pattern.wavelength,
+                                 fit_global_parameters.lab6_tan_correction.ax.value,
+                                 fit_global_parameters.lab6_tan_correction.bx.value,
+                                 fit_global_parameters.lab6_tan_correction.cx.value,
+                                 fit_global_parameters.lab6_tan_correction.dx.value,
+                                 fit_global_parameters.lab6_tan_correction.ex.value)
+
+    if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None and \
+            fit_global_parameters.fit_initialization.thermal_polarization_parameters.use_lorentz_polarization_factor:
+        I *= lorentz_polarization_factor(s, s_hkl)
 
     return s, I
 
@@ -208,8 +252,8 @@ from Orange.canvas import resources
 def debye_waller(s, B):
     return numpy.exp(-0.5*B*(s**2)) # it's the exp(-2M) = exp(-Bs^2/2)
 
-def lorentz_polarization_factor(s, lattice_parameter, h, k, l):
-    return 1/(s*Utilities.s_hkl(lattice_parameter, h, k, l))
+def lorentz_polarization_factor(s, s_hkl):
+    return 1/(s*s_hkl)
 
 ######################################################################
 # SIZE
@@ -240,6 +284,8 @@ def size_function_lognormal(L, sigma, mu):
 
 def strain_invariant_function(L, h, k, l, lattice_parameter, a, b, invariant):
     s_hkl = Utilities.s_hkl(lattice_parameter, h, k, l)
+
+    # TODO: VA BENE PER I CUBICI, DA VERIFICARE PER IL CASO GENERICO
 
     return numpy.exp(-(1/(2*(s_hkl**2)*(lattice_parameter**4)))*invariant*(a*L + b*(L**2)))
 

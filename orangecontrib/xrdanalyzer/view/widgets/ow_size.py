@@ -124,8 +124,8 @@ class OWSize(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.size_parameters is None:
-                self.mu = self.fit_global_parameters.size_parameters.mu.value
-                self.sigma = self.fit_global_parameters.size_parameters.sigma.value
+                self.populate_fields("mu", self.fit_global_parameters.size_parameters.mu)
+                self.populate_fields("sigma", self.fit_global_parameters.size_parameters.sigma)
 
             if self.is_automatic_run:
                 self.send_size()

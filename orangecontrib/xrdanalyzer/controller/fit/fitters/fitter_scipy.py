@@ -3,7 +3,8 @@ import numpy
 from scipy.optimize import curve_fit
 
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
-from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener, fit_function
+from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface, FitterListener
+from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import fit_function
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel
 
 class FitterScipy(FitterInterface):
