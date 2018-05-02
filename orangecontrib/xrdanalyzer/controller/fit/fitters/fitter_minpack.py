@@ -299,17 +299,6 @@ class FitterMinpack(FitterInterface):
         fit_global_parameters_out = self.build_fit_global_parameters_out(fitted_parameters)
         fit_global_parameters_out.set_convergence_reached(self.conver)
 
-        y = fit_function(self.s_experimental, fit_global_parameters_out)
-
-        self.minpack_data.wss = self.wss
-        # TODO: verificare perchè questa istruzione wss *= (step*step);
-
-        self.minpack_data.ss = self.getSSQFromData(y=y)
-        self.minpack_data.wsq = self.getWSQFromData(y=y)
-        self.minpack_data.calc_lambda = self._lambda
-        self.minpack_data.calculate()
-
-
         fitted_pattern = DiffractionPattern()
         fitted_pattern.wavelength = current_fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
 
