@@ -11,14 +11,14 @@ from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ShowTextDialog
 from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Caglioti, Lab6TanCorrection
+from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Caglioti
 
 class OWInstrumentalProfile(OWGenericWidget):
 
     name = "Instrumental Profile"
     description = "Define Instrumental Profile Parameters"
     icon = "icons/instrumental_profile.png"
-    priority = 6
+    priority = 7
 
     want_main_area = False
 

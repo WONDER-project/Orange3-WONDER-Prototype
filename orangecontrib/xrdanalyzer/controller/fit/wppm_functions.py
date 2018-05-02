@@ -145,6 +145,7 @@ class FourierTransformFull(FourierTransform):
 # CALCOLO DI UN SINGOLO PICCO
 #################################################
 
+from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
 from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
 
@@ -302,14 +303,21 @@ def create_one_peak(reflection_index, fit_global_parameters):
 
     # PEAK SHIFTS  -----------------------------------------------------------------------------------------------------
 
-    if not fit_global_parameters.lab6_tan_correction is None:
-        s += lab6_tan_correction(s,
-                                 fit_global_parameters.fit_initialization.diffraction_pattern.wavelength,
-                                 fit_global_parameters.lab6_tan_correction.ax.value,
-                                 fit_global_parameters.lab6_tan_correction.bx.value,
-                                 fit_global_parameters.lab6_tan_correction.cx.value,
-                                 fit_global_parameters.lab6_tan_correction.dx.value,
-                                 fit_global_parameters.lab6_tan_correction.ex.value)
+    if not fit_global_parameters.shift_parameters is None:
+        for key in fit_global_parameters.shift_parameters.keys():
+            shift_parameters = fit_global_parameters.get_shift_parameters(key)
+
+            if not shift_parameters is None:
+                if key == Lab6TanCorrection.__name__:
+                    s += lab6_tan_correction(s,
+                                             fit_global_parameters.fit_initialization.diffraction_pattern.wavelength,
+                                             shift_parameters.ax.value,
+                                             shift_parameters.bx.value,
+                                             shift_parameters.cx.value,
+                                             shift_parameters.dx.value,
+                                             shift_parameters.ex.value)
+                elif key == ZeroError.__name__:
+                    s += Utilities.s(shift_parameters.shift.value/2, fit_global_parameters.fit_initialization.diffraction_pattern.wavelength)
 
     # LORENTZ/POLARIZATION FACTOR --------------------------------------------------------------------------------------
 

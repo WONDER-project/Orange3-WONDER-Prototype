@@ -88,6 +88,33 @@ class Lab6TanCorrection(FitParametersList):
                                  ex=None if self.ex is None else self.ex.duplicate())
 
 
+class ZeroError(FitParametersList):
+    shift = None
+
+    @classmethod
+    def get_parameters_prefix(cls):
+        return "zero_error_"
+
+    def __init__(self, shift):
+        super(ZeroError, self).__init__()
+
+        self.shift = shift
+
+    def to_text(self):
+        text = "ZERO ERROR\n"
+        text += "-----------------------------------\n"
+
+        text += self.shift.to_text() + "\n"
+
+        text += "-----------------------------------\n"
+
+        return text
+
+    def duplicate(self):
+        return ZeroError(shift=None if self.shift is None else self.shift.duplicate())
+
+
+
 if __name__=="__main__":
     test = Caglioti(U=FitParameter(parameter_name="U", value=1.0, fixed=True),
                     V=FitParameter(parameter_name="V", value=2.0, boundary=Boundary(max_value=10.0)),

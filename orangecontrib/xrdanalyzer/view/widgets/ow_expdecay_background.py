@@ -18,7 +18,7 @@ class OWExpDecayBackground(OWGenericWidget):
     name = "ExpDecay Background"
     description = "Define ExpDecay background"
     icon = "icons/background.png"
-    priority = 4
+    priority = 6
 
     want_main_area =  False
 

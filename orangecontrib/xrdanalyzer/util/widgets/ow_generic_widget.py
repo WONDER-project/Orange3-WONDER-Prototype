@@ -68,14 +68,14 @@ class OWGenericWidget(widget.OWWidget):
 
 
     def create_box(self, parent_box, var, label=None):
-        box = gui.widgetBox(parent_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50)
+        box = gui.widgetBox(parent_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50, height=25)
 
-        box_label = gui.widgetBox(box, "", orientation="horizontal", width=40)
-        box_value =  gui.widgetBox(box, "", orientation="horizontal", width=110)
-        box_min_max = gui.widgetBox(box, "", orientation="horizontal")
-        box_fixed = gui.widgetBox(box, "", orientation="horizontal")
-        box_function = gui.widgetBox(box, "", orientation="horizontal")
-        box_function_value = gui.widgetBox(box, "", orientation="horizontal")
+        box_label = gui.widgetBox(box, "", orientation="horizontal", width=40, height=25)
+        box_value =  gui.widgetBox(box, "", orientation="horizontal", width=100, height=25)
+        box_min_max = gui.widgetBox(box, "", orientation="horizontal", height=30)
+        box_fixed = gui.widgetBox(box, "", orientation="horizontal", height=25)
+        box_function = gui.widgetBox(box, "", orientation="horizontal", height=25)
+        box_function_value = gui.widgetBox(box, "", orientation="horizontal", height=25)
 
         gui.widgetLabel(box_label, var if label is None else label)
         le_var = gui.lineEdit(box_value, self, var, "", valueType=float, validator=QDoubleValidator())
@@ -97,25 +97,25 @@ class OWGenericWidget(widget.OWWidget):
 
                 box_min_max.setVisible(False)
                 le_var.setVisible(True)
-                box_value.setFixedWidth(110)
+                box_value.setFixedWidth(100)
                 box_function.setVisible(False)
                 box_function_value.setVisible(False)
             else:
                 box_min_max.setVisible(True)
                 le_var.setVisible(True)
-                box_value.setFixedWidth(110)
+                box_value.setFixedWidth(100)
                 box_fixed.setVisible(True)
                 box_function.setVisible(True)
                 box_function_value.setVisible(False)
 
         self.parameter_functions[var] = set_flags
 
-        orangegui.checkBox(box_fixed, self, var + "_fixed", "fixed", callback=set_flags)
+        orangegui.checkBox(box_fixed, self, var + "_fixed", "fix", callback=set_flags)
 
         orangegui.checkBox(box_min_max, self, var + "_has_min", "min")
-        gui.lineEdit(box_min_max, self, var + "_min", "", labelWidth=5, valueType=float, validator=QDoubleValidator())
+        gui.lineEdit(box_min_max, self, var + "_min", "", valueType=float, validator=QDoubleValidator())
         orangegui.checkBox(box_min_max, self, var + "_has_max", "max")
-        gui.lineEdit(box_min_max, self, var + "_max", "", labelWidth=5, valueType=float, validator=QDoubleValidator())
+        gui.lineEdit(box_min_max, self, var + "_max", "", valueType=float, validator=QDoubleValidator())
 
         orangegui.checkBox(box_function, self, var + "_function", "f(x)", callback=set_flags)
         gui.lineEdit(box_function_value, self, var + "_function_value", "expression", valueType=str)

@@ -11,14 +11,14 @@ from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ShowTextDialog
 from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Caglioti, Lab6TanCorrection
+from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection
 
 class OWCalibrationPeakShift(OWGenericWidget):
 
     name = "Calibration Peak Shift"
     description = "Calibration Peak Shift"
-    icon = "icons/calibration_peak_shift.png"
-    priority = 7
+    icon = "icons/peak_shift.png"
+    priority = 8
 
     want_main_area = False
 
@@ -95,18 +95,18 @@ class OWCalibrationPeakShift(OWGenericWidget):
                                    "", orientation="horizontal",
                                    width=self.CONTROL_AREA_WIDTH-25)
 
-        gui.button(button_box,  self, "Send Peak Shift", height=50, callback=self.send_intrumental_profile)
+        gui.button(button_box, self, "Send Peak Shift", height=50, callback=self.send_peak_shift)
 
 
-    def send_intrumental_profile(self):
+    def send_peak_shift(self):
         try:
             if not self.fit_global_parameters is None:
 
-                self.fit_global_parameters.lab6_tan_correction = Lab6TanCorrection(ax=self.populate_parameter("ax", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                   bx=self.populate_parameter("bx", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                   cx=self.populate_parameter("cx", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                   dx=self.populate_parameter("dx", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                   ex=self.populate_parameter("ex", Lab6TanCorrection.get_parameters_prefix()))
+                self.fit_global_parameters.set_shift_parameters(Lab6TanCorrection(ax=self.populate_parameter("ax", Lab6TanCorrection.get_parameters_prefix()),
+                                                                                  bx=self.populate_parameter("bx", Lab6TanCorrection.get_parameters_prefix()),
+                                                                                  cx=self.populate_parameter("cx", Lab6TanCorrection.get_parameters_prefix()),
+                                                                                  dx=self.populate_parameter("dx", Lab6TanCorrection.get_parameters_prefix()),
+                                                                                  ex=self.populate_parameter("ex", Lab6TanCorrection.get_parameters_prefix())))
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -121,15 +121,18 @@ class OWCalibrationPeakShift(OWGenericWidget):
     def set_data(self, data):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
-            if not self.fit_global_parameters.lab6_tan_correction is None:
-                self.populate_fields("ax", self.fit_global_parameters.lab6_tan_correction.ax)
-                self.populate_fields("bx", self.fit_global_parameters.lab6_tan_correction.bx)
-                self.populate_fields("cx", self.fit_global_parameters.lab6_tan_correction.cx)
-                self.populate_fields("dx", self.fit_global_parameters.lab6_tan_correction.dx)
-                self.populate_fields("ex", self.fit_global_parameters.lab6_tan_correction.ex)
+            if not self.fit_global_parameters.shift_parameters is None:
+                shift_parameters = self.fit_global_parameters.get_shift_parameters(Lab6TanCorrection.__name__)
+
+                if not shift_parameters is None:
+                    self.populate_fields("ax", shift_parameters.ax)
+                    self.populate_fields("bx", shift_parameters.bx)
+                    self.populate_fields("cx", shift_parameters.cx)
+                    self.populate_fields("dx", shift_parameters.dx)
+                    self.populate_fields("ex", shift_parameters.ex)
 
             if self.is_automatic_run:
-                self.send_intrumental_profile()
+                self.send_peak_shift()
 
 
 

@@ -7,7 +7,7 @@ class FitGlobalParameters(FitParametersList):
     fit_initialization = None
     background_parameters = None
     instrumental_parameters = None
-    lab6_tan_correction = None
+    shift_parameters = None
     size_parameters = None
     strain_parameters = None
     free_input_parameters = None
@@ -20,7 +20,7 @@ class FitGlobalParameters(FitParametersList):
                  fit_initialization = None,
                  background_parameters = {},
                  instrumental_parameters = None,
-                 lab6_tan_correction = None,
+                 shift_parameters = {},
                  size_parameters = None,
                  strain_parameters = None):
         super().__init__()
@@ -28,7 +28,7 @@ class FitGlobalParameters(FitParametersList):
         self.fit_initialization = fit_initialization
         self.background_parameters = background_parameters
         self.instrumental_parameters = instrumental_parameters
-        self.lab6_tan_correction = lab6_tan_correction
+        self.shift_parameters = shift_parameters
         self.size_parameters = size_parameters
         self.strain_parameters = strain_parameters
         self.free_input_parameters = FreeInputParameters()
@@ -66,6 +66,20 @@ class FitGlobalParameters(FitParametersList):
             key = background_parameters.__class__.__name__
             self.background_parameters[key] = background_parameters
 
+    def get_shift_parameters(self, key):
+        try:
+            return self.shift_parameters[key]
+        except:
+            return None
+
+    def set_shift_parameters(self, shift_parameters):
+        if self.shift_parameters is None:
+            self.shift_parameters = {}
+
+        if not shift_parameters is None:
+            key = shift_parameters.__class__.__name__
+            self.shift_parameters[key] = shift_parameters
+
 
     def get_parameters(self):
         parameters = []
@@ -80,8 +94,9 @@ class FitGlobalParameters(FitParametersList):
         if not self.instrumental_parameters is None:
             parameters.extend(self.instrumental_parameters.get_parameters())
 
-        if not self.lab6_tan_correction is None:
-            parameters.extend(self.lab6_tan_correction.get_parameters())
+        if not self.shift_parameters is None:
+            for key in self.shift_parameters.keys():
+                parameters.extend(self.shift_parameters[key].get_parameters())
 
         if not self.size_parameters is None:
             parameters.extend(self.size_parameters.get_parameters())
@@ -104,8 +119,9 @@ class FitGlobalParameters(FitParametersList):
         if not self.instrumental_parameters is None:
             tuple.extend(self.instrumental_parameters.tuple())
 
-        if not self.lab6_tan_correction is None:
-            tuple.extend(self.lab6_tan_correction.tuple())
+        if not self.shift_parameters is None:
+            for key in self.shift_parameters.keys():
+                tuple.extend(self.shift_parameters[key].tuple())
 
         if not self.size_parameters is None:
             tuple.extend(self.size_parameters.tuple())
@@ -127,8 +143,9 @@ class FitGlobalParameters(FitParametersList):
         if not self.instrumental_parameters is None:
             parameters, boundaries = self.instrumental_parameters.append_to_tuple(parameters, boundaries)
 
-        if not self.lab6_tan_correction is None:
-            parameters, boundaries = self.lab6_tan_correction.append_to_tuple(parameters, boundaries)
+        if not self.shift_parameters is None:
+            for key in self.shift_parameters.keys():
+                parameters, boundaries = self.shift_parameters[key].append_to_tuple(parameters, boundaries)
 
         if not self.size_parameters is None:
             parameters, boundaries = self.size_parameters.append_to_tuple(parameters, boundaries)
@@ -155,8 +172,9 @@ class FitGlobalParameters(FitParametersList):
         if not self.instrumental_parameters is None:
             text += self.instrumental_parameters.to_text()
             
-        if not self.lab6_tan_correction is None:
-            text += self.lab6_tan_correction.to_text()
+        if not self.shift_parameters is None:
+            for key in self.shift_parameters.keys():
+                text += self.shift_parameters[key].to_text()
 
         if not self.size_parameters is None:
             text += self.size_parameters.to_text()
@@ -201,12 +219,19 @@ class FitGlobalParameters(FitParametersList):
             for key in self.background_parameters.keys():
                 background_parameters[key] = self.background_parameters[key].duplicate()
 
+        if self.shift_parameters is None:
+            shift_parameters = None
+        else:
+            shift_parameters = {}
+            for key in self.shift_parameters.keys():
+                shift_parameters[key] = self.shift_parameters[key].duplicate()
+
         fit_global_parameters = FitGlobalParameters(fit_initialization=None if self.fit_initialization is None else self.fit_initialization.duplicate(),
-                                   background_parameters=background_parameters,
-                                   instrumental_parameters=None if self.instrumental_parameters is None else self.instrumental_parameters.duplicate(),
-                                   lab6_tan_correction=None if self.lab6_tan_correction is None else self.lab6_tan_correction.duplicate(),
-                                   size_parameters=None if self.size_parameters is None else self.size_parameters.duplicate(),
-                                   strain_parameters=None if self.strain_parameters is None else self.strain_parameters.duplicate())
+                                                    background_parameters=background_parameters,
+                                                    instrumental_parameters=None if self.instrumental_parameters is None else self.instrumental_parameters.duplicate(),
+                                                    shift_parameters=shift_parameters,
+                                                    size_parameters=None if self.size_parameters is None else self.size_parameters.duplicate(),
+                                                    strain_parameters=None if self.strain_parameters is None else self.strain_parameters.duplicate())
 
         fit_global_parameters.free_input_parameters = self.free_input_parameters.duplicate()
         fit_global_parameters.free_output_parameters = self.free_output_parameters.duplicate()

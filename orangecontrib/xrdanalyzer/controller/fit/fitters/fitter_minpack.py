@@ -6,6 +6,7 @@ from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface
 from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util import *
 from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import fit_function
 
+from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
 from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
 
@@ -423,14 +424,21 @@ class FitterMinpack(FitterInterface):
 
             last_index += fit_global_parameters.instrumental_parameters.get_parameters_count()
 
-        if not fit_global_parameters.lab6_tan_correction is None:
-            fit_global_parameters.lab6_tan_correction.ax.set_value(fitted_parameters[last_index + 1].value)
-            fit_global_parameters.lab6_tan_correction.bx.set_value(fitted_parameters[last_index + 2].value)
-            fit_global_parameters.lab6_tan_correction.cx.set_value(fitted_parameters[last_index + 3].value)
-            fit_global_parameters.lab6_tan_correction.dx.set_value(fitted_parameters[last_index + 4].value)
-            fit_global_parameters.lab6_tan_correction.ex.set_value(fitted_parameters[last_index + 5].value)
+        if not fit_global_parameters.shift_parameters is None:
+            for key in fit_global_parameters.shift_parameters.keys():
+                shift_parameters = fit_global_parameters.get_shift_parameters(key)
 
-            last_index += fit_global_parameters.lab6_tan_correction.get_parameters_count()
+                if not shift_parameters is None:
+                    if key == Lab6TanCorrection.__name__:
+                        shift_parameters.ax.set_value(fitted_parameters[last_index + 1].value)
+                        shift_parameters.bx.set_value(fitted_parameters[last_index + 2].value)
+                        shift_parameters.cx.set_value(fitted_parameters[last_index + 3].value)
+                        shift_parameters.dx.set_value(fitted_parameters[last_index + 4].value)
+                        shift_parameters.ex.set_value(fitted_parameters[last_index + 5].value)
+                    elif key == ZeroError.__name__:
+                        shift_parameters.shift.set_value(fitted_parameters[last_index + 1].value)
+
+                last_index += shift_parameters.get_parameters_count()
 
         if not fit_global_parameters.size_parameters is None:
             fit_global_parameters.size_parameters.mu.set_value(fitted_parameters[last_index + 1].value)
@@ -527,14 +535,21 @@ class FitterMinpack(FitterInterface):
 
             last_index += fit_global_parameters.instrumental_parameters.get_parameters_count()
 
-        if not fit_global_parameters.lab6_tan_correction is None:
-            fit_global_parameters.lab6_tan_correction.ax.error = errors[last_index + 1]
-            fit_global_parameters.lab6_tan_correction.bx.error = errors[last_index + 2]
-            fit_global_parameters.lab6_tan_correction.cx.error = errors[last_index + 3]
-            fit_global_parameters.lab6_tan_correction.dx.error = errors[last_index + 4]
-            fit_global_parameters.lab6_tan_correction.ex.error = errors[last_index + 5]
+        if not fit_global_parameters.shift_parameters is None:
+            for key in fit_global_parameters.shift_parameters.keys():
+                shift_parameters = fit_global_parameters.get_shift_parameters(key)
 
-            last_index += fit_global_parameters.lab6_tan_correction.get_parameters_count()
+                if not shift_parameters is None:
+                    if key == Lab6TanCorrection.__name__:
+                        shift_parameters.ax.error = errors[last_index + 1]
+                        shift_parameters.bx.error = errors[last_index + 2]
+                        shift_parameters.cx.error = errors[last_index + 3]
+                        shift_parameters.dx.error = errors[last_index + 4]
+                        shift_parameters.ex.error = errors[last_index + 5]
+                    elif key == ZeroError.__name__:
+                        shift_parameters.shift.error = errors[last_index + 1]
+
+                last_index += shift_parameters.get_parameters_count()
 
         if not fit_global_parameters.size_parameters is None:
             fit_global_parameters.size_parameters.mu.error    = errors[last_index + 1]

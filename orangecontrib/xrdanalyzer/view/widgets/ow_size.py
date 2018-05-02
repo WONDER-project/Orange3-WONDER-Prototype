@@ -24,7 +24,7 @@ class OWSize(OWGenericWidget):
     name = "Size"
     description = "Define Size"
     icon = "icons/size.png"
-    priority = 7
+    priority = 10
 
     want_main_area =  False
 

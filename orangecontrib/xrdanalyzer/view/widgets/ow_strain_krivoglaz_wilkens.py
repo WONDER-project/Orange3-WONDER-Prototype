@@ -16,7 +16,7 @@ class OWStrainKW(OWGenericWidget):
     name = "Krivoglaz-Wilkens Strain"
     description = "Define Krivoglaz-Wilkens Strain"
     icon = "icons/strain.png"
-    priority = 9
+    priority = 12
 
     want_main_area =  False
 

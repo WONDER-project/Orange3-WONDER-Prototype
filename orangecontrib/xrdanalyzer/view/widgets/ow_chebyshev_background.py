@@ -18,7 +18,7 @@ class OWChebyshevBackground(OWGenericWidget):
     name = "Chebyshev Background"
     description = "Define Chebyshev background"
     icon = "icons/background.png"
-    priority = 4
+    priority = 5
 
     want_main_area =  False
 
