@@ -18,7 +18,7 @@ class FitGlobalParameters(FitParametersList):
 
     def __init__(self,
                  fit_initialization = None,
-                 background_parameters = None,
+                 background_parameters = {},
                  instrumental_parameters = None,
                  lab6_tan_correction = None,
                  size_parameters = None,
@@ -52,6 +52,21 @@ class FitGlobalParameters(FitParametersList):
     def space_parameters(self):
         return FitSpaceParameters(self)
 
+    def get_background_parameters(self, key):
+        try:
+            return self.background_parameters[key]
+        except:
+            return None
+
+    def set_background_parameters(self, background_parameters):
+        if self.background_parameters is None:
+            self.background_parameters = {}
+
+        if not background_parameters is None:
+            key = background_parameters.__class__.__name__
+            self.background_parameters[key] = background_parameters
+
+
     def get_parameters(self):
         parameters = []
 
@@ -59,7 +74,8 @@ class FitGlobalParameters(FitParametersList):
             parameters.extend(self.fit_initialization.get_parameters())
 
         if not self.background_parameters is None:
-            parameters.extend(self.background_parameters.get_parameters())
+            for key in self.background_parameters.keys():
+                parameters.extend(self.background_parameters[key].get_parameters())
 
         if not self.instrumental_parameters is None:
             parameters.extend(self.instrumental_parameters.get_parameters())
@@ -82,7 +98,8 @@ class FitGlobalParameters(FitParametersList):
             tuple.extend(self.fit_initialization.tuple())
 
         if not self.background_parameters is None:
-            tuple.extend(self.background_parameters.tuple())
+            for key in self.background_parameters.keys():
+                tuple.extend(self.background_parameters[key].tuple())
 
         if not self.instrumental_parameters is None:
             tuple.extend(self.instrumental_parameters.tuple())
@@ -104,7 +121,8 @@ class FitGlobalParameters(FitParametersList):
             parameters, boundaries = self.fit_initialization.append_to_tuple(parameters, boundaries)
 
         if not self.background_parameters is None:
-            parameters, boundaries = self.background_parameters.append_to_tuple(parameters, boundaries)
+            for key in self.background_parameters.keys():
+                parameters, boundaries = self.background_parameters[key].append_to_tuple(parameters, boundaries)
 
         if not self.instrumental_parameters is None:
             parameters, boundaries = self.instrumental_parameters.append_to_tuple(parameters, boundaries)
@@ -131,7 +149,8 @@ class FitGlobalParameters(FitParametersList):
             text += self.fit_initialization.to_text()
 
         if not self.background_parameters is None:
-            text += self.background_parameters.to_text()
+            for key in self.background_parameters.keys():
+                text += self.background_parameters[key].to_text()
             
         if not self.instrumental_parameters is None:
             text += self.instrumental_parameters.to_text()
@@ -175,8 +194,15 @@ class FitGlobalParameters(FitParametersList):
             self.free_output_parameters.set_functions_values(parameters_dictionary)
 
     def duplicate(self):
+        if self.background_parameters is None:
+            background_parameters = None
+        else:
+            background_parameters = {}
+            for key in self.background_parameters.keys():
+                background_parameters[key] = self.background_parameters[key].duplicate()
+
         fit_global_parameters = FitGlobalParameters(fit_initialization=None if self.fit_initialization is None else self.fit_initialization.duplicate(),
-                                   background_parameters=None if self.background_parameters is None else self.background_parameters.duplicate(),
+                                   background_parameters=background_parameters,
                                    instrumental_parameters=None if self.instrumental_parameters is None else self.instrumental_parameters.duplicate(),
                                    lab6_tan_correction=None if self.lab6_tan_correction is None else self.lab6_tan_correction.duplicate(),
                                    size_parameters=None if self.size_parameters is None else self.size_parameters.duplicate(),
@@ -199,6 +225,10 @@ class FitSpaceParameters:
         self.L = numpy.linspace(self.dL, self.L_max + self.dL, n_steps)
 
 
+######################################################################################################
+######################################################################################################
+######################################################################################################
+######################################################################################################
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, FreeInputParameters, FreeOutputParameters, Boundary
 from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization

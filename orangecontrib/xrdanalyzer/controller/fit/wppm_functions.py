@@ -13,6 +13,9 @@ from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import Crys
 
 def fit_function(s, fit_global_parameters):
     if CrystalStructure.is_cube(fit_global_parameters.fit_initialization.crystal_structure.simmetry):
+
+        # CONSTRUCTION OF EACH SEPARATE PEAK ---------------------------------------------------------------------------
+
         separated_peaks_functions = []
 
         for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
@@ -24,19 +27,39 @@ def fit_function(s, fit_global_parameters):
                                                      fit_global_parameters.fit_initialization.fft_parameters.s_max,
                                                      fit_global_parameters.fit_initialization.fft_parameters.n_step)
 
+        # ADD BACKGROUNDS  ---------------------------------------------------------------------------------------------
+
         if not fit_global_parameters.background_parameters is None:
-            add_chebyshev_background(s_large,
-                                     I_large,
-                                     parameters=[fit_global_parameters.background_parameters.c0.value,
-                                                 fit_global_parameters.background_parameters.c1.value,
-                                                 fit_global_parameters.background_parameters.c2.value,
-                                                 fit_global_parameters.background_parameters.c3.value,
-                                                 fit_global_parameters.background_parameters.c4.value,
-                                                 fit_global_parameters.background_parameters.c5.value])
+            for key in fit_global_parameters.background_parameters.keys():
+                background_parameters = fit_global_parameters.get_background_parameters(key)
+
+                if not background_parameters is None:
+                    if key == ChebyshevBackground.__name__:
+                        add_chebyshev_background(s_large,
+                                                 I_large,
+                                                 parameters=[background_parameters.c0.value,
+                                                             background_parameters.c1.value,
+                                                             background_parameters.c2.value,
+                                                             background_parameters.c3.value,
+                                                             background_parameters.c4.value,
+                                                             background_parameters.c5.value])
+                    elif key == ExpDecayBackground.__name__:
+                        add_expdecay_background(s_large,
+                                                I_large,
+                                                parameters=[background_parameters.a0.value,
+                                                            background_parameters.b0.value,
+                                                            background_parameters.a1.value,
+                                                            background_parameters.b1.value,
+                                                            background_parameters.a2.value,
+                                                            background_parameters.b2.value])
+
+        # ADD DEBYE-WALLER FACTOR --------------------------------------------------------------------------------------
 
         if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None \
                 and not fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor is None:
             I_large *= debye_waller(s_large, fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor.value)
+
+        # INTERPOLATION ONTO ORIGINAL S VALUES -------------------------------------------------------------------------
 
         return numpy.interp(s, s_large, I_large)
     else:
@@ -46,6 +69,7 @@ def fit_function(s, fit_global_parameters):
 #################################################
 # FOURIER FUNCTIONS
 #################################################
+
 from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
 
 class FourierTranformFactory:
@@ -121,6 +145,7 @@ class FourierTransformFull(FourierTransform):
 # CALCOLO DI UN SINGOLO PICCO
 #################################################
 
+from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
 
 def create_one_peak(reflection_index, fit_global_parameters):
@@ -572,6 +597,7 @@ def lab6_tan_correction(s, wavelength, ax, bx, cx, dx, ex):
     tan_theta = numpy.tan(Utilities.theta(s, wavelength))
 
     delta_twotheta = numpy.radians(ax*(1/tan_theta) + bx + cx*tan_theta + dx*tan_theta**2 + ex*tan_theta**3)
+    delta_twotheta[numpy.where(numpy.isnan(delta_twotheta))] = 0.0
 
     return Utilities.s(0.5*delta_twotheta, wavelength)
 
@@ -581,45 +607,48 @@ def lab6_tan_correction(s, wavelength, ax, bx, cx, dx, ex):
 ######################################################################
 
 def add_chebyshev_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    T = numpy.zeros(len(parameters))
-    for i in range(0, len(s)):
-        for j in range(0, len(parameters)):
-            if j==0:
-                T[j] = 1
-            elif j==1:
-                T[j] = s[i]
-            else:
-                T[j] = 2*s[i]*T[j-1] - T[j-2]
+    T = numpy.zeros((len(s), len(parameters)))
 
-            I[i] += parameters[j]*T[j]
+    for j in range(0, len(parameters)):
+        if j==0:
+            T[:, j] = 1
+        elif j==1:
+            T[:, j] = s
+        else:
+            T[:, j] = 2*s*T[:, j-1] - T[:, j-2]
+
+        I += parameters[j]*T[:, j]
 
 def add_polynomial_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    for i in range(0, len(s)):
-        for j in range(0, len(parameters)):
-            I[i] += parameters[j]*numpy.pow(s[i], j)
+    for j in range(0, len(parameters)):
+        I += parameters[j]*numpy.pow(s, j)
 
 def add_polynomial_N_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    for i in range(0, len(s)):
-        for j in range(1, len(parameters)/2, step=2):
-            p = parameters[j]
-            q = parameters[j+1]
+    for j in range(0, int(len(parameters)/2 - 1)):
+        a_i = parameters[2*j]
+        b_i = parameters[2*j+1]
 
-            I[i] += p*numpy.pow(s[i], q)
+        I += a_i*numpy.pow(s, b_i)
 
 def add_polynomial_0N_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    n = len(parameters)
+    s0 = parameters[0]
+    for j in range(0, int(len(parameters)/2 - 1)):
+        a_i = parameters[1 + 2*j]
+        b_i = parameters[1 + 2*j+1]
 
-    for i in range(0, len(s)):
-        for j in range(1, n/2, step=2):
-            p = parameters[j]
-            q = parameters[j+1]
-
-            I[i] += p*numpy.pow((s[i]-parameters[0]), q)
+        I += a_i*numpy.pow((s-s0), b_i)
 
 def add_expdecay_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    for i in range(0, len(s)):
-        for j in range(1, 2*(len(parameters)-2), step=2):
-            p = parameters[j]
-            q = parameters[j+1]
+    for j in range(0, int(len(parameters)/2 - 1)):
+        a_i = parameters[2*j]
+        b_i = parameters[2*j+1]
 
-            I[i] += p*numpy.exp(-numpy.abs(s[i]-parameters[0])*q)
+        I += a_i*numpy.exp(-numpy.abs(s)*b_i)
+
+def add_expdecay_0_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
+    s0 = parameters[0]
+    for j in range(0, int(len(parameters)/2 - 1)):
+        a_i = parameters[1 + 2*j]
+        b_i = parameters[1 + 2*j+1]
+
+        I += a_i*numpy.exp(-numpy.abs(s-s0)*b_i)

@@ -6,6 +6,7 @@ from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface
 from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util import *
 from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import fit_function
 
+from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
 
 PRCSN = 2.5E-7
@@ -391,14 +392,26 @@ class FitterMinpack(FitterInterface):
             last_index += fit_global_parameters.fit_initialization.thermal_polarization_parameters.get_parameters_count()
 
         if not fit_global_parameters.background_parameters is None:
-            fit_global_parameters.background_parameters.c0.set_value(fitted_parameters[last_index + 1].value)
-            fit_global_parameters.background_parameters.c1.set_value(fitted_parameters[last_index + 2].value)
-            fit_global_parameters.background_parameters.c2.set_value(fitted_parameters[last_index + 3].value)
-            fit_global_parameters.background_parameters.c3.set_value(fitted_parameters[last_index + 4].value)
-            fit_global_parameters.background_parameters.c4.set_value(fitted_parameters[last_index + 5].value)
-            fit_global_parameters.background_parameters.c5.set_value(fitted_parameters[last_index + 6].value)
+            for key in fit_global_parameters.background_parameters.keys():
+                background_parameters = fit_global_parameters.get_background_parameters(key)
 
-            last_index += fit_global_parameters.background_parameters.get_parameters_count()
+                if not background_parameters is None:
+                    if key == ChebyshevBackground.__name__:
+                        background_parameters.c0.set_value(fitted_parameters[last_index + 1].value)
+                        background_parameters.c1.set_value(fitted_parameters[last_index + 2].value)
+                        background_parameters.c2.set_value(fitted_parameters[last_index + 3].value)
+                        background_parameters.c3.set_value(fitted_parameters[last_index + 4].value)
+                        background_parameters.c4.set_value(fitted_parameters[last_index + 5].value)
+                        background_parameters.c5.set_value(fitted_parameters[last_index + 6].value)
+                    elif key == ExpDecayBackground.__name__:
+                        background_parameters.a0.set_value(fitted_parameters[last_index + 1].value)
+                        background_parameters.b0.set_value(fitted_parameters[last_index + 2].value)
+                        background_parameters.a1.set_value(fitted_parameters[last_index + 3].value)
+                        background_parameters.b1.set_value(fitted_parameters[last_index + 4].value)
+                        background_parameters.a2.set_value(fitted_parameters[last_index + 5].value)
+                        background_parameters.b2.set_value(fitted_parameters[last_index + 6].value)
+
+                last_index += background_parameters.get_parameters_count()
 
         if not fit_global_parameters.instrumental_parameters is None:
             fit_global_parameters.instrumental_parameters.U.set_value(fitted_parameters[last_index + 1].value)
@@ -483,14 +496,26 @@ class FitterMinpack(FitterInterface):
             last_index += fit_global_parameters.fit_initialization.thermal_polarization_parameters.get_parameters_count()
 
         if not fit_global_parameters.background_parameters is None:
-            fit_global_parameters.background_parameters.c0.error = errors[last_index + 1]
-            fit_global_parameters.background_parameters.c1.error = errors[last_index + 2]
-            fit_global_parameters.background_parameters.c2.error = errors[last_index + 3]
-            fit_global_parameters.background_parameters.c3.error = errors[last_index + 4]
-            fit_global_parameters.background_parameters.c4.error = errors[last_index + 5]
-            fit_global_parameters.background_parameters.c5.error = errors[last_index + 6]
+            for key in fit_global_parameters.background_parameters.keys():
+                background_parameters = fit_global_parameters.get_background_parameters(key)
 
-            last_index += fit_global_parameters.background_parameters.get_parameters_count()
+                if not background_parameters is None:
+                    if key == ChebyshevBackground.__name__:
+                        background_parameters.c0.error = errors[last_index + 1]
+                        background_parameters.c1.error = errors[last_index + 2]
+                        background_parameters.c2.error = errors[last_index + 3]
+                        background_parameters.c3.error = errors[last_index + 4]
+                        background_parameters.c4.error = errors[last_index + 5]
+                        background_parameters.c5.error = errors[last_index + 6]
+                    elif key == ExpDecayBackground.__name__:
+                        background_parameters.a0.error = errors[last_index + 1]
+                        background_parameters.b0.error = errors[last_index + 2]
+                        background_parameters.a1.error = errors[last_index + 3]
+                        background_parameters.b1.error = errors[last_index + 4]
+                        background_parameters.a2.error = errors[last_index + 5]
+                        background_parameters.b2.error = errors[last_index + 6]
+
+                last_index += background_parameters.get_parameters_count()
 
         if not fit_global_parameters.instrumental_parameters is None:
             fit_global_parameters.instrumental_parameters.U.error = errors[last_index + 1]
