@@ -162,8 +162,6 @@ class OWStrainKW(OWGenericWidget):
 
             if self.IS_DEVELOP: raise e
 
-
-
     def set_data(self, data):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
