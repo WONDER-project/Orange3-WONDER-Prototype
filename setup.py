@@ -12,14 +12,14 @@ NAME = 'Orange3-WONDER'
 
 MAJOR = 0
 MINOR = 0
-MICRO = 7
+MICRO = 8
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
-AUTHOR = 'Alberto Flor, Luca Rebuffi'
-AUTHOR_EMAIL = 'alberto.flor@unitn.it'
+AUTHOR = 'Luca Rebuffi, Paolo Scardi, Alberto Flor'
+AUTHOR_EMAIL = 'paolo.scardi@unitn.ut'
 
 URL = 'https://github.com/WONDER-project/Orange3-WONDER'
-DESCRIPTION = 'Orange3 add-on for image data mining.'
+DESCRIPTION = 'Whole POwder PatterN MoDEl in Orange.'
 LONG_DESCRIPTION = ABOUT
 LICENSE = 'GPL3+'
 
@@ -58,7 +58,7 @@ INSTALL_REQUIRES = sorted(set(
 ENTRY_POINTS = {
     'orange.widgets':
         ('WONDER = orangecontrib.xrdanalyzer.view.widgets',
-         'UNTRUSTED = orangecontrib.xrdanalyzer.view.untrusted',
+         'WONDER - UNTRUSTED = orangecontrib.xrdanalyzer.view.untrusted',
          ),
     'orange3.addon':
         ('Orange3-WONDER = orangecontrib.xrdanalyzer',)
