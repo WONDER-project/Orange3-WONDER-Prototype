@@ -43,14 +43,10 @@ def fit_function(s, fit_global_parameters):
         raise NotImplementedError("Only Cubic structures are supported by fit")
 
 
-
-from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
-from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel
-
-
 #################################################
 # FOURIER FUNCTIONS
 #################################################
+from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
 
 class FourierTranformFactory:
     @classmethod
@@ -125,6 +121,8 @@ class FourierTransformFull(FourierTransform):
 # CALCOLO DI UN SINGOLO PICCO
 #################################################
 
+from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
+
 def create_one_peak(reflection_index, fit_global_parameters):
     fft_type = fit_global_parameters.fit_initialization.fft_parameters.fft_type
     fit_space_parameters = fit_global_parameters.space_parameters()
@@ -132,6 +130,8 @@ def create_one_peak(reflection_index, fit_global_parameters):
     reflection = crystal_structure.get_reflection(reflection_index)
 
     fourier_amplitudes = None
+
+    # INSTRUMENTAL PROFILE ---------------------------------------------------------------------------------------------
 
     if not fit_global_parameters.instrumental_parameters is None:
         if fourier_amplitudes is None:
@@ -161,6 +161,7 @@ def create_one_peak(reflection_index, fit_global_parameters):
                                                         fit_global_parameters.instrumental_parameters.b.value,
                                                         fit_global_parameters.instrumental_parameters.c.value)
 
+    # SIZE -------------------------------------------------------------------------------------------------------------
 
     if not fit_global_parameters.size_parameters is None:
         if fourier_amplitudes is None:
@@ -172,8 +173,10 @@ def create_one_peak(reflection_index, fit_global_parameters):
                                                           fit_global_parameters.size_parameters.sigma.value,
                                                           fit_global_parameters.size_parameters.mu.value)
 
+    # STRAIN -----------------------------------------------------------------------------------------------------------
+
     if not fit_global_parameters.strain_parameters is None:
-        if isinstance(fit_global_parameters.strain_parameters, InvariantPAH):
+        if isinstance(fit_global_parameters.strain_parameters, InvariantPAH): # INVARIANT PAH
             if fourier_amplitudes is None:
                 fourier_amplitudes = strain_invariant_function(fit_space_parameters.L,
                                                                reflection.h,
@@ -197,7 +200,38 @@ def create_one_peak(reflection_index, fit_global_parameters):
                                                                                                                       reflection.k,
                                                                                                                       reflection.l))
 
-        elif isinstance(fit_global_parameters.strain_parameters, WarrenModel):
+        elif isinstance(fit_global_parameters.strain_parameters, KrivoglazWilkensModel): # KRIVOGLAZ-WILKENS
+            if fourier_amplitudes is None:
+                fourier_amplitudes = strain_krivoglaz_wilkens(fit_space_parameters.L,
+                                                               reflection.h,
+                                                               reflection.k,
+                                                               reflection.l,
+                                                               crystal_structure.a.value,
+                                                               fit_global_parameters.strain_parameters.rho.value,
+                                                               fit_global_parameters.strain_parameters.Re.value,
+                                                               fit_global_parameters.strain_parameters.Ae.value,
+                                                               fit_global_parameters.strain_parameters.Be.value,
+                                                               fit_global_parameters.strain_parameters.As.value,
+                                                               fit_global_parameters.strain_parameters.Bs.value,
+                                                               fit_global_parameters.strain_parameters.mix.value,
+                                                               fit_global_parameters.strain_parameters.b.value)
+
+            else:
+                fourier_amplitudes *= strain_krivoglaz_wilkens(fit_space_parameters.L,
+                                                               reflection.h,
+                                                               reflection.k,
+                                                               reflection.l,
+                                                               crystal_structure.a.value,
+                                                               fit_global_parameters.strain_parameters.rho.value,
+                                                               fit_global_parameters.strain_parameters.Re.value,
+                                                               fit_global_parameters.strain_parameters.Ae.value,
+                                                               fit_global_parameters.strain_parameters.Be.value,
+                                                               fit_global_parameters.strain_parameters.As.value,
+                                                               fit_global_parameters.strain_parameters.Bs.value,
+                                                               fit_global_parameters.strain_parameters.mix.value,
+                                                               fit_global_parameters.strain_parameters.b.value)
+
+        elif isinstance(fit_global_parameters.strain_parameters, WarrenModel): # WARREN
             fourier_amplitudes_re, fourier_amplitudes_im = strain_warren_function(fit_space_parameters.L,
                                                                                   reflection.h,
                                                                                   reflection.k,
@@ -215,11 +249,17 @@ def create_one_peak(reflection_index, fit_global_parameters):
                 else:
                     fourier_amplitudes *= fourier_amplitudes_re
 
+    # STRAIN -----------------------------------------------------------------------------------------------------------
+
     s, I = FourierTranformFactory.get_fourier_transform(fft_type).fft(fourier_amplitudes,
                                                                       n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
                                                                       dL=fit_space_parameters.dL)
 
     s_hkl = Utilities.s_hkl(crystal_structure.a.value, reflection.h, reflection.k, reflection.l)
+
+    s += s_hkl
+
+    # INTENSITY MODULATION: STRUCTURAL MODEL YES/NO --------------------------------------------------------------------
 
     if crystal_structure.use_structure:
         I *= crystal_structure.intensity_scale_factor.value
@@ -235,7 +275,7 @@ def create_one_peak(reflection_index, fit_global_parameters):
 
     #TODO: AGGIUNGERE GESTIONE TDS con strutture dati + widget ad hoc
 
-    s += s_hkl
+    # PEAK SHIFTS  -----------------------------------------------------------------------------------------------------
 
     if not fit_global_parameters.lab6_tan_correction is None:
         s += lab6_tan_correction(s,
@@ -245,6 +285,8 @@ def create_one_peak(reflection_index, fit_global_parameters):
                                  fit_global_parameters.lab6_tan_correction.cx.value,
                                  fit_global_parameters.lab6_tan_correction.dx.value,
                                  fit_global_parameters.lab6_tan_correction.ex.value)
+
+    # LORENTZ/POLARIZATION FACTOR --------------------------------------------------------------------------------------
 
     if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None and \
             fit_global_parameters.fit_initialization.thermal_polarization_parameters.use_lorentz_polarization_factor:

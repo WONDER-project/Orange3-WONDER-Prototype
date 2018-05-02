@@ -406,14 +406,14 @@ class KrivoglazWilkensModel(FitParametersList):
         return "kw_"
 
     def __init__(self,
-                 rho=None,
-                 Re =None,
-                 Ae =None,
-                 Be =None,
-                 As =None,
-                 Bs =None,
-                 mix=None,
-                 b  =None,
+                 rho= None,
+                 Re = None,
+                 Ae = None,
+                 Be = None,
+                 As = None,
+                 Bs = None,
+                 mix= None,
+                 b  = None,
                  ):
         super(FitParametersList, self).__init__()
 
