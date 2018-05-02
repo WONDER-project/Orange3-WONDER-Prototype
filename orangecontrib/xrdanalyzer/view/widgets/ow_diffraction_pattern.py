@@ -1,7 +1,8 @@
 import os, sys, numpy
 
-from PyQt5.QtWidgets import QMessageBox, QScrollArea, QTableWidget, QApplication
+from PyQt5.QtWidgets import QMessageBox, QScrollArea, QTableWidget, QHeaderView, QAbstractItemView, QTableWidgetItem, QApplication
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QDoubleValidator
 
 from silx.gui.plot.PlotWindow import PlotWindow
 
@@ -37,6 +38,8 @@ class OWDiffractionPattern(OWGenericWidget):
     twotheta_max = Setting(0.0)
     twotheta_has_max = Setting(0)
 
+    horizontal_headers = ["2Theta [deg]", "s [nm^-1]", "Intensity", "Error"]
+
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 
     def __init__(self):
@@ -59,17 +62,17 @@ class OWDiffractionPattern(OWGenericWidget):
 
         orangegui.button(file_box, self, "...", callback=self.open_folders)
 
-        gui.lineEdit(main_box, self, "wavelength", "Wavelength", labelWidth=250, valueType=float)
+        gui.lineEdit(main_box, self, "wavelength", "Wavelength [nm]", labelWidth=350, valueType=float, validator=QDoubleValidator())
 
-        box = gui.widgetBox(main_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50)
+        box = gui.widgetBox(main_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 25)
 
-        orangegui.checkBox(box, self, "twotheta_has_min", "2th min")
-        gui.lineEdit(box, self, "twotheta_min", "", labelWidth=5, valueType=float)
+        orangegui.checkBox(box, self, "twotheta_has_min", "2th min [deg]", labelWidth=350)
+        gui.lineEdit(box, self, "twotheta_min", "", labelWidth=5, valueType=float, validator=QDoubleValidator())
 
-        box = gui.widgetBox(main_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50)
+        box = gui.widgetBox(main_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 25)
 
-        orangegui.checkBox(box, self, "twotheta_has_max", "2th max")
-        gui.lineEdit(box, self, "twotheta_max", "", labelWidth=5, valueType=float)
+        orangegui.checkBox(box, self, "twotheta_has_max", "2th max [deg]", labelWidth=350)
+        gui.lineEdit(box, self, "twotheta_max", "", labelWidth=5, valueType=float, validator=QDoubleValidator())
 
         button_box = gui.widgetBox(main_box,
                                    "", orientation="horizontal",
@@ -95,9 +98,9 @@ class OWDiffractionPattern(OWGenericWidget):
         self.scrollarea.setMinimumWidth(805)
         self.scrollarea.setMinimumHeight(605)
 
-        self.text_area = gui.textArea(height=600, width=800, readOnly=True)
+        self.table_data = self.create_table_widget()
 
-        self.scrollarea.setWidget(self.text_area)
+        self.scrollarea.setWidget(self.table_data)
         self.scrollarea.setWidgetResizable(1)
 
         self.tab_data.layout().addWidget(self.scrollarea, alignment=Qt.AlignHCenter)
@@ -143,15 +146,64 @@ class OWDiffractionPattern(OWGenericWidget):
         y = []
 
         for index in range(0, self.diffraction_pattern.diffraction_points_count()):
-            text += "\n" + str(self.diffraction_pattern.get_diffraction_point(index).twotheta) + "  " + \
-                    str(self.diffraction_pattern.get_diffraction_point(index).s) + " " + \
-                    str(self.diffraction_pattern.get_diffraction_point(index).intensity)
-
             x.append(self.diffraction_pattern.get_diffraction_point(index).twotheta)
             y.append(self.diffraction_pattern.get_diffraction_point(index).intensity)
 
         self.plot.addCurve(x, y)
-        self.text_area.setText(text)
+
+        self.populate_table(self.table_data, self.diffraction_pattern)
+
+
+    def create_table_widget(self):
+        table = QTableWidget(1, 4)
+        table.setAlternatingRowColors(True)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        table.verticalHeader().setVisible(False)
+        table.setHorizontalHeaderLabels(self.horizontal_headers)
+
+        table.setColumnWidth(0, 80)
+        table.setColumnWidth(1, 80)
+        table.setColumnWidth(2, 80)
+        table.setColumnWidth(3, 80)
+
+        table.resizeRowsToContents()
+        table.setSelectionBehavior(QAbstractItemView.SelectRows)
+
+        return table
+
+    def populate_table(self, table_widget, diffraction_pattern):
+        table_widget.clear()
+
+        row_count = table_widget.rowCount()
+        for n in range(0, row_count):
+            table_widget.removeRow(0)
+
+        for index in range(0, self.diffraction_pattern.diffraction_points_count()):
+            table_widget.insertRow(0)
+
+        for index in range(0, self.diffraction_pattern.diffraction_points_count()):
+
+            table_item = QTableWidgetItem(str(round(self.diffraction_pattern.get_diffraction_point(index).twotheta, 6)))
+            table_item.setTextAlignment(Qt.AlignRight)
+            table_widget.setItem(index, 0, table_item)
+
+            table_item = QTableWidgetItem(str(round(self.diffraction_pattern.get_diffraction_point(index).s, 6)))
+            table_item.setTextAlignment(Qt.AlignRight)
+            table_widget.setItem(index, 1, table_item)
+
+            table_item = QTableWidgetItem(str(round(self.diffraction_pattern.get_diffraction_point(index).intensity, 6)))
+            table_item.setTextAlignment(Qt.AlignRight)
+            table_widget.setItem(index, 2, table_item)
+
+            table_item = QTableWidgetItem(str(round(0.0 if self.diffraction_pattern.get_diffraction_point(index).error is None else self.diffraction_pattern.get_diffraction_point(index).error, 6)))
+            table_item.setTextAlignment(Qt.AlignRight)
+            table_widget.setItem(index, 3, table_item)
+
+        table_widget.setHorizontalHeaderLabels(self.horizontal_headers)
+        table_widget.resizeRowsToContents()
+        table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        table_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
 
 
 if __name__ == "__main__":

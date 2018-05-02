@@ -18,7 +18,7 @@ class OWInstrumentalProfile(OWGenericWidget):
     name = "Instrumental Profile"
     description = "Define Instrumental Profile Parameters"
     icon = "icons/instrumental_profile.png"
-    priority = 3
+    priority = 6
 
     want_main_area = False
 
@@ -86,56 +86,6 @@ class OWInstrumentalProfile(OWGenericWidget):
     b_function_value = Setting("")
     c_function_value = Setting("")
 
-    #########################################
-    
-    ax = Setting(0.0)
-    bx = Setting(0.0)
-    cx = Setting(0.0)
-    dx = Setting(0.0)
-    ex = Setting(0.0)
-
-    ax_fixed = Setting(0)
-    bx_fixed = Setting(0)
-    cx_fixed = Setting(0)
-    dx_fixed = Setting(0)
-    ex_fixed = Setting(0)
-
-    ax_has_min = Setting(0)
-    bx_has_min = Setting(0)
-    cx_has_min = Setting(0)
-    dx_has_min = Setting(0)
-    ex_has_min = Setting(0)
-
-    ax_min = Setting(0.0)
-    bx_min = Setting(0.0)
-    cx_min = Setting(0.0)
-    dx_min = Setting(0.0)
-    ex_min = Setting(0.0)
-
-    ax_has_max = Setting(0)
-    bx_has_max = Setting(0)
-    cx_has_max = Setting(0)
-    dx_has_max = Setting(0)
-    ex_has_max = Setting(0)
-
-    ax_max = Setting(0.0)
-    bx_max = Setting(0.0)
-    cx_max = Setting(0.0)
-    dx_max = Setting(0.0)
-    ex_max = Setting(0.0)
-
-    ax_function = Setting(0)
-    bx_function = Setting(0)
-    cx_function = Setting(0)
-    dx_function = Setting(0)
-    ex_function = Setting(0)
-
-    ax_function_value = Setting("")
-    bx_function_value = Setting("")
-    cx_function_value = Setting("")
-    dx_function_value = Setting("")
-    ex_function_value = Setting("")
-
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 
@@ -144,7 +94,7 @@ class OWInstrumentalProfile(OWGenericWidget):
 
         main_box = gui.widgetBox(self.controlArea,
                                  "Instrumental Profile", orientation="vertical",
-                                 width=self.CONTROL_AREA_WIDTH - 10, height=600)
+                                 width=self.CONTROL_AREA_WIDTH - 10, height=300)
 
 
         caglioti_box_1 = gui.widgetBox(main_box,
@@ -161,16 +111,6 @@ class OWInstrumentalProfile(OWGenericWidget):
         self.create_box(caglioti_box_2, "a")
         self.create_box(caglioti_box_2, "b")
         self.create_box(caglioti_box_2, "c")
-
-        lab6_box = gui.widgetBox(main_box,
-                                    "Lab6 Tan Correction", orientation="vertical",
-                                    width=self.CONTROL_AREA_WIDTH - 30)
-
-        self.create_box(lab6_box, "ax")
-        self.create_box(lab6_box, "bx")
-        self.create_box(lab6_box, "cx")
-        self.create_box(lab6_box, "dx")
-        self.create_box(lab6_box, "ex")
 
         button_box = gui.widgetBox(main_box,
                                    "", orientation="horizontal",
@@ -189,12 +129,6 @@ class OWInstrumentalProfile(OWGenericWidget):
                                                                               a=self.populate_parameter("a", Caglioti.get_parameters_prefix()),
                                                                               b=self.populate_parameter("b", Caglioti.get_parameters_prefix()),
                                                                               c=self.populate_parameter("c", Caglioti.get_parameters_prefix()))
-
-                self.fit_global_parameters.lab6_tan_correction = Lab6TanCorrection(ax=self.populate_parameter("ax", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                   bx=self.populate_parameter("bx", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                   cx=self.populate_parameter("cx", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                   dx=self.populate_parameter("dx", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                   ex=self.populate_parameter("ex", Lab6TanCorrection.get_parameters_prefix()))
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -217,13 +151,6 @@ class OWInstrumentalProfile(OWGenericWidget):
                 self.populate_fields("a", self.fit_global_parameters.instrumental_parameters.a)
                 self.populate_fields("b", self.fit_global_parameters.instrumental_parameters.b)
                 self.populate_fields("c", self.fit_global_parameters.instrumental_parameters.c)
-
-            if not self.fit_global_parameters.lab6_tan_correction is None:
-                self.populate_fields("ax", self.fit_global_parameters.lab6_tan_correction.ax)
-                self.populate_fields("bx", self.fit_global_parameters.lab6_tan_correction.bx)
-                self.populate_fields("cx", self.fit_global_parameters.lab6_tan_correction.cx)
-                self.populate_fields("dx", self.fit_global_parameters.lab6_tan_correction.dx)
-                self.populate_fields("ex", self.fit_global_parameters.lab6_tan_correction.ex)
 
             if self.is_automatic_run:
                 self.send_intrumental_profile()

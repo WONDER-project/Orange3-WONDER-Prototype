@@ -17,7 +17,7 @@ class OWStrain(OWGenericWidget):
     name = "Invariant Strain"
     description = "Define Strain"
     icon = "icons/strain.png"
-    priority = 6
+    priority = 8
 
     want_main_area =  False
 

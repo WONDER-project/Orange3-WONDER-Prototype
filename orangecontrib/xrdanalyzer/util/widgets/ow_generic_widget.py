@@ -8,6 +8,7 @@ from Orange.widgets import gui as orangegui
 
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QRect
+from PyQt5.QtGui import QDoubleValidator
 
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import ConfirmDialog, gui, ShowTextDialog
 
@@ -77,7 +78,7 @@ class OWGenericWidget(widget.OWWidget):
         box_function_value = gui.widgetBox(box, "", orientation="horizontal")
 
         gui.widgetLabel(box_label, var if label is None else label)
-        le_var = gui.lineEdit(box_value, self, var, "", valueType=float)
+        le_var = gui.lineEdit(box_value, self, var, "", valueType=float, validator=QDoubleValidator())
 
         def set_flags():
             fixed = getattr(self, var + "_fixed") == True
@@ -112,9 +113,9 @@ class OWGenericWidget(widget.OWWidget):
         orangegui.checkBox(box_fixed, self, var + "_fixed", "fixed", callback=set_flags)
 
         orangegui.checkBox(box_min_max, self, var + "_has_min", "min")
-        gui.lineEdit(box_min_max, self, var + "_min", "", labelWidth=5, valueType=float)
+        gui.lineEdit(box_min_max, self, var + "_min", "", labelWidth=5, valueType=float, validator=QDoubleValidator())
         orangegui.checkBox(box_min_max, self, var + "_has_max", "max")
-        gui.lineEdit(box_min_max, self, var + "_max", "", labelWidth=5, valueType=float)
+        gui.lineEdit(box_min_max, self, var + "_max", "", labelWidth=5, valueType=float, validator=QDoubleValidator())
 
         orangegui.checkBox(box_function, self, var + "_function", "f(x)", callback=set_flags)
         gui.lineEdit(box_function_value, self, var + "_function_value", "expression", valueType=str)
@@ -140,28 +141,31 @@ class OWGenericWidget(widget.OWWidget):
 
             return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(self, parameter_name), boundary=boundary)
 
-    def populate_fields(self, var, parameter):
-        setattr(self, var, parameter.value if not parameter.value is None else 0.0)
-        setattr(self, var + "_function", 1 if parameter.function else 0)
-        setattr(self, var + "_function_value", parameter.function_value if parameter.function else "")
-        setattr(self, var + "_fixed", 1 if parameter.fixed else 0)
+    def populate_fields(self, var, parameter, value_only=True):
 
-        if not parameter.boundary is None:
-            if parameter.boundary.min_value != PARAM_HWMIN:
-                setattr(self, var + "_has_min", 1)
-                setattr(self, var + "_min", parameter.boundary.min_value)
-            else:
-                setattr(self, var + "_has_min", 0)
-                setattr(self, var + "_min", 0.0)
+        setattr(self, var, round(parameter.value, 8) if not parameter.value is None else 0.0)
 
-            if parameter.boundary.max_value != PARAM_HWMAX:
-                setattr(self, var + "_has_max", 1)
-                setattr(self, var + "_max", parameter.boundary.max_value)
-            else:
-                setattr(self, var + "_has_max", 0)
-                setattr(self, var + "_max", 0.0)
+        if not value_only:
+            setattr(self, var + "_function", 1 if parameter.function else 0)
+            setattr(self, var + "_function_value", parameter.function_value if parameter.function else "")
+            setattr(self, var + "_fixed", 1 if parameter.fixed else 0)
 
-        self.parameter_functions[var]()
+            if not parameter.boundary is None:
+                if parameter.boundary.min_value != PARAM_HWMIN:
+                    setattr(self, var + "_has_min", 1)
+                    setattr(self, var + "_min", round(parameter.boundary.min_value, 6))
+                else:
+                    setattr(self, var + "_has_min", 0)
+                    setattr(self, var + "_min", 0.0)
+
+                if parameter.boundary.max_value != PARAM_HWMAX:
+                    setattr(self, var + "_has_max", 1)
+                    setattr(self, var + "_max", round(parameter.boundary.max_value, 6))
+                else:
+                    setattr(self, var + "_has_max", 0)
+                    setattr(self, var + "_max", 0.0)
+
+            self.parameter_functions[var]()
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):

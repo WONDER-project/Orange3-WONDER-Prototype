@@ -15,7 +15,7 @@ class OWFreeInputParameters(OWGenericWidget):
     name = "Free Input Parameters"
     description = "Free Input Parameters"
     icon = "icons/free_input_parameters.png"
-    priority = 20
+    priority = 50
 
     want_main_area = False
 

@@ -60,7 +60,7 @@ class gui:
         qapp.setFont(font)
 
         # change orange gui label font
-        orange_gui.widgetLabel = widgetLabel
+        orange_gui.widgetLabel = cls.widgetLabel
 
     @classmethod
     def lineEdit(cls, widget, master, value, label=None, labelWidth=None,

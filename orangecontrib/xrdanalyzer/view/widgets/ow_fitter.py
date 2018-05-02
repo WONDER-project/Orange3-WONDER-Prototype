@@ -2,7 +2,7 @@ import sys, numpy, os
 
 from PyQt5.QtWidgets import QMessageBox, QScrollArea, QApplication, QTableWidget, QHeaderView, QAbstractItemView, QTableWidgetItem, QFileDialog
 from PyQt5.QtCore import Qt, QMutex
-from PyQt5.QtGui import QColor, QFont, QTextCursor
+from PyQt5.QtGui import QColor, QFont, QTextCursor, QIntValidator
 
 from silx.gui.plot.PlotWindow import PlotWindow
 from silx.gui.plot.LegendSelector import LegendsDockWidget
@@ -24,7 +24,7 @@ class OWFitter(OWGenericWidget):
     name = "Fitter"
     description = "Fitter"
     icon = "icons/fit.png"
-    priority = 8
+    priority = 60
 
     want_main_area = True
     standard_output = sys.stdout
@@ -81,7 +81,7 @@ class OWFitter(OWGenericWidget):
 
         iteration_box = gui.widgetBox(main_box, "", orientation="horizontal", width=250)
 
-        gui.lineEdit(iteration_box, self, "n_iterations", "Nr. Iterations", labelWidth=80, valueType=int)
+        gui.lineEdit(iteration_box, self, "n_iterations", "Nr. Iterations", labelWidth=80, valueType=int, validator=QIntValidator())
         orangegui.checkBox(iteration_box, self, "is_incremental", "Incremental")
 
         iteration_box = gui.widgetBox(main_box, "", orientation="vertical", width=250)

@@ -1,7 +1,4 @@
 
-import numpy
-
-
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_ERR
 
@@ -130,7 +127,6 @@ class FitterMinpack(FitterInterface):
             if parameter.is_variable():
                 j += 1
                 self.initialpar.setitem(j, parameter.value)
-
 
     def do_fit(self, current_fit_global_parameters, current_iteration):
         self.fit_global_parameters = current_fit_global_parameters.duplicate()
@@ -295,10 +291,22 @@ class FitterMinpack(FitterInterface):
 
             self.parameters = self.build_fit_global_parameters_out(self.parameters).get_parameters()
 
+
         fitted_parameters = self.parameters
 
         fit_global_parameters_out = self.build_fit_global_parameters_out(fitted_parameters)
         fit_global_parameters_out.set_convergence_reached(self.conver)
+
+        y = fit_function(self.s_experimental, fit_global_parameters_out)
+
+        self.minpack_data.wss = self.wss
+        # TODO: verificare perchè questa istruzione wss *= (step*step);
+
+        self.minpack_data.ss = self.getSSQFromData(y=y)
+        self.minpack_data.wsq = self.getWSQFromData(y=y)
+        self.minpack_data.calc_lambda = self._lambda
+        self.minpack_data.calculate()
+
 
         fitted_pattern = DiffractionPattern()
         fitted_pattern.wavelength = current_fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
@@ -333,21 +341,6 @@ class FitterMinpack(FitterInterface):
             print("Errors not calculated: chodec != 0")
 
         fit_global_parameters_out = self.build_fit_global_parameters_out_errors(errors=errors)
-
-        '''
-	if (dof>0)
-	{
-		minObjList->evalDataOut();
-		wss = minObjList->getWSSQFromData();
-		ss = minObjList->getSSQFromData();
-		double wsq	= minObjList->getWSQFromData();
-		double rwp	= sqrt(wss / wsq);
-		double rexp	= sqrt(((double)dof) / wsq);
-		//double gof1  = sqrt(wss/dof);
-		double gof	= rwp / rexp;
-		wss *= (step*step);
-    }
-        '''
 
         return fitted_pattern, fit_global_parameters_out, self.minpack_data
 

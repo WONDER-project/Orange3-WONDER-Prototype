@@ -1,6 +1,7 @@
 import sys
 
 from PyQt5.QtWidgets import QMessageBox, QApplication
+from PyQt5.QtGui import QDoubleValidator
 
 from Orange.widgets.settings import Setting
 from Orange.widgets import gui as orangegui
@@ -33,15 +34,15 @@ class OWFitInitialization(OWGenericWidget):
 
         main_box = gui.widgetBox(self.controlArea,
                                  "Fit Initialization", orientation="vertical",
-                                 width=self.CONTROL_AREA_WIDTH - 10, height=200)
+                                 width=self.CONTROL_AREA_WIDTH - 10, height=250)
 
 
         fft_box = gui.widgetBox(main_box,
                                  "FFT", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 30)
 
-        gui.lineEdit(fft_box, self, "s_max", "S_max [nm-1]", labelWidth=250, valueType=float)
-        gui.lineEdit(fft_box, self, "n_step", "FFT Steps", labelWidth=250, valueType=float)
+        gui.lineEdit(fft_box, self, "s_max", "S_max [nm-1]", labelWidth=250, valueType=float, validator=QDoubleValidator())
+        gui.lineEdit(fft_box, self, "n_step", "FFT Steps", labelWidth=250, valueType=float, validator=QDoubleValidator())
 
         orangegui.comboBox(fft_box, self, "fft_type", label="FFT Type", items=FFTTypes.tuple(), orientation="horizontal")
 
