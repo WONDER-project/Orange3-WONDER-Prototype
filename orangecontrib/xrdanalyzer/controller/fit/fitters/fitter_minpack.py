@@ -293,7 +293,6 @@ class FitterMinpack(FitterInterface):
 
             self.parameters = self.build_fit_global_parameters_out(self.parameters).get_parameters()
 
-
         fitted_parameters = self.parameters
 
         fit_global_parameters_out = self.build_fit_global_parameters_out(fitted_parameters)

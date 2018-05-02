@@ -229,18 +229,18 @@ def create_one_peak(reflection_index, fit_global_parameters):
         elif isinstance(fit_global_parameters.strain_parameters, KrivoglazWilkensModel): # KRIVOGLAZ-WILKENS
             if fourier_amplitudes is None:
                 fourier_amplitudes = strain_krivoglaz_wilkens(fit_space_parameters.L,
-                                                               reflection.h,
-                                                               reflection.k,
-                                                               reflection.l,
-                                                               crystal_structure.a.value,
-                                                               fit_global_parameters.strain_parameters.rho.value,
-                                                               fit_global_parameters.strain_parameters.Re.value,
-                                                               fit_global_parameters.strain_parameters.Ae.value,
-                                                               fit_global_parameters.strain_parameters.Be.value,
-                                                               fit_global_parameters.strain_parameters.As.value,
-                                                               fit_global_parameters.strain_parameters.Bs.value,
-                                                               fit_global_parameters.strain_parameters.mix.value,
-                                                               fit_global_parameters.strain_parameters.b.value)
+                                                              reflection.h,
+                                                              reflection.k,
+                                                              reflection.l,
+                                                              crystal_structure.a.value,
+                                                              fit_global_parameters.strain_parameters.rho.value,
+                                                              fit_global_parameters.strain_parameters.Re.value,
+                                                              fit_global_parameters.strain_parameters.Ae.value,
+                                                              fit_global_parameters.strain_parameters.Be.value,
+                                                              fit_global_parameters.strain_parameters.As.value,
+                                                              fit_global_parameters.strain_parameters.Bs.value,
+                                                              fit_global_parameters.strain_parameters.mix.value,
+                                                              fit_global_parameters.strain_parameters.b.value)
 
             else:
                 fourier_amplitudes *= strain_krivoglaz_wilkens(fit_space_parameters.L,
@@ -388,22 +388,30 @@ from numpy import pi, log, sqrt, arcsin, sin # TO SHORTEN FORMULAS
 def clausen_integral_inner_function(t):
     return log(2*sin(t/2))
 
-def clausen_integral(x):
-    return -integrate.quad(lambda t: clausen_integral_inner_function(t), 0, x)
+def clausen_integral(x=0.0):
+    _v_integrate_quad = numpy.vectorize(integrate.quad)
+
+    return -1*(_v_integrate_quad(lambda t: clausen_integral_inner_function(t), 0.0, x)[0])
 
 def f_star(eta):
-    if eta >= 1:
-        return (256/(45*pi*eta)) - ((11/24) + (log(2) - log(eta))/4)/(eta**2)
-    elif eta > 0:
-        result = (256/(45*pi*eta))
-        result += ((eta**2)/6) - log(2) - log(eta)
-        result += -eta*sqrt(1-(eta**2))*(769 + 4*(eta**2)*(20.5 + (eta**2)))/(180*pi*(eta**2))
-        result += -((45 - 180*eta**2)*clausen_integral(2*arcsin(eta)) +
-                    (15*arcsin(eta)*(11 + 4*(eta**2)*(10.5 + (eta**2)) + (6 - 24*(eta**2))*(log(2) + log(eta)))))/(180*pi*(eta**2))
+    result = numpy.zeros(len(eta))
+    eta = numpy.array(eta)
 
-        return result
+    cursor_1 = numpy.where(eta >= 1)
+    cursor_2 = numpy.where(eta < 1)
 
-    else: return 0 #TODO: to be verified
+    eta1 = eta[cursor_1]
+    eta2 = eta[cursor_2]
+
+    result[cursor_1] = (256/(45*pi*eta1)) - ((11/24) + (log(2) - log(eta1))/4)/(eta1**2)
+
+    result[cursor_2] = (256/(45*pi*eta2))
+    result[cursor_2] += ((eta2**2)/6) - log(2) - log(eta2)
+    result[cursor_2] += -eta2*sqrt(1-(eta2**2))*(769 + 4*(eta2**2)*(20.5 + (eta2**2)))/(180*pi*(eta2**2))
+    result[cursor_2] += -((45 - 180*eta2**2)*clausen_integral(2*arcsin(eta2)) +
+                         (15*arcsin(eta2)*(11 + 4*(eta2**2)*(10.5 + (eta2**2)) + (6 - 24*(eta2**2))*(log(2) + log(eta2)))))/(180*pi*(eta2**2))
+
+    return result
 
 def strain_krivoglaz_wilkens(L, h, k, l, lattice_parameter, rho, Re, Ae, Be, As, Bs, mix, b):
     d_hkl = 1/Utilities.s_hkl(lattice_parameter, h, k, l)
