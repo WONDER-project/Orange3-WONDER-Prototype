@@ -12,7 +12,7 @@ from orangecontrib.xrdanalyzer.util import congruence
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, InvariantPAHLaueGroup14, InvariantPAHLaueGroup13, LaueGroup
 
-class OWStrain(OWGenericWidget):
+class OWStrainInvariant(OWGenericWidget):
 
     name = "Invariant Strain"
     description = "Define Strain"
@@ -149,7 +149,7 @@ class OWStrain(OWGenericWidget):
 
 if __name__ == "__main__":
     a =  QApplication(sys.argv)
-    ow = OWStrain()
+    ow = OWStrainInvariant()
     ow.show()
     a.exec_()
     ow.saveSettings()

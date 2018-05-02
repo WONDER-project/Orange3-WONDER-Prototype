@@ -1,4 +1,9 @@
+from scipy import special
 
+print(lambda x: special.jv(2.5,x))
+
+
+'''
 import numpy
 
 l = numpy.array([1 + 1j*3, 2+1j*8])
@@ -59,3 +64,4 @@ if __name__=="__main__":
     progressWidget.move(300, 300)
     progressWidget.show()
     sys.exit(app.exec_())
+'''

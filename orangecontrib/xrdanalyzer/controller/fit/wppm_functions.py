@@ -1,53 +1,4 @@
-# -----------------------------------
-# FOURIER FUNCTIONS
-# -----------------------------------
 
-class FourierTransformRealOnly:
-
-    @classmethod
-    def real_absolute_fourier(cls, y):
-        return numpy.fft.fftshift(numpy.abs(numpy.real(numpy.fft.fft(y))))
-
-    @classmethod
-    def fft_normalized(cls, y_fft, n_steps, dL):
-        s = numpy.fft.fftfreq(n_steps, dL)
-        s = numpy.fft.fftshift(s)
-
-        integral = numpy.trapz(y_fft, s)
-
-        return s, y_fft / integral
-
-    @classmethod
-    def fft(cls, f, n_steps, dL):
-        return cls.fft_normalized(cls.real_absolute_fourier(f), n_steps, dL)
-
-from scipy.integrate import simps
-
-class FourierTransformFull:
-    @classmethod
-    def fourier(cls, y):
-        return numpy.fft.fftshift(numpy.fft.fft(y))
-
-    @classmethod
-    def fft_shifted(cls, y_fft, n_steps, dL):
-        s = numpy.fft.fftfreq(n_steps, dL)
-        s = numpy.fft.fftshift(s)
-
-        y_fft -= y_fft[0]
-
-        return s, y_fft
-
-    @classmethod
-    def fft_real(cls, f, n_steps, dL):
-        return cls.fft_shifted(numpy.real(cls.fourier(f)), n_steps, dL)
-
-    @classmethod
-    def fft_imag(cls, f, n_steps, dL):
-        return cls.fft_shifted(numpy.imag(cls.fourier(f)), n_steps, dL)
-
-    @classmethod
-    def normalize(cls, s, i):
-        return s, i/simps(i, s)
 
 #########################################################################
 # MAIN FUNCTION
@@ -95,6 +46,84 @@ def fit_function(s, fit_global_parameters):
 
 from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel
+
+
+#################################################
+# FOURIER FUNCTIONS
+#################################################
+
+class FourierTranformFactory:
+    @classmethod
+    def get_fourier_transform(cls, type=FFTTypes.REAL_ONLY):
+        if type == FFTTypes.REAL_ONLY:
+            return FourierTransformRealOnly
+        elif type == FFTTypes.FULL:
+            return FourierTransformFull
+        else:
+            raise ValueError("Type not recognized")
+
+class FourierTransform:
+    @classmethod
+    def fft(cls, f, n_steps, dL):
+        raise NotImplementedError()
+
+class FourierTransformRealOnly(FourierTransform):
+
+    @classmethod
+    def _real_absolute_fourier(cls, y):
+        return numpy.fft.fftshift(numpy.abs(numpy.real(numpy.fft.fft(y))))
+
+    @classmethod
+    def _fft_normalized(cls, y_fft, n_steps, dL):
+        s = numpy.fft.fftfreq(n_steps, dL)
+        s = numpy.fft.fftshift(s)
+
+        integral = numpy.trapz(y_fft, s)
+
+        return s, y_fft / integral
+
+    @classmethod
+    def fft(cls, f, n_steps, dL):
+        return cls._fft_normalized(cls._real_absolute_fourier(f), n_steps, dL)
+
+from scipy.integrate import simps
+
+class FourierTransformFull(FourierTransform):
+    @classmethod
+    def _full_fourier(cls, y):
+        return numpy.fft.fftshift(numpy.fft.fft(y))
+
+    @classmethod
+    def _fft_shifted(cls, y_fft, n_steps, dL):
+        s = numpy.fft.fftfreq(n_steps, dL)
+        s = numpy.fft.fftshift(s)
+
+        y_fft -= y_fft[0]
+
+        return s, y_fft
+
+    @classmethod
+    def _fft_real(cls, f, n_steps, dL):
+        return cls._fft_shifted(numpy.real(cls._full_fourier(f)), n_steps, dL)
+
+    @classmethod
+    def _fft_imag(cls, f, n_steps, dL):
+        return cls._fft_shifted(numpy.imag(cls._full_fourier(f)), n_steps, dL)
+
+    @classmethod
+    def _normalize(cls, s, i):
+        return s, i/simps(i, s)
+
+    @classmethod
+    def fft(cls, f, n_steps, dL):
+        sr, fft_real = cls._fft_real(numpy.real(f), n_steps, dL)
+        si, fft_imag = cls._fft_imag(numpy.imag(f), n_steps, dL)
+
+        return cls._normalize(sr, fft_real - fft_imag)
+
+#################################################
+# CALCOLO DI UN SINGOLO PICCO
+#################################################
 
 def create_one_peak(reflection_index, fit_global_parameters):
     fft_type = fit_global_parameters.fit_initialization.fft_parameters.fft_type
@@ -186,20 +215,9 @@ def create_one_peak(reflection_index, fit_global_parameters):
                 else:
                     fourier_amplitudes *= fourier_amplitudes_re
 
-    if fft_type == FFTTypes.FULL:
-        sr, fft_real = FourierTransformFull.fft_real(numpy.real(fourier_amplitudes),
-                                                     n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
-                                                     dL=fit_space_parameters.dL)
-
-        si, fft_imag = FourierTransformFull.fft_imag(numpy.imag(fourier_amplitudes),
-                                                     n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
-                                                     dL=fit_space_parameters.dL)
-
-        s, I = FourierTransformFull.normalize(sr, fft_real - fft_imag)
-    elif fft_type == FFTTypes.REAL_ONLY:
-        s, I = FourierTransformRealOnly.fft(fourier_amplitudes,
-                                            n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
-                                            dL=fit_space_parameters.dL)
+    s, I = FourierTranformFactory.get_fourier_transform(fft_type).fft(fourier_amplitudes,
+                                                                      n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
+                                                                      dL=fit_space_parameters.dL)
 
     s_hkl = Utilities.s_hkl(crystal_structure.a.value, reflection.h, reflection.k, reflection.l)
 
@@ -282,12 +300,46 @@ def size_function_lognormal(L, sigma, mu):
 
 # INVARIANT PAH --------------------------------
 
-def strain_invariant_function(L, h, k, l, lattice_parameter, a, b, invariant):
+def strain_invariant_function(L, h, k, l, lattice_parameter, a, b, C_hkl):
     s_hkl = Utilities.s_hkl(lattice_parameter, h, k, l)
 
-    # TODO: VA BENE PER I CUBICI, DA VERIFICARE PER IL CASO GENERICO
+    return numpy.exp(-((2*numpy.pi**2)/((s_hkl**2)*(lattice_parameter**4))) * C_hkl * (a*L + b*(L**2)))
 
-    return numpy.exp(-(1/(2*(s_hkl**2)*(lattice_parameter**4)))*invariant*(a*L + b*(L**2)))
+# Krivoglaz-Wilkens  --------------------------------
+
+from scipy import integrate
+from numpy import pi, log, sqrt, arcsin, sin # TO SHORTEN FORMULAS
+
+def clausen_integral_inner_function(t):
+    return log(2*sin(t/2))
+
+def clausen_integral(x):
+    return -integrate.quad(lambda t: clausen_integral_inner_function(t), 0, x)
+
+def f_star(eta):
+    if eta >= 1:
+        return (256/(45*pi*eta)) - ((11/24) + (log(2) - log(eta))/4)/(eta**2)
+    elif eta > 0:
+        result = (256/(45*pi*eta))
+        result += ((eta**2)/6) - log(2) - log(eta)
+        result += -eta*sqrt(1-(eta**2))*(769 + 4*(eta**2)*(20.5 + (eta**2)))/(180*pi*(eta**2))
+        result += -((45 - 180*eta**2)*clausen_integral(2*arcsin(eta)) +
+                    (15*arcsin(eta)*(11 + 4*(eta**2)*(10.5 + (eta**2)) + (6 - 24*(eta**2))*(log(2) + log(eta)))))/(180*pi*(eta**2))
+
+        return result
+
+    else: return 0 #TODO: to be verified
+
+def strain_krivoglaz_wilkens(L, h, k, l, lattice_parameter, rho, Re, Ae, Be, As, Bs, mix, b):
+    d_hkl = 1/Utilities.s_hkl(lattice_parameter, h, k, l)
+    H = Utilities.Hinvariant(h, k, l)
+
+    C_hkl_edge = Ae + Be*H**2
+    C_hkl_screw = As + Bs*H**2
+
+    C_hkl = mix*C_hkl_edge + (1-mix)*C_hkl_screw
+
+    return numpy.exp(-((pi*(b**2)*C_hkl*rho*f_star(L/Re))/(2*(d_hkl**2)))*(L**2))
 
 # WARREN MODEL --------------------------------
 

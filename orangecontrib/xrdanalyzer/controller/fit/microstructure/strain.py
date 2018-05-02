@@ -391,6 +391,68 @@ class InvariantPAHLaueGroup14(InvariantPAHCubic):
         super(InvariantPAHLaueGroup14, self).__init__(aa, bb, 14, e1, e4)
 
 
+class KrivoglazWilkensModel(FitParametersList):
+    rho = None
+    Re  = None
+    Ae  = None
+    Be  = None
+    As  = None
+    Bs  = None
+    mix = None
+    b   = None
+
+    @classmethod
+    def get_parameters_prefix(cls):
+        return "kw_"
+
+    def __init__(self,
+                 rho=None,
+                 Re =None,
+                 Ae =None,
+                 Be =None,
+                 As =None,
+                 Bs =None,
+                 mix=None,
+                 b  =None,
+                 ):
+        super(FitParametersList, self).__init__()
+
+        self.rho = rho
+        self.Re  = Re
+        self.Ae  = Ae
+        self.Be  = Be
+        self.As  = As
+        self.Bs  = Bs
+        self.mix = mix
+        self.b   = b
+
+    def to_text(self):
+        text = "STRAIN - KRIVOGLAZ-WILKENS MODEL\n"
+        text += "-----------------------------------\n"
+
+        text += "" if self.rho is None else self.rho.to_text() + "\n"
+        text += "" if self.Re  is None else self.Re .to_text() + "\n"
+        text += "" if self.Ae  is None else self.Ae .to_text() + "\n"
+        text += "" if self.Be  is None else self.Be .to_text() + "\n"
+        text += "" if self.As  is None else self.As .to_text() + "\n"
+        text += "" if self.Bs  is None else self.Bs .to_text() + "\n"
+        text += "" if self.mix is None else self.mix.to_text() + "\n"
+        text += "" if self.b   is None else self.b  .to_text() + "\n"
+
+        text += "-----------------------------------\n"
+
+        return text
+
+    def duplicate(self):
+        return KrivoglazWilkensModel(rho = None if self.rho is None else self.rho.duplicate(),
+                                     Re  = None if self.Re  is None else self.Re.duplicate(),
+                                     Ae  = None if self.Ae  is None else self.Ae.duplicate(),
+                                     Be  = None if self.Be  is None else self.Be.duplicate(),
+                                     As  = None if self.As  is None else self.As.duplicate(),
+                                     Bs  = None if self.Bs  is None else self.Bs.duplicate(),
+                                     mix = None if self.mix is None else self.mix.duplicate(),
+                                     b   = None if self.b   is None else self.b.duplicate())
+
 class WarrenModel(FitParametersList):
     average_cell_parameter = None
 
