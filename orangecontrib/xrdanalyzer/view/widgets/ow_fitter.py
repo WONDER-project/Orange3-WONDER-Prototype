@@ -16,7 +16,7 @@ from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ConfirmDialog, E
 from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_HWMAX, PARAM_HWMIN
-from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
+from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters, FreeOutputParameters
 from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName
 
 
@@ -35,7 +35,7 @@ class OWFitter(OWGenericWidget):
     n_iterations = Setting(5)
     is_incremental = Setting(1)
     current_iteration = 0
-    free_output_parameters = Setting("")
+    free_output_parameters_text = Setting("")
     save_file_name = Setting("fit_output.dat")
 
     horizontal_headers = ["Name", "Value", "Min", "Max", "Fixed", "Function", "Expression", "Var"]
@@ -125,8 +125,12 @@ class OWFitter(OWGenericWidget):
         self.scrollarea_free_out.setMinimumWidth(self.CONTROL_AREA_WIDTH-45)
         self.scrollarea_free_out.setMinimumHeight(260)
 
+        def write_text():
+            self.free_output_parameters_text = self.text_area_free_out.toPlainText()
+
         self.text_area_free_out = gui.textArea(height=1000, width=1000, readOnly=False)
-        self.text_area_free_out.setText(self.free_output_parameters)
+        self.text_area_free_out.setText(self.free_output_parameters_text)
+        self.text_area_free_out.textChanged.connect(write_text)
 
         self.scrollarea_free_out.setWidget(self.text_area_free_out)
         self.scrollarea_free_out.setWidgetResizable(1)
@@ -252,13 +256,13 @@ class OWFitter(OWGenericWidget):
                 self.fit_button.setEnabled(False)
                 self.stop_fit = False
 
-                self.free_output_parameters = self.text_area_free_out.toPlainText()
+                #self.free_output_parameters_text = self.text_area_free_out.toPlainText()
 
                 congruence.checkStrictlyPositiveNumber(self.n_iterations, "Nr. Iterations")
 
                 self.fit_global_parameters.set_n_max_iterations(self.n_iterations)
                 self.fit_global_parameters.set_convergence_reached(False)
-                self.fit_global_parameters.free_output_parameters.parse_formulas(self.free_output_parameters)
+                self.fit_global_parameters.free_output_parameters.parse_formulas(self.free_output_parameters_text)
 
                 initial_fit_global_parameters = self.fit_global_parameters.duplicate()
 
@@ -318,8 +322,14 @@ class OWFitter(OWGenericWidget):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
 
-            self.text_area_free_out.setText(self.fit_global_parameters.free_output_parameters.to_python_code())
-            self.free_output_parameters = self.text_area_free_out.toPlainText()
+            # keep existing text!
+            existing_free_output_parameters = FreeOutputParameters()
+            existing_free_output_parameters.parse_formulas(self.free_output_parameters_text)
+
+            received_free_output_parameters = self.fit_global_parameters.free_output_parameters.duplicate()
+            received_free_output_parameters.append(existing_free_output_parameters)
+
+            self.text_area_free_out.setText(received_free_output_parameters.to_python_code())
 
             parameters = self.fit_global_parameters.free_input_parameters.as_parameters()
             parameters.extend(self.fit_global_parameters.get_parameters())
@@ -327,7 +337,6 @@ class OWFitter(OWGenericWidget):
             self.populate_table(self.table_fit_in, parameters)
 
             self.tabs.setCurrentIndex(0)
-
 
             if self.fit_global_parameters.size_parameters is None:
                 self.tab_plot_size.setEnabled(False)

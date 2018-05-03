@@ -390,10 +390,10 @@ class FreeOutputParameters(ParametersList):
         self.set_parameter(name=tokens[0].strip(),
                            parameter=FreeOutputParameter(expression=tokens[1].strip()))
 
-    def append(self, parameters_dictionary):
-        if not parameters_dictionary is None:
-            for name in parameters_dictionary.keys():
-                self.set_parameter(name, parameters_dictionary[name])
+    def append(self, free_output_parameters):
+        if not free_output_parameters is None and not free_output_parameters.parameters_dictionary is None:
+            for name in free_output_parameters.parameters_dictionary.keys():
+                self.set_parameter(name, free_output_parameters.parameters_dictionary[name])
 
     def parse_formulas(self, text):
         is_empty = False

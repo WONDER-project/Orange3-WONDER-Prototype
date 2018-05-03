@@ -175,10 +175,10 @@ class InvariantPAH(FitParametersList):
         step = L_max/100
 
         # TODO: VA BENE PER I CUBICI, DA VERIFICARE PER IL CASO GENERICO
-        x = numpy.arange(start=step, stop=L_max + step, step=step)
-        y = numpy.sqrt((self.get_invariant(h, k, l)*(self.aa.value*x + self.bb.value*(x**2)))/((h**2+k**2+l**2)**2))
+        L = numpy.arange(start=step, stop=L_max + step, step=step)
+        DL = numpy.sqrt((self.get_invariant(h, k, l)*(self.aa.value*L + self.bb.value*(L**2)))/((h**2+k**2+l**2)**2))
 
-        return x, y
+        return L, DL
 
 class InvariantPAHLaueGroup1(InvariantPAH):
 
@@ -452,6 +452,27 @@ class KrivoglazWilkensModel(FitParametersList):
                                      Bs  = None if self.Bs  is None else self.Bs.duplicate(),
                                      mix = None if self.mix is None else self.mix.duplicate(),
                                      b   = None if self.b   is None else self.b.duplicate())
+
+
+    def get_warren_plot(self, h, k, l, L_max=50):
+        step = L_max/100
+
+        # TODO: VA BENE PER I CUBICI, DA VERIFICARE PER IL CASO GENERICO
+        L = numpy.arange(start=step, stop=L_max + step, step=step)
+
+        H = Utilities.Hinvariant(h, k, l)
+
+        C_hkl_edge  = self.Ae.value + self.Be.value*H**2
+        C_hkl_screw = self.As.value + self.Bs.value*H**2
+
+        C_hkl = self.mix.value*C_hkl_edge + (1-self.mix.value)*C_hkl_screw
+
+        from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import f_star
+
+        DL = numpy.sqrt(self.rho.value*C_hkl*(self.b.value**2)*(L**2)*f_star(L/self.Re.value))
+
+        return L, DL
+
 
 class WarrenModel(FitParametersList):
     average_cell_parameter = None

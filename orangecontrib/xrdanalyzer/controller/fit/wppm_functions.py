@@ -393,7 +393,7 @@ def clausen_integral(x=0.0):
 
     return -1*(_v_integrate_quad(lambda t: clausen_integral_inner_function(t), 0.0, x)[0])
 
-def f_star(eta):
+def f_star(eta, use_simplified_calculation=True):
     result = numpy.zeros(len(eta))
     eta = numpy.array(eta)
 
@@ -405,11 +405,14 @@ def f_star(eta):
 
     result[cursor_1] = (256/(45*pi*eta1)) - ((11/24) + (log(2) - log(eta1))/4)/(eta1**2)
 
-    result[cursor_2] = (256/(45*pi*eta2))
-    result[cursor_2] += ((eta2**2)/6) - log(2) - log(eta2)
-    result[cursor_2] += -eta2*sqrt(1-(eta2**2))*(769 + 4*(eta2**2)*(20.5 + (eta2**2)))/(180*pi*(eta2**2))
-    result[cursor_2] += -((45 - 180*eta2**2)*clausen_integral(2*arcsin(eta2)) +
-                         (15*arcsin(eta2)*(11 + 4*(eta2**2)*(10.5 + (eta2**2)) + (6 - 24*(eta2**2))*(log(2) + log(eta2)))))/(180*pi*(eta2**2))
+    if use_simplified_calculation:
+        result[cursor_2] = (7/4) - log(2) - log(eta2) + ((eta2**2)/6) - (32*(eta2**3))/(225*pi)
+    else:
+        result[cursor_2] = (256/(45*pi*eta2))
+        result[cursor_2] += ((eta2**2)/6) - log(2) - log(eta2)
+        result[cursor_2] += -eta2*sqrt(1-(eta2**2))*(769 + 4*(eta2**2)*(20.5 + (eta2**2)))/(180*pi*(eta2**2))
+        result[cursor_2] += -((45 - 180*eta2**2)*clausen_integral(2*arcsin(eta2)) +
+                             (15*arcsin(eta2)*(11 + 4*(eta2**2)*(10.5 + (eta2**2)) + (6 - 24*(eta2**2))*(log(2) + log(eta2)))))/(180*pi*(eta2**2))
 
     return result
 
