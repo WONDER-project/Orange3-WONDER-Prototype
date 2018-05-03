@@ -238,6 +238,19 @@ class FitGlobalParameters(FitParametersList):
 
         return fit_global_parameters
 
+    def is_compatibile(self, other_fit_global_parameters):
+        if other_fit_global_parameters is None: return False
+
+        parameters = self.get_parameters()
+        other_parameters = other_fit_global_parameters.get_parameters()
+
+        if len(parameters) != len(other_parameters): return False
+
+        for index in range(0, len(parameters)):
+            if parameters[index].parameter_name != other_parameters[index].parameter_name: return False
+
+        return True
+
 class FitSpaceParameters:
     def __init__(self, fit_global_parameters):
         s_max   = fit_global_parameters.fit_initialization.fft_parameters.s_max

@@ -319,41 +319,57 @@ class OWFitter(OWGenericWidget):
             self.send("Fit Global Parameters", self.fit_global_parameters.duplicate())
 
     def set_data(self, data):
-        if not data is None:
-            self.fit_global_parameters = data.duplicate()
+        try:
+            if not data is None:
+                if self.is_incremental == 1 and not self.fit_global_parameters is None:
+                    if not self.fit_global_parameters.is_compatibile(data):
+                        QMessageBox.warning(self, "Incompatible Parameters",
+                                             "Incremental Fit is not possibile!\n\nReceived parameters are incompatibile with the previous ones.\n" +
+                                             "Only a new fit can be calculated (and previous results will be lost)",
+                                             QMessageBox.Ok)
 
-            # keep existing text!
-            existing_free_output_parameters = FreeOutputParameters()
-            existing_free_output_parameters.parse_formulas(self.free_output_parameters_text)
+                        self.is_incremental = 0
 
-            received_free_output_parameters = self.fit_global_parameters.free_output_parameters.duplicate()
-            received_free_output_parameters.append(existing_free_output_parameters)
+                self.fit_global_parameters = data.duplicate()
 
-            self.text_area_free_out.setText(received_free_output_parameters.to_python_code())
+                # keep existing text!
+                existing_free_output_parameters = FreeOutputParameters()
+                existing_free_output_parameters.parse_formulas(self.free_output_parameters_text)
 
-            parameters = self.fit_global_parameters.free_input_parameters.as_parameters()
-            parameters.extend(self.fit_global_parameters.get_parameters())
+                received_free_output_parameters = self.fit_global_parameters.free_output_parameters.duplicate()
+                received_free_output_parameters.append(existing_free_output_parameters)
 
-            self.populate_table(self.table_fit_in, parameters)
+                self.text_area_free_out.setText(received_free_output_parameters.to_python_code())
 
-            self.tabs.setCurrentIndex(0)
+                parameters = self.fit_global_parameters.free_input_parameters.as_parameters()
+                parameters.extend(self.fit_global_parameters.get_parameters())
 
-            if self.fit_global_parameters.size_parameters is None:
-                self.tab_plot_size.setEnabled(False)
-                self.plot_size._backend.fig.set_facecolor("#D7DBDD")
-            else:
-                self.tab_plot_size.setEnabled(True)
-                self.plot_size._backend.fig.set_facecolor("#FEFEFE")
+                self.populate_table(self.table_fit_in, parameters)
 
-            if self.fit_global_parameters.strain_parameters is None:
-                self.tab_plot_strain.setEnabled(False)
-                self.plot_strain._backend.fig.set_facecolor("#D7DBDD")
-            else:
-                self.tab_plot_strain.setEnabled(True)
-                self.plot_strain._backend.fig.set_facecolor("#FEFEFE")
+                self.tabs.setCurrentIndex(0)
 
-            if self.is_automatic_run:
-                self.do_fit()
+                if self.fit_global_parameters.size_parameters is None:
+                    self.tab_plot_size.setEnabled(False)
+                    self.plot_size._backend.fig.set_facecolor("#D7DBDD")
+                else:
+                    self.tab_plot_size.setEnabled(True)
+                    self.plot_size._backend.fig.set_facecolor("#FEFEFE")
+
+                if self.fit_global_parameters.strain_parameters is None:
+                    self.tab_plot_strain.setEnabled(False)
+                    self.plot_strain._backend.fig.set_facecolor("#D7DBDD")
+                else:
+                    self.tab_plot_strain.setEnabled(True)
+                    self.plot_strain._backend.fig.set_facecolor("#FEFEFE")
+
+                if self.is_automatic_run:
+                    self.do_fit()
+        except Exception as e:
+            QMessageBox.critical(self, "Error during load",
+                                 str(e),
+                                 QMessageBox.Ok)
+
+            if self.IS_DEVELOP: raise e
 
     def create_table_widget(self):
         table_fit = QTableWidget(1, 8)
