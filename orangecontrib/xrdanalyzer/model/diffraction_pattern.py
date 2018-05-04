@@ -325,6 +325,11 @@ class DiffractionPatternRaw(DiffractionPattern):
         with open(file_name, 'r') as rawfile : lines = rawfile.readlines()
 
         splitted_row = lines[1].split(sep=',')
+
+        if not len(splitted_row) == 5:
+            splitted_row = lines[1].split(sep=' ')
+            splitted_row = splitted_row[numpy.where(splitted_row != '')]
+
         n_points = int(splitted_row[0])
         step = float(splitted_row[1])
         starting_theta = float(splitted_row[2])
