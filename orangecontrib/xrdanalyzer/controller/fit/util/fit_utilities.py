@@ -71,34 +71,51 @@ def is_bcc(h, k, l):
     else:
         return False
 
-def list_of_s_bragg(n_peaks, lattice_param, cell_type):
-    if cell_type == 'fcc':
-        s_list = []
-        possible_indeces = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        for h, k, l in itertools.combinations_with_replacement(possible_indeces, 3):
-            if is_fcc(h, k, l):
-                s_list.append([[h, k, l], numpy.sqrt(h ** 2 + k ** 2 + l ** 2) / lattice_param])
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import Simmetry
 
-        s_list = sorted(s_list, key=operator.itemgetter(1))
-        for listina in s_list:
-            listina[0] = sorted(listina[0], reverse=True)
+def list_of_s_bragg(lattice_param, simmetry=Simmetry.FCC, n_peaks=numpy.inf, s_max=numpy.inf):
+
+    s_list = []
+    s_hkl_max = 0.0
+    possible_indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    for h, k, l in itertools.combinations_with_replacement(possible_indexes, 3):
+        if (simmetry == Simmetry.FCC and is_fcc(h, k, l)) or \
+           (simmetry == Simmetry.BCC and is_bcc(h, k, l)) or \
+            simmetry == Simmetry.SIMPLE_CUBIC:
+            s_hkl = Utilities.s_hkl(lattice_param, h, k, l)
+
+            s_hkl_max = s_hkl if s_hkl > s_hkl_max else s_hkl_max
+
+            s_list.append([[h, k, l], s_hkl])
+
+    s_list = sorted(s_list, key=operator.itemgetter(1))
+
+    if not len(s_list) <= n_peaks:
+        s_list = s_list[:n_peaks+1]
+
+    print("ZZZ", s_max, s_hkl_max)
+
+    if not s_max > s_hkl_max:
+        last_index = 0
+        for item in s_list:
+            if item[1] > s_max: break
+            last_index +=1
+
+        if last_index == 0:
+            s_list = []
+        else:
+            s_list = s_list[:(last_index)]
+
+    if not s_list == []:
+        for temp_list in s_list:
+            temp_list[0] = sorted(temp_list[0], reverse=True)
+
         s_list.pop(0)
-        return s_list[0:n_peaks]
 
-    elif cell_type == 'bcc':
-        s_list = []
-        possible_indeces = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        for h, k, l in itertools.combinations_with_replacement(possible_indeces, 3):
-            if is_bcc(h, k, l):
-                s_list.append([[h, k, l], numpy.sqrt(h ** 2 + k ** 2 + l ** 2) / lattice_param])
+    return s_list
 
-        s_list = sorted(s_list, key=operator.itemgetter(1))
-        for listina in s_list:
-            listina[0] = sorted(listina[0], reverse=True)
-        s_list.pop(0)
-        return s_list[0:n_peaks]
-    else:
-        return []
+if __name__=="__main__":
+    list = list_of_s_bragg(0.2873, Simmetry.FCC)
 
-
-#print(list_of_s_bragg(10, 3.89, 'bcc'))
+    for item in list:
+        print(item)

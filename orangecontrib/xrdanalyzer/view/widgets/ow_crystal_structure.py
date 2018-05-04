@@ -1,17 +1,20 @@
-import sys
+import sys, numpy
 
 from PyQt5.QtWidgets import QMessageBox, QScrollArea, QApplication
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QDoubleValidator
 
 from Orange.widgets.settings import Setting
 from Orange.widgets import gui as orangegui
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
-from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui
+from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ConfirmDialog
 from orangecontrib.xrdanalyzer.util import congruence
 
+from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities, list_of_s_bragg
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure,  Simmetry
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure,  Simmetry, Reflection, Boundary
 
 class OWCrystalStructure(OWGenericWidget):
 
@@ -38,7 +41,7 @@ class OWCrystalStructure(OWGenericWidget):
     #beta = Setting(0.0)
     #gamma = Setting(0.0)
 
-    simmetry = Setting(4)
+    simmetry = Setting(2)
 
     use_structure = Setting(0)
     formula = Setting("")
@@ -53,6 +56,9 @@ class OWCrystalStructure(OWGenericWidget):
 
     reflections = Setting("")
 
+    limit = Setting(0.0)
+    limit_type = Setting(0)
+
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 
@@ -65,7 +71,9 @@ class OWCrystalStructure(OWGenericWidget):
 
         self.cb_simmetry = orangegui.comboBox(crystal_box, self, "simmetry", label="Simmetry", items=Simmetry.tuple(), callback=self.set_simmetry, orientation="horizontal")
 
-        self.create_box(crystal_box, "a", "a0 [nm]")
+        self.create_box(crystal_box, "a", "a [nm]")
+
+        orangegui.separator(crystal_box)
 
         structure_box = gui.widgetBox(crystal_box,
                                        "", orientation="vertical",
@@ -79,12 +87,32 @@ class OWCrystalStructure(OWGenericWidget):
                                        "", orientation="vertical",
                                        width=self.CONTROL_AREA_WIDTH - 30, height=60)
 
-        gui.lineEdit(self.structure_box_1, self, "formula", "Chemical Formula", labelWidth=150, valueType=str)
+        gui.lineEdit(self.structure_box_1, self, "formula", "Chemical Formula", labelWidth=90, valueType=str)
         self.create_box(self.structure_box_1, "intensity_scale_factor", "I0")
 
         self.structure_box_2 = gui.widgetBox(structure_box,
                                        "", orientation="vertical",
                                        width=self.CONTROL_AREA_WIDTH - 30, height=60)
+
+        orangegui.separator(crystal_box)
+
+        gen_box = gui.widgetBox(crystal_box, "Generate Reflections", orientation="horizontal")
+
+        le_limit = gui.lineEdit(gen_box, self, "limit", "Limit", labelWidth=90, valueType=float, validator=QDoubleValidator())
+        cb_limit = orangegui.comboBox(gen_box, self, "limit_type", label="Kind", items=["None", "Nr. Peaks", "2Theta Max"], orientation="horizontal")
+
+        def set_limit(limit_type):
+            if limit_type == 0:
+                le_limit.setText("-1")
+                le_limit.setEnabled(False)
+            else:
+                le_limit.setEnabled(True)
+
+        cb_limit.currentIndexChanged.connect(set_limit)
+        set_limit(self.limit_type)
+
+        gui.button(gen_box, self, "Generate Reflections", callback=self.generate_reflections)
+
 
 
         self.set_structure()
@@ -129,7 +157,55 @@ class OWCrystalStructure(OWGenericWidget):
                                  "Only Cubic Systems are supported",
                                  QMessageBox.Ok)
 
-            self.simmetry = 4
+            self.simmetry = 2
+
+    def generate_reflections(self):
+        if self.populate_parameter("a", "").function:
+            QMessageBox.critical(self,
+                                 "Error",
+                                 "a0 value is a function, generation is not possibile",
+                                 QMessageBox.Ok)
+            return
+
+        if not self.reflections is None and not self.reflections.strip() == "":
+            if not ConfirmDialog.confirmed(self, "Confirm overwriting of exisiting reflections?"):
+                return
+
+        if self.limit_type == 0:
+            list = list_of_s_bragg(self.a,
+                                   simmetry=self.cb_simmetry.currentText())
+        elif self.limit_type == 1:
+            list = list_of_s_bragg(self.a,
+                                   simmetry=self.cb_simmetry.currentText(),
+                                   n_peaks=int(self.limit))
+        elif self.limit_type == 2:
+            if not self.fit_global_parameters is None \
+               and not self.fit_global_parameters.fit_initialization is None \
+               and not self.fit_global_parameters.fit_initialization.diffraction_pattern is None:
+                wavelength = self.fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
+
+
+
+                list = list_of_s_bragg(self.a,
+                                       simmetry=self.cb_simmetry.currentText(),
+                                       s_max=Utilities.s(numpy.radians(self.limit/2), wavelength))
+            else:
+                QMessageBox.critical(self,
+                                     "Error",
+                                     "No wavelenght is available, 2theta limit is not possibile",
+                                     QMessageBox.Ok)
+                return
+
+        text = ""
+
+        for index in range(0, len(list)):
+            h = list[index][0][0]
+            k = list[index][0][1]
+            l = list[index][0][2]
+
+            text += Reflection(h, k, l, FitParameter(parameter_name="I" + str(index+1), value=1000, boundary=Boundary(min_value=0.0))).to_text() + "\n"
+
+        self.text_area.setText(text)
 
     def send_fit_initialization(self):
         try:
