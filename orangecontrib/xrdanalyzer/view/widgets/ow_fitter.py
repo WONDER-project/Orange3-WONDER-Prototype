@@ -256,8 +256,6 @@ class OWFitter(OWGenericWidget):
                 self.fit_button.setEnabled(False)
                 self.stop_fit = False
 
-                #self.free_output_parameters_text = self.text_area_free_out.toPlainText()
-
                 congruence.checkStrictlyPositiveNumber(self.n_iterations, "Nr. Iterations")
 
                 self.fit_global_parameters.set_n_max_iterations(self.n_iterations)
@@ -655,6 +653,8 @@ class FitThread(QThread):
             QMessageBox.critical(self.fitter_widget, "Error",
                                  str(e),
                                  QMessageBox.Ok)
+
+            self.finished.emit()
 
             if self.fitter_widget.DEBUG: raise e
 

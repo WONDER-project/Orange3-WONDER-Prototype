@@ -99,9 +99,13 @@ class OWCrystalStructure(OWGenericWidget):
         self.scrollarea.setMaximumWidth(self.CONTROL_AREA_WIDTH - 85)
         self.scrollarea.setMinimumWidth(self.CONTROL_AREA_WIDTH - 85)
 
+        def write_text():
+            self.reflections = self.text_area.toPlainText()
+
         self.text_area = gui.textArea(height=500, width=1000, readOnly=False)
         self.text_area.setText(self.reflections)
         self.text_area.setStyleSheet("font-family: Courier, monospace;")
+        self.text_area.textChanged.connect(write_text)
 
         self.scrollarea.setWidget(self.text_area)
         self.scrollarea.setWidgetResizable(1)
@@ -130,8 +134,6 @@ class OWCrystalStructure(OWGenericWidget):
     def send_fit_initialization(self):
         try:
             if not self.fit_global_parameters is None:
-                self.reflections = self.text_area.toPlainText()
-
                 if self.use_structure == 0:
                     crystal_structure = CrystalStructure.init_cube(a0=self.populate_parameter("a", CrystalStructure.get_parameters_prefix()),
                                                                    simmetry=self.cb_simmetry.currentText())
@@ -205,7 +207,6 @@ class OWCrystalStructure(OWGenericWidget):
                     text += reflection.to_text() + "\n"
 
                 self.text_area.setText(text)
-                self.reflections = self.text_area.toPlainText()
 
             if self.is_automatic_run:
                 self.send_fit_initialization()

@@ -87,6 +87,17 @@ class FourierTransform:
     def fft(cls, f, n_steps, dL):
         raise NotImplementedError()
 
+    @classmethod
+    def get_empty_fft(cls, n_steps, dL):
+        s = numpy.fft.fftfreq(n_steps, dL)
+        s = numpy.fft.fftshift(s)
+
+        I = numpy.zeros(len(s))
+        I[int(len(s)/2)] = 1
+
+        return s, I
+
+
 class FourierTransformRealOnly(FourierTransform):
 
     @classmethod
@@ -275,11 +286,14 @@ def create_one_peak(reflection_index, fit_global_parameters):
                 else:
                     fourier_amplitudes *= fourier_amplitudes_re
 
-    # STRAIN -----------------------------------------------------------------------------------------------------------
-
-    s, I = FourierTranformFactory.get_fourier_transform(fft_type).fft(fourier_amplitudes,
-                                                                      n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
-                                                                      dL=fit_space_parameters.dL)
+    # FFT -----------------------------------------------------------------------------------------------------------
+    if not fourier_amplitudes is None:
+        s, I = FourierTranformFactory.get_fourier_transform(fft_type).fft(fourier_amplitudes,
+                                                                          n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
+                                                                          dL=fit_space_parameters.dL)
+    else:
+        s, I = FourierTransform.get_empty_fft(n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
+                                              dL=fit_space_parameters.dL)
 
     s_hkl = Utilities.s_hkl(crystal_structure.a.value, reflection.h, reflection.k, reflection.l)
 
