@@ -13,8 +13,10 @@ from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities, list_of_s_bragg
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure,  Simmetry, Reflection, Boundary
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
+
 
 class OWCrystalStructure(OWGenericWidget):
 
@@ -228,6 +230,26 @@ class OWCrystalStructure(OWGenericWidget):
                     #intensities will be ignored
                     for reflection in crystal_structure.get_reflections():
                         reflection.intensity.fixed = True
+
+                if not self.fit_global_parameters.fit_initialization is None \
+                   and not self.fit_global_parameters.fit_initialization.diffraction_pattern is None:
+                    wavelength = self.fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
+                    s_min = self.fit_global_parameters.fit_initialization.diffraction_pattern.get_diffraction_point(0).s
+                    s_max = self.fit_global_parameters.fit_initialization.diffraction_pattern.get_diffraction_point(-1).s
+
+                    excluded_reflections = crystal_structure.get_congruence_check(wavelength=wavelength,
+                                                                                  min_value=s_min,
+                                                                                  max_value=s_max)
+
+                    if not excluded_reflections is None:
+                        text = "The following reflections lie outside the diffraction pattern:\n\n"
+
+                        for reflection in excluded_reflections:
+                            text += "[" + str(reflection.h) + ", " + str(reflection.k) + ", " + str(reflection.l) +"]\n"
+
+                        text += "\nProceed anyway?"
+
+                        if not ConfirmDialog.confirmed(self, message=text, title="Confirm Structure"): return
 
                 self.fit_global_parameters.fit_initialization.crystal_structure = crystal_structure
 

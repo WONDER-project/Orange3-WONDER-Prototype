@@ -71,7 +71,7 @@ def is_bcc(h, k, l):
     else:
         return False
 
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import Simmetry
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
 
 def list_of_s_bragg(lattice_param, simmetry=Simmetry.FCC, n_peaks=numpy.inf, s_max=numpy.inf):
 

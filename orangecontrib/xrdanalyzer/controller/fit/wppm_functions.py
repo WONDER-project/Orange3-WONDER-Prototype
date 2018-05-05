@@ -570,7 +570,7 @@ def atomic_scattering_factor(s, element):
 
     return f_s + c
 
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import Simmetry
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
 from orangecontrib.xrdanalyzer.util.general_functions import ChemicalFormulaParser
 
 def structure_factor(s, formula, h, k, l, simmetry=Simmetry.FCC):

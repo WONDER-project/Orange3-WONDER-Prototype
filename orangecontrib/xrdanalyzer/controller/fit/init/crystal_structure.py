@@ -1,15 +1,8 @@
 import numpy
 import orangecontrib.xrdanalyzer.util.congruence as congruence
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PARAM_HWMAX, PARAM_HWMIN
-
-class Simmetry:
-    FCC = "fcc"
-    BCC = "bcc"
-    SIMPLE_CUBIC = "sc"
-
-    @classmethod
-    def tuple(cls):
-        return [cls.SIMPLE_CUBIC, cls.BCC, cls.FCC]
+from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
+from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
 
 class Reflection():
 
@@ -148,7 +141,7 @@ class CrystalStructure(FitParametersList):
 
     def get_d_spacing(self, h, k, l):
         if self.is_cube(self.simmetry):
-            return numpy.sqrt(self.a.value**2/(h**2 + k**2 + l**2))
+            return 1/Utilities.s_hkl(self.a.value, h, k, l)
         #elif self.simmetry == Simmetry.HCP:
         #    return 1/numpy.sqrt((4/3)*((h**2 + h*k + k**2)/ self.a.value**2  + (l/self.c.value)**2))
         else:
@@ -235,6 +228,28 @@ class CrystalStructure(FitParametersList):
 
         self.reflections = reflections
         self.update_reflections()
+
+    def get_congruence_check(self, wavelength, min_value, max_value, limit_is_s=True):
+        if wavelength <= 0: raise ValueError("Wavelenght should be a positive number")
+        if max_value <= 0: raise ValueError("Max Value should be a positive number")
+
+        if not limit_is_s:
+            s_min = Utilities.s(numpy.radians(min_value/2), wavelength) # 2THETA MIN VALUE!
+            s_max = Utilities.s(numpy.radians(max_value/2), wavelength) # 2THETA MAX VALUE!
+        else:
+            s_min = min_value
+            s_max = max_value
+
+        excluded_reflection = []
+
+        for reflection in self.reflections:
+            s_hkl = Utilities.s_hkl(self.a.value, reflection.h, reflection.k, reflection.l)
+
+            if s_hkl < s_min or s_hkl > s_max: excluded_reflection.append(reflection)
+
+        if len(excluded_reflection) == 0: excluded_reflection = None
+
+        return excluded_reflection
 
     def duplicate(self):
         crystal_structure = CrystalStructure(a=None if self.a is None else self.a.duplicate(),

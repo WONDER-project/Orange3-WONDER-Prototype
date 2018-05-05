@@ -2,6 +2,7 @@ import numpy
 import inspect
 
 from orangecontrib.xrdanalyzer.util import congruence
+from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
 
 #---------------------------------------
 # DATA STRUCTURES
@@ -41,13 +42,15 @@ class DiffractionPoint:
     def _get_s_from_twotheta(cls, twotheta, wavelength):
         if twotheta is None: return None
 
-        return 2*numpy.sin(numpy.radians(twotheta/2))/wavelength
+        return Utilities.s(theta=numpy.radians(twotheta/2),
+                           wavelength=wavelength)
 
     @classmethod
     def _get_twotheta_from_s(cls, s, wavelength):
         if s is None: return None
 
-        return numpy.degrees(2*numpy.arcsin(s*wavelength/2))
+        return numpy.degrees(2*Utilities.theta(s=s,
+                                               wavelength=wavelength))
 
     def _check_attributes_congruence(self):
         if self.s is None:
