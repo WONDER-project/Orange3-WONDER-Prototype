@@ -54,7 +54,7 @@ class OWThermalPolarization(OWGenericWidget):
         self.box_dw       = gui.widgetBox(box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 30, height=30)
         self.box_dw_empty = gui.widgetBox(box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 30, height=30)
 
-        self.create_box(self.box_dw, "debye_waller_factor", "B")
+        self.create_box(self.box_dw, "debye_waller_factor", "B [Å-2]")
 
         self.set_dw()
 
@@ -90,6 +90,9 @@ class OWThermalPolarization(OWGenericWidget):
                                                                                                                                                                                                                            ThermalPolarizationParameters.get_parameters_prefix()),
                                                                                                                                   use_lorentz_polarization_factor=self.use_lorentz_polarization_factor==1)
 
+                    # CONVERSIONE from A-2 to nm-2
+                    self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor.value /= 100
+
                     self.send("Fit Global Parameters", self.fit_global_parameters)
 
         except Exception as e:
@@ -109,6 +112,9 @@ class OWThermalPolarization(OWGenericWidget):
                 if self.use_debye_waller_factor == 1:
                     self.populate_fields("debye_waller_factor",
                                          self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor)
+
+                # CONVERSIONE from nm-2 to A-2
+                self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor.value *= 100
 
                 self.use_lorentz_polarization_factor = 1 if self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.use_lorentz_polarization_factor else 0
 

@@ -57,7 +57,7 @@ class DiffractionPoint:
             congruence.checkPositiveNumber(self.twotheta, "twotheta")
         if self.twotheta is None:
             congruence.checkPositiveNumber(self.s, "s")
-        congruence.checkPositiveNumber(self.intensity, "Intensity")
+        #congruence.checkPositiveNumber(self.intensity, "Intensity")
 
 class DiffractionPattern:
 

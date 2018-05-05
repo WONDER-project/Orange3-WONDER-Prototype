@@ -18,7 +18,7 @@ from orangecontrib.xrdanalyzer.util import congruence
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_HWMAX, PARAM_HWMIN
 from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters, FreeOutputParameters
 from orangecontrib.xrdanalyzer.controller.fit.fitter_factory import FitterFactory, FitterName
-
+from orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters import ThermalPolarizationParameters
 
 class OWFitter(OWGenericWidget):
     name = "Fitter"
@@ -405,6 +405,12 @@ class OWFitter(OWGenericWidget):
             if change_color: table_item.setBackground(color)
             table_widget.setItem(row_index, column_index, table_item)
 
+    def get_conversion_factor(self, parameter_name):
+        if parameter_name == ThermalPolarizationParameters.get_parameters_prefix() + "debye_waller_factor":
+            return 100.0 # to A-2
+        else:
+            return 1.0
+
     def populate_table(self, table_widget, parameters):
         table_widget.clear()
 
@@ -431,8 +437,10 @@ class OWFitter(OWGenericWidget):
                                 parameter.parameter_name,
                                 Qt.AlignLeft, change_color, color)
 
+            factor = self.get_conversion_factor(parameter.parameter_name)
+
             self.add_table_item(table_widget, index, 1,
-                                str(round(0.0 if parameter.value is None else parameter.value, 6)),
+                                str(round(0.0 if parameter.value is None else parameter.value*factor, 6)),
                                 Qt.AlignRight, change_color, color)
 
             if (not parameter.is_variable()) or parameter.boundary is None: text_2 = text_3 = ""
@@ -619,8 +627,6 @@ class FitThread(QThread):
     update = pyqtSignal()
     mutex = QMutex()
 
-    DEBUG = False
-
     def __init__(self, fitter_widget):
         super(FitThread, self).__init__(fitter_widget)
         self.fitter_widget = fitter_widget
@@ -644,12 +650,12 @@ class FitThread(QThread):
                 if self.fitter_widget.fitted_fit_global_parameters.is_convergence_reached(): break
         except Exception as e:
             QMessageBox.critical(self.fitter_widget, "Error",
-                                 str(e),
+                                 "Fit Failed: " + str(e),
                                  QMessageBox.Ok)
 
-            self.finished.emit()
+            self.fitter_widget.fit_completed()
 
-            if self.fitter_widget.DEBUG: raise e
+            if self.fitter_widget.IS_DEVELOP: raise e
 
 class FitNotStartedException(Exception):
     def __init__(self, *args, **kwargs): # real signature unknown
