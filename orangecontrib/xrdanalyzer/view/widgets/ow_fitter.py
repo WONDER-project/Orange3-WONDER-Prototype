@@ -390,6 +390,21 @@ class OWFitter(OWGenericWidget):
 
         return table_fit
 
+
+    def add_table_item(self, 
+                       table_widget, 
+                       row_index, 
+                       column_index,
+                       text="",
+                       alignement=Qt.AlignLeft,
+                       change_color=False,
+                       color=QColor(255, 255, 255)):
+
+            table_item = QTableWidgetItem(text)
+            table_item.setTextAlignment(alignement)
+            if change_color: table_item.setBackground(color)
+            table_widget.setItem(row_index, column_index, table_item)
+
     def populate_table(self, table_widget, parameters):
         table_widget.clear()
 
@@ -401,79 +416,57 @@ class OWFitter(OWGenericWidget):
             table_widget.insertRow(0)
 
         for index in range(0, len(parameters)):
-            change_color = not parameters[index].is_variable()
-            color = QColor(167, 167, 167)
+            parameter = parameters[index]
+            change_color = not parameter.is_variable()
 
-            table_item = QTableWidgetItem(parameters[index].parameter_name)
-            table_item.setTextAlignment(Qt.AlignLeft)
-            if change_color: table_item.setBackground(color)
-            table_widget.setItem(index, 0, table_item)
-
-
-            table_item = QTableWidgetItem(str(round(0.0 if parameters[index].value is None else parameters[index].value, 6)))
-            table_item.setTextAlignment(Qt.AlignRight)
-            if change_color: table_item.setBackground(color)
-            table_widget.setItem(index, 1, table_item)
-
-
-            if (not parameters[index].is_variable()) or parameters[index].boundary is None:
-                table_item = QTableWidgetItem("")
-                table_item.setTextAlignment(Qt.AlignRight)
-                if change_color: table_item.setBackground(color)
-                table_widget.setItem(index, 2, table_item)
-
-                table_item = QTableWidgetItem("")
-                table_item.setTextAlignment(Qt.AlignRight)
-                if change_color: table_item.setBackground(color)
-                table_widget.setItem(index, 3, table_item)
+            if change_color:
+                if parameter.input_parameter: color = QColor(213, 245, 227)
+                elif parameter.fixed: color = QColor(190, 190, 190)
+                elif parameter.output_parameter: color = QColor(242, 245, 169)
+                else: color = QColor(169, 208, 245)
             else:
-                if parameters[index].boundary.min_value == PARAM_HWMIN:
-                    table_item = QTableWidgetItem("")
-                    table_item.setTextAlignment(Qt.AlignRight)
-                    if change_color: table_item.setBackground(color)
-                    table_widget.setItem(index, 2, table_item)
-                else:
-                    table_item = QTableWidgetItem(str(round(0.0 if parameters[index].boundary.min_value is None else parameters[index].boundary.min_value, 6)))
-                    table_item.setTextAlignment(Qt.AlignRight)
-                    if change_color: table_item.setBackground(color)
-                    table_widget.setItem(index, 2, table_item)
+                color = None
+  
+            self.add_table_item(table_widget, index, 0,
+                                parameter.parameter_name,
+                                Qt.AlignLeft, change_color, color)
 
-                if parameters[index].boundary.max_value == PARAM_HWMAX:
-                    table_item = QTableWidgetItem("")
-                    table_item.setTextAlignment(Qt.AlignRight)
-                    if change_color: table_item.setBackground(color)
-                    table_widget.setItem(index, 3, table_item)
-                else:
-                    table_item = QTableWidgetItem(str(round(0.0 if parameters[index].boundary.max_value is None else parameters[index].boundary.max_value, 6)))
-                    table_item.setTextAlignment(Qt.AlignRight)
-                    if change_color: table_item.setBackground(color)
-                    table_widget.setItem(index, 3, table_item)
+            self.add_table_item(table_widget, index, 1,
+                                str(round(0.0 if parameter.value is None else parameter.value, 6)),
+                                Qt.AlignRight, change_color, color)
 
-            table_item = QTableWidgetItem(str(parameters[index].fixed))
-            table_item.setTextAlignment(Qt.AlignCenter)
-            if change_color: table_item.setBackground(color)
-            table_widget.setItem(index, 4, table_item)
-
-            table_item = QTableWidgetItem(str(parameters[index].function))
-            table_item.setTextAlignment(Qt.AlignCenter)
-            if change_color: table_item.setBackground(color)
-            table_widget.setItem(index, 5, table_item)
-
-            if parameters[index].function:
-                table_item = QTableWidgetItem(str(parameters[index].function_value))
-                table_item.setTextAlignment(Qt.AlignLeft)
-                if change_color: table_item.setBackground(color)
-                table_widget.setItem(index, 6, table_item)
+            if (not parameter.is_variable()) or parameter.boundary is None: text_2 = text_3 = ""
             else:
-                table_item = QTableWidgetItem("")
-                table_item.setTextAlignment(Qt.AlignLeft)
-                if change_color: table_item.setBackground(color)
-                table_widget.setItem(index, 6, table_item)
+                if parameter.boundary.min_value == PARAM_HWMIN: text_2 = ""
+                else: text_2 = str(round(0.0 if parameter.boundary.min_value is None else parameter.boundary.min_value, 6))
 
-            table_item = QTableWidgetItem(str(round(0.0 if parameters[index].error is None else parameters[index].error, 6)))
-            table_item.setTextAlignment(Qt.AlignRight)
-            if change_color: table_item.setBackground(color)
-            table_widget.setItem(index, 7, table_item)
+                if parameter.boundary.max_value == PARAM_HWMAX: text_3 = ""
+                else: text_3 = str(round(0.0 if parameter.boundary.max_value is None else parameter.boundary.max_value, 6))
+
+            self.add_table_item(table_widget, index, 2,
+                                text_2,
+                                Qt.AlignRight, change_color, color)
+            self.add_table_item(table_widget, index, 3,
+                                text_3,
+                                Qt.AlignRight, change_color, color)
+
+            self.add_table_item(table_widget, index, 4,
+                                str(parameter.fixed),
+                                Qt.AlignCenter, change_color, color)
+            self.add_table_item(table_widget, index, 5,
+                                str(parameter.function),
+                                Qt.AlignCenter, change_color, color)
+
+            if parameter.function: text_6 = str(parameter.function_value)
+            else: text_6 = ""
+
+            self.add_table_item(table_widget, index, 6,
+                                text_6,
+                                Qt.AlignLeft, change_color, color)
+
+            self.add_table_item(table_widget, index, 7,
+                                str(round(0.0 if parameter.error is None else parameter.error, 6)),
+                                Qt.AlignRight, change_color, color)
 
         table_widget.setHorizontalHeaderLabels(self.horizontal_headers)
         table_widget.resizeRowsToContents()

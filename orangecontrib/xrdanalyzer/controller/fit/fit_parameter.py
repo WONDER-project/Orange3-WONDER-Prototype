@@ -26,7 +26,9 @@ class FitParameter:
                  function = False,
                  function_value = "",
                  step=PARAM_ERR,
-                 error=None):
+                 error=None,
+                 input_parameter = False,
+                 output_parameter = False):
         self.parameter_name = parameter_name
         self.value = value
         self.fixed = fixed
@@ -51,6 +53,9 @@ class FitParameter:
             self.step = PARAM_ERR
         else:
             self.step = step
+
+        self.input_parameter = input_parameter
+        self.output_parameter = output_parameter
 
     def set_value(self, value):
         self.value = value
@@ -260,7 +265,8 @@ class FreeInputParameters(ParametersList):
             for name in self.parameters_dictionary.keys():
                 fit_parameter = FitParameter(value=self.parameters_dictionary[name],
                                              parameter_name=name,
-                                             fixed=True)
+                                             fixed=True,
+                                             input_parameter=True)
 
                 parameters.append(fit_parameter)
 
@@ -455,7 +461,8 @@ class FreeOutputParameters(ParametersList):
                 fit_parameter = FitParameter(value=parameter.value,
                                              parameter_name=name,
                                              function=True,
-                                             function_value=parameter.expression)
+                                             function_value=parameter.expression,
+                                             output_parameter=True)
 
                 parameters.append(fit_parameter)
 
