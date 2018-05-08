@@ -266,7 +266,9 @@ class OWCrystalStructure(OWGenericWidget):
         if not data is None:
             self.fit_global_parameters = data.duplicate()
 
-            if not self.fit_global_parameters.fit_initialization.crystal_structure is None:
+            crystal_structure = self.fit_global_parameters.fit_initialization.crystal_structure
+
+            if not crystal_structure is None:
                 if self.use_structure == 0:
                     existing_crystal_structure = CrystalStructure.init_cube(a0=self.populate_parameter("a", CrystalStructure.get_parameters_prefix()),
                                                                    simmetry=self.cb_simmetry.currentText())
@@ -280,11 +282,9 @@ class OWCrystalStructure(OWGenericWidget):
 
                 existing_crystal_structure.parse_reflections(self.text_area.toPlainText())
 
-                crystal_structure = self.fit_global_parameters.fit_initialization.crystal_structure
-
-                self.populate_fields("a", self.fit_global_parameters.crystal_structure.a)
+                self.populate_fields("a", crystal_structure.a)
                 self.use_structure = 1 if crystal_structure.use_structure else 0
-                self.populate_fields("intensity_scale_factor", self.fit_global_parameters.crystal_structure.intensity_scale_factor)
+                self.populate_fields("intensity_scale_factor", crystal_structure.intensity_scale_factor)
 
                 simmetries = Simmetry.tuple()
                 for index in range(0, len(simmetries)):

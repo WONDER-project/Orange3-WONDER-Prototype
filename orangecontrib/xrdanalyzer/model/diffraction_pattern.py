@@ -236,8 +236,7 @@ class DiffractionPatternFactoryChain(DiffractionPatternFactoryInterface):
     def _get_handlers_list(self):
         classes = numpy.array([m[0] for m in inspect.getmembers(sys.modules[__name__], predicate)])
 
-        return numpy.asarray(classes[numpy.where(classes !=
-                                                 "DiffractionPatternFactoryHandler")])
+        return numpy.asarray(classes[numpy.where(classes != "DiffractionPatternFactoryHandler")])
 
 # ---------------------------------------------------
 # HANDLERS INTERFACE
@@ -262,6 +261,11 @@ class DiffractionPatternXyeFactoryHandler(DiffractionPatternFactoryHandler):
 
     def create_diffraction_pattern_from_file(self, file_name, wavelength=None, limits=None):
         return DiffractionPatternXye(file_name = file_name, wavelength=wavelength, limits=limits)
+
+class DiffractionPatterXyFactoryHandler(DiffractionPatternXyeFactoryHandler):
+
+    def _get_handled_extension(self):
+        return ".xy"
 
 class DiffractionPatternRawFactoryHandler(DiffractionPatternFactoryHandler):
 
@@ -361,6 +365,3 @@ class DiffractionPatternRaw(DiffractionPattern):
                                                                                   intensity=intensity,
                                                                                   error=error,
                                                                                   wavelength=self.wavelength))
-
-
-

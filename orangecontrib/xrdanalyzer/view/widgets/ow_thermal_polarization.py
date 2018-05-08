@@ -91,7 +91,8 @@ class OWThermalPolarization(OWGenericWidget):
                                                                                                                                   use_lorentz_polarization_factor=self.use_lorentz_polarization_factor==1)
 
                     # CONVERSIONE from A-2 to nm-2
-                    self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor.value /= 100
+                    if not self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor is None:
+                        self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor.value /= 100
 
                     self.send("Fit Global Parameters", self.fit_global_parameters)
 
