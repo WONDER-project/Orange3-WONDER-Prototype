@@ -305,7 +305,7 @@ class OWCrystalStructure(OWGenericWidget):
                 text = ""
 
                 for reflection in existing_crystal_structure.get_reflections():
-                    text += reflection.to_text() + "\n"
+                    text += reflection.to_row() + "\n"
 
                 self.text_area.setText(text)
 

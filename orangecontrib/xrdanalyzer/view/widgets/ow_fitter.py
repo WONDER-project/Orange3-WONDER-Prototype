@@ -381,6 +381,9 @@ class OWFitter(OWGenericWidget):
 
                     self.show_data()
 
+                    self.tabs.setCurrentIndex(1)
+                    self.tabs_plot.setCurrentIndex(0)
+
                 if self.is_automatic_run:
                     self.do_fit()
         except Exception as e:
