@@ -258,6 +258,18 @@ class OWFitter(OWGenericWidget):
 
                 congruence.checkStrictlyPositiveNumber(self.n_iterations, "Nr. Iterations")
 
+                if self.fit_global_parameters.fit_initialization is None:
+                    raise ValueError("Mandatory widgets (Load Data/Fit Initialization/Crystal Structure) are totally missing.")
+
+                if self.fit_global_parameters.fit_initialization.fft_parameters is None:
+                    raise ValueError("FFT parameters is missing: add the proper widget before the Fitter")
+
+                if self.fit_global_parameters.fit_initialization.diffraction_pattern is None:
+                    raise ValueError("Diffraction Pattern is missing: add the proper widget before the Fitter")
+
+                if self.fit_global_parameters.fit_initialization.crystal_structure is None:
+                    raise ValueError("Crystal Structure is missing: add the proper widget before the Fitter")
+
                 self.fit_global_parameters.set_n_max_iterations(self.n_iterations)
                 self.fit_global_parameters.set_convergence_reached(False)
                 self.fit_global_parameters.free_output_parameters.parse_formulas(self.free_output_parameters_text)
