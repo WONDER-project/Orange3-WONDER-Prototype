@@ -85,7 +85,7 @@ class OWSize(OWGenericWidget):
         gui.button(button_box,  self, "Send Size", height=50, callback=self.send_size)
 
     def set_shape(self):
-        if not self.shape == 1:
+        if not self.cb_shape.currentText() == Shape.SPHERE:
             QMessageBox.critical(self, "Error",
                                  "Only Sphere shape is supported",
                                  QMessageBox.Ok)
@@ -93,7 +93,7 @@ class OWSize(OWGenericWidget):
             self.shape = 1
 
     def set_distribution(self):
-        if not self.distribution == 1:
+        if not self.cb_distribution.currentText() == Distribution.LOGNORMAL:
             QMessageBox.critical(self, "Error",
                                  "Only Lognormal distribution is supported",
                                  QMessageBox.Ok)
