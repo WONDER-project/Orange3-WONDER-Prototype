@@ -10,6 +10,8 @@ from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters
 from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
 
+from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
+
 PRCSN = 2.5E-7
 
 class MinpackData:
@@ -113,11 +115,11 @@ class FitterMinpack(FitterInterface):
         self.wss = self.getWSSQ()
         self.oldwss  = self.wss
 
-        self.minpack_data = MinpackData(wss=self.wss,
-                                        dof=self.dof,
-                                        nobs=self.nobs,
-                                        nprm=self.nprm,
-                                        nfit=self.nfit)
+        self.fit_data = MinpackData(wss=self.wss,
+                                    dof=self.dof,
+                                    nobs=self.nobs,
+                                    nprm=self.nprm,
+                                    nfit=self.nfit)
 
         self.conver = False
         self.exitflag  = False
@@ -262,15 +264,9 @@ class FitterMinpack(FitterInterface):
 
                     y = fit_function(self.s_experimental, self.build_fit_global_parameters_out(self.parameters))
 
-                    self.wss = self.getWSSQ(y=y)
+                    self.build_minpack_data(y=y)
 
-                    self.minpack_data.wss = self.wss
-                    self.minpack_data.ss = self.getSSQFromData(y=y)
-                    self.minpack_data.wsq = self.getWSQFromData(y=y)
-                    self.minpack_data.calc_lambda = self._lambda
-                    self.minpack_data.calculate()
-
-                    print(self.minpack_data.to_text())
+                    print(self.fit_data.to_text())
                 else:
                     self.parameters = self.build_fit_global_parameters_out(self.parameters).get_parameters()
 
@@ -298,17 +294,8 @@ class FitterMinpack(FitterInterface):
         fit_global_parameters_out = self.build_fit_global_parameters_out(fitted_parameters)
         fit_global_parameters_out.set_convergence_reached(self.conver)
 
-        fitted_pattern = DiffractionPattern()
-        fitted_pattern.wavelength = current_fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
+        fitted_pattern = self.build_fitted_diffraction_pattern(fit_global_parameters=fit_global_parameters_out)
 
-        fitted_intensity = fit_function(self.s_experimental, fit_global_parameters_out)
-        fitted_residual = self.intensity_experimental - fitted_intensity
-
-        for index in range(0, len(fitted_intensity)):
-            fitted_pattern.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=self.twotheta_experimental[index],
-                                                                                    intensity=fitted_intensity[index],
-                                                                                    error=fitted_residual[index],
-                                                                                    s=self.s_experimental[index]))
         self.conver = False
 
         errors = [0] * len(self.parameters)
@@ -332,7 +319,7 @@ class FitterMinpack(FitterInterface):
 
         fit_global_parameters_out = self.build_fit_global_parameters_out_errors(errors=errors)
 
-        return fitted_pattern, fit_global_parameters_out, self.minpack_data
+        return fitted_pattern, fit_global_parameters_out, self.fit_data
 
     def set(self):
         fmm = self.getWeightedDelta()
@@ -572,6 +559,31 @@ class FitterMinpack(FitterInterface):
         if fit_global_parameters.has_functions(): fit_global_parameters.evaluate_functions()
 
         return fit_global_parameters
+
+    def build_fitted_diffraction_pattern(self, fit_global_parameters):
+        wavelength = fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
+
+        fitted_pattern = DiffractionPattern()
+        fitted_pattern.wavelength = wavelength
+
+        fitted_intensity = fit_function(self.s_experimental, fit_global_parameters)
+        fitted_residual = self.intensity_experimental - fitted_intensity
+
+        for index in range(0, len(fitted_intensity)):
+            fitted_pattern.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=self.twotheta_experimental[index],
+                                                                                    intensity=fitted_intensity[index],
+                                                                                    error=fitted_residual[index],
+                                                                                    s=self.s_experimental[index]))
+        return fitted_pattern
+
+    def build_minpack_data(self, y=None):
+        self.wss = self.getWSSQ(y=y)
+
+        self.fit_data.wss = self.wss
+        self.fit_data.ss = self.getSSQFromData(y=y)
+        self.fit_data.wsq = self.getWSQFromData(y=y)
+        self.fit_data.calc_lambda = self._lambda
+        self.fit_data.calculate()
 
 
     ###############################################

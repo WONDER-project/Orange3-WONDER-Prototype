@@ -285,7 +285,9 @@ class OWCrystalStructure(OWGenericWidget):
                                                                    formula=congruence.checkEmptyString(self.formula, "Chemical Formula"),
                                                                    intensity_scale_factor=self.populate_parameter("intensity_scale_factor", CrystalStructure.get_parameters_prefix()))
 
-                existing_crystal_structure.parse_reflections(self.text_area.toPlainText())
+
+                if not self.text_area.toPlainText().strip() == "":
+                    existing_crystal_structure.parse_reflections(self.text_area.toPlainText())
 
                 simmetries = Simmetry.tuple()
                 for index in range(0, len(simmetries)):

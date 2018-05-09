@@ -49,6 +49,7 @@ class OWFitter(OWGenericWidget):
     current_gof = []
 
     stop_fit = False
+    fit_running = False
 
     def __init__(self):
         super().__init__(show_automatic_box=True)
@@ -276,25 +277,18 @@ class OWFitter(OWGenericWidget):
 
                 initial_fit_global_parameters = self.fit_global_parameters.duplicate()
 
-                if self.is_incremental == 1:
-                    if self.current_iteration == 0:
-                        self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
-                                                                  fitting_method=self.cb_fitting_method.currentText())
+                if self.is_incremental == 1 and self.current_iteration > 0:
+                    if len(initial_fit_global_parameters.get_parameters()) != len(self.fitter.fit_global_parameters.get_parameters()):
+                        raise Exception("Incremental Fit is not possibile!\n\nParameters in the last fitting procedure are incompatible with the received ones")
 
-                        self.fitter.init_fitter(initial_fit_global_parameters)
-                        self.current_wss = []
-                        self.current_gof = []
-                    else:
-                        if len(initial_fit_global_parameters.get_parameters()) != len(self.fitter.fit_global_parameters.get_parameters()):
-                            raise Exception("Incremental Fit is not possibile!\n\nParameters in the last fitting procedure are incompatible with the received ones")
-                else:
+                if self.is_incremental == 0 or (self.is_incremental == 1 and self.current_iteration == 0):
                     self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
                                                               fitting_method=self.cb_fitting_method.currentText())
 
                     self.fitter.init_fitter(initial_fit_global_parameters)
-                    self.current_iteration = 0
                     self.current_wss = []
                     self.current_gof = []
+                    self.current_iteration = 0 if self.is_incremental == 0 else self.current_iteration
 
                 self.fitted_fit_global_parameters = initial_fit_global_parameters
                 self.current_running_iteration = 0
@@ -331,6 +325,8 @@ class OWFitter(OWGenericWidget):
     def set_data(self, data):
         try:
             if not data is None:
+                if self.fit_running: "Fit is Running: Input data are not accepted!"
+
                 if self.is_incremental == 1 and not self.fit_global_parameters is None:
                     if not self.fit_global_parameters.is_compatibile(data):
                         QMessageBox.warning(self, "Incompatible Parameters",
@@ -371,6 +367,19 @@ class OWFitter(OWGenericWidget):
                 else:
                     self.tab_plot_strain.setEnabled(True)
                     self.plot_strain._backend.fig.set_facecolor("#FEFEFE")
+
+                if self.is_incremental == 0 or (self.is_incremental == 1 and self.current_iteration == 0):
+                    self.fitted_fit_global_parameters = self.fit_global_parameters.duplicate()
+                    self.fitted_fit_global_parameters.evaluate_functions()
+
+                    self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
+                                                              fitting_method=self.cb_fitting_method.currentText())
+                    self.fitter.init_fitter(self.fitted_fit_global_parameters)
+
+                    self.fitted_pattern = self.fitter.build_fitted_diffraction_pattern(self.fitted_fit_global_parameters)
+                    self.fit_data = None
+
+                    self.show_data()
 
                 if self.is_automatic_run:
                     self.do_fit()
@@ -578,6 +587,7 @@ class OWFitter(OWGenericWidget):
 
         self.progressBarInit()
         self.setStatusMessage("Fitting procedure started")
+        self.fit_running = True
 
         mutex.unlock()
 
@@ -628,6 +638,7 @@ class OWFitter(OWGenericWidget):
         self.send("Fit Global Parameters", self.fitted_fit_global_parameters)
 
         self.fit_button.setEnabled(True)
+        self.fit_running = False
         self.stop_fit = False
         self.progressBarFinished()
 
