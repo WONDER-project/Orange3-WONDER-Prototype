@@ -23,9 +23,9 @@ def fit_function(s, fit_global_parameters):
 
             separated_peaks_functions.append([sanalitycal, Ianalitycal])
 
-        s_large, I_large = Utilities.merge_functions(separated_peaks_functions,
-                                                     fit_global_parameters.fit_initialization.fft_parameters.s_max,
-                                                     fit_global_parameters.fit_initialization.fft_parameters.n_step)
+        # INTERPOLATION ONTO ORIGINAL S VALUES -------------------------------------------------------------------------
+
+        I = Utilities.merge_functions(separated_peaks_functions, s)
 
         # ADD BACKGROUNDS  ---------------------------------------------------------------------------------------------
 
@@ -35,8 +35,8 @@ def fit_function(s, fit_global_parameters):
 
                 if not background_parameters is None:
                     if key == ChebyshevBackground.__name__:
-                        add_chebyshev_background(s_large,
-                                                 I_large,
+                        add_chebyshev_background(s,
+                                                 I,
                                                  parameters=[background_parameters.c0.value,
                                                              background_parameters.c1.value,
                                                              background_parameters.c2.value,
@@ -44,8 +44,8 @@ def fit_function(s, fit_global_parameters):
                                                              background_parameters.c4.value,
                                                              background_parameters.c5.value])
                     elif key == ExpDecayBackground.__name__:
-                        add_expdecay_background(s_large,
-                                                I_large,
+                        add_expdecay_background(s,
+                                                I,
                                                 parameters=[background_parameters.a0.value,
                                                             background_parameters.b0.value,
                                                             background_parameters.a1.value,
@@ -57,11 +57,10 @@ def fit_function(s, fit_global_parameters):
 
         if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None \
                 and not fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor is None:
-            I_large *= debye_waller(s_large, fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor.value)
+            I *= debye_waller(s, fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor.value)
 
-        # INTERPOLATION ONTO ORIGINAL S VALUES -------------------------------------------------------------------------
 
-        return numpy.interp(s, s_large, I_large)
+        return I
     else:
         raise NotImplementedError("Only Cubic structures are supported by fit")
 
@@ -93,7 +92,7 @@ class FourierTransform:
         s = numpy.fft.fftshift(s)
 
         I = numpy.zeros(len(s))
-        I[int(len(s)/2)] = 1
+        I[int(len(s)/2)] = 1.0
 
         return s, I
 
@@ -431,7 +430,7 @@ def f_star(eta, use_simplified_calculation=True):
     return result
 
 def strain_krivoglaz_wilkens(L, h, k, l, lattice_parameter, rho, Re, Ae, Be, As, Bs, mix, b):
-    d_hkl = 1/Utilities.s_hkl(lattice_parameter, h, k, l)
+    s_hkl = Utilities.s_hkl(lattice_parameter, h, k, l)
     H = Utilities.Hinvariant(h, k, l)
 
     C_hkl_edge = Ae + Be*H**2
@@ -439,7 +438,7 @@ def strain_krivoglaz_wilkens(L, h, k, l, lattice_parameter, rho, Re, Ae, Be, As,
 
     C_hkl = mix*C_hkl_edge + (1-mix)*C_hkl_screw
 
-    return numpy.exp(-((pi*(b**2)*C_hkl*rho*f_star(L/Re))/(2*(d_hkl**2)))*(L**2))
+    return numpy.exp(-(0.5*pi*(s_hkl**2)*(b**2)*C_hkl*(L**2)*rho*f_star(L/Re)))
 
 # WARREN MODEL --------------------------------
 

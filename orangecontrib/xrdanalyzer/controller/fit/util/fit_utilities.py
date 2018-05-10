@@ -35,15 +35,16 @@ class Utilities:
         return output[:, 0], output[:, 1]
 
     @classmethod
-    def merge_functions(cls, list_of_pairs, s_max, n_steps):
+    def merge_functions(cls, list_of_pairs, s):
         # x step must be the same for all functions
-        super_s = numpy.linspace(0, 4 * s_max, n_steps)
-        super_I = numpy.zeros(n_steps)
+        I = numpy.zeros(len(s))
 
+        #from scipy.interpolate import spline
         for function in list_of_pairs:
-            super_I += numpy.interp(super_s, function[0], function[1])
+            #I += spline(function[0], function[1], s, order=3)
+            I += numpy.interp(s, function[0], function[1])
 
-        return super_s, super_I
+        return I
 
 
 

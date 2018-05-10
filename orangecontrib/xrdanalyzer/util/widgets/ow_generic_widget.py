@@ -55,6 +55,9 @@ class OWGenericWidget(widget.OWWidget):
         self.setMaximumHeight(self.geometry().height())
         self.setMaximumWidth(self.geometry().width())
 
+        #from PyQt5.QtWidgets import QSizePolicy
+        #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
         self.general_options_box = gui.widgetBox(self.controlArea, "General Options", addSpace=True, orientation="horizontal")
@@ -63,7 +66,6 @@ class OWGenericWidget(widget.OWWidget):
             orange_gui.checkBox(self.general_options_box, self, 'is_automatic_run', 'Automatic')
 
         gui.button(self.general_options_box, self, "Reset Fields", callback=self.callResetSettings)
-
         gui.button(self.general_options_box, self, "Show Available Parameters", callback=self.show_available_parameters)
 
 

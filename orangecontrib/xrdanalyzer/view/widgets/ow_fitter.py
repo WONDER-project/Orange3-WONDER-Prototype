@@ -585,14 +585,13 @@ class OWFitter(OWGenericWidget):
     def fit_begin(self):
         from PyQt5.QtCore import QMutex
 
-        mutex = QMutex()
-        mutex.lock()
+        self.fit_thread.mutex.tryLock()
 
         self.progressBarInit()
         self.setStatusMessage("Fitting procedure started")
         self.fit_running = True
 
-        mutex.unlock()
+        self.fit_thread.mutex.unlock()
 
     def fit_update(self):
 
