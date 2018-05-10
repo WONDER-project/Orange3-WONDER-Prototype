@@ -469,7 +469,7 @@ class KrivoglazWilkensModel(FitParametersList):
 
         from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import f_star
 
-        DL = numpy.sqrt(self.rho.value*C_hkl*(self.b.value**2)*(L**2)*f_star(L/self.Re.value))
+        DL = numpy.sqrt(self.rho.value*C_hkl*(self.b.value**2)*(L**2)*f_star(L/self.Re.value)/(4*numpy.pi))
 
         return L, DL
 

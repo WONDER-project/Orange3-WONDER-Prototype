@@ -38,6 +38,8 @@ class OWFitter(OWGenericWidget):
     free_output_parameters_text = Setting("")
     save_file_name = Setting("fit_output.dat")
 
+    is_interactive = Setting(1)
+
     horizontal_headers = ["Name", "Value", "Min", "Max", "Fixed", "Function", "Expression", "Var"]
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
@@ -93,6 +95,8 @@ class OWFitter(OWGenericWidget):
         font = QFont(self.le_current_iteration.font())
         font.setBold(True)
         self.le_current_iteration.setFont(font)
+
+        orangegui.comboBox(iteration_box, self, "is_interactive", label="Refresh Plots while fitting", items=["No", "Yes"], orientation="horizontal")
 
         button_box = gui.widgetBox(main_box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-25, height=90)
 
@@ -558,7 +562,7 @@ class OWFitter(OWGenericWidget):
         self.plot_fit.addCurve(x, yf, legend="fit", color="red")
         self.plot_fit.addCurve(x, res, legend="residual", color="#2D811B")
 
-        if not self.fit_data is None:
+        if not self.fit_data is None and self.is_interactive == 1:
             x = numpy.arange(1, self.current_iteration + 1)
             self.current_wss.append(self.fit_data.wss)
             self.current_gof.append(self.fit_data.gof())
@@ -604,17 +608,18 @@ class OWFitter(OWGenericWidget):
             self.progressBarSet(int(self.current_running_iteration*100/self.n_iterations))
             self.setStatusMessage("Fit iteration nr. " + str(self.current_iteration) + "/" + str(self.n_iterations) + " completed")
 
-            self.show_data()
+            if self.is_interactive == 1:
+                self.show_data()
 
-            parameters = self.fitted_fit_global_parameters.free_input_parameters.as_parameters()
-            parameters.extend(self.fitted_fit_global_parameters.get_parameters())
-            parameters.extend(self.fitted_fit_global_parameters.free_output_parameters.as_parameters())
+                parameters = self.fitted_fit_global_parameters.free_input_parameters.as_parameters()
+                parameters.extend(self.fitted_fit_global_parameters.get_parameters())
+                parameters.extend(self.fitted_fit_global_parameters.free_output_parameters.as_parameters())
 
-            self.populate_table(self.table_fit_out, parameters)
+                self.populate_table(self.table_fit_out, parameters)
 
-            if self.current_iteration == 1:
-                self.tabs.setCurrentIndex(1)
-                self.tabs_plot.setCurrentIndex(0)
+                if self.current_iteration == 1:
+                    self.tabs.setCurrentIndex(1)
+                    self.tabs_plot.setCurrentIndex(0)
 
         except Exception as e:
             QMessageBox.critical(self, "Error",
@@ -636,6 +641,19 @@ class OWFitter(OWGenericWidget):
             parameters.extend(self.fit_global_parameters.get_parameters())
 
             self.populate_table(self.table_fit_in, parameters)
+
+        if self.is_interactive == 0:
+            self.show_data()
+
+            parameters = self.fitted_fit_global_parameters.free_input_parameters.as_parameters()
+            parameters.extend(self.fitted_fit_global_parameters.get_parameters())
+            parameters.extend(self.fitted_fit_global_parameters.free_output_parameters.as_parameters())
+
+            self.populate_table(self.table_fit_out, parameters)
+
+            if self.current_iteration == 1:
+                self.tabs.setCurrentIndex(1)
+                self.tabs_plot.setCurrentIndex(0)
 
         self.send("Fit Global Parameters", self.fitted_fit_global_parameters)
 

@@ -185,6 +185,43 @@ class ShowTextDialog(QDialog):
         dialog.show()
 
 
+class ConfirmTextDialog(QDialog):
+
+    def __init__(self, title, text, text_before="", text_after="", width=650, height=400, parent=None):
+        QDialog.__init__(self, parent)
+        self.setModal(True)
+        self.setWindowTitle(title)
+        layout = QVBoxLayout(self)
+
+        label_before = QLabel()
+        label_before.setText(text_before)
+        layout.addWidget(label_before)
+
+        text_edit = QTextEdit("", self)
+        text_edit.append(text)
+        text_edit.setReadOnly(True)
+
+        text_area = QScrollArea(self)
+        text_area.setWidget(text_edit)
+        text_area.setWidgetResizable(True)
+        text_area.setFixedHeight(height)
+        text_area.setFixedWidth(width)
+
+        layout.addWidget(text_area)
+
+        label_after = QLabel()
+        label_after.setText(text_after)
+        layout.addWidget(label_after)
+
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+        layout.addWidget(bbox)
+
+    @classmethod
+    def confirm_text(cls, title, text, text_before="", text_after="", width=650, height=400, parent=None):
+        return ConfirmTextDialog(title, text, text_before, text_after, width, height, parent).exec_() == QDialog.Accepted
+
 class ConfirmDialog(QMessageBox):
     def __init__(self, parent, message, title):
         super(ConfirmDialog, self).__init__(parent)

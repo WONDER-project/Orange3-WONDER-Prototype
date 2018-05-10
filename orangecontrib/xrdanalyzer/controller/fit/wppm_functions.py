@@ -617,11 +617,10 @@ def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a
     theta_deg = numpy.degrees(theta)
 
     eta = a + b * theta_deg + c * theta_deg**2
-    fwhm = numpy.sqrt(U * (numpy.tan(theta)**2) + V * numpy.tan(theta) + W)
+    fwhm = numpy.radians(numpy.sqrt(U * (numpy.tan(theta)**2) + V * numpy.tan(theta) + W))
 
     k = (1 + (1 - eta)/(eta * numpy.sqrt(numpy.pi*numpy.log(2))))**(-1)
-    # TODO: Cosi funziona, formula da manuale PM2K, DA VERIFICARE U.M.
-    sigma = fwhm/2#*numpy.cos(theta)/wavelength
+    sigma = (fwhm/2)*numpy.cos(theta)/wavelength
 
     return (1-k)*numpy.exp(-((numpy.pi*sigma*L)**2)/numpy.log(2)) + k*numpy.exp(-2*numpy.pi*sigma*L)
 

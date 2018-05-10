@@ -8,7 +8,7 @@ from Orange.widgets.settings import Setting
 from Orange.widgets import gui as orangegui
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
-from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ConfirmDialog
+from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ConfirmDialog, ConfirmTextDialog, ShowTextDialog
 from orangecontrib.xrdanalyzer.util import congruence
 
 from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities, list_of_s_bragg
@@ -239,17 +239,20 @@ class OWCrystalStructure(OWGenericWidget):
 
                     excluded_reflections = crystal_structure.get_congruence_check(wavelength=wavelength,
                                                                                   min_value=s_min,
-                                                                                  max_value=s_max)
+                                                                                    max_value=s_max)
 
                     if not excluded_reflections is None:
-                        text = "The following reflections lie outside the diffraction pattern:\n\n"
+                        text_before = "The following reflections lie outside the diffraction pattern:"
 
+                        text = ""
                         for reflection in excluded_reflections:
                             text += "[" + str(reflection.h) + ", " + str(reflection.k) + ", " + str(reflection.l) +"]\n"
 
-                        text += "\nProceed anyway?"
+                        text_after = "Proceed anyway?"
 
-                        if not ConfirmDialog.confirmed(self, message=text, title="Confirm Structure"): return
+                        if not ConfirmTextDialog.confirm_text("Confirm Structure", text,
+                                                              text_after=text_after, text_before=text_before,
+                                                              width=350, parent=self): return
 
                 self.fit_global_parameters.fit_initialization.crystal_structure = crystal_structure
 
