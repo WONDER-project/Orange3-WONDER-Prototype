@@ -443,6 +443,7 @@ class KrivoglazWilkensModel(FitParametersList):
 
         return text
 
+
     def duplicate(self):
         return KrivoglazWilkensModel(rho = None if self.rho is None else self.rho.duplicate(),
                                      Re  = None if self.Re  is None else self.Re.duplicate(),
