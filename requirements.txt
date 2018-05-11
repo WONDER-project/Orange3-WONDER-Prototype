@@ -1,6 +1,5 @@
-Orange3>=3.6
+Orange3>=3.13
 numpy
 scipy
 matplotlib
-lmfit
 silx
