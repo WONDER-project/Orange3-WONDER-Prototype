@@ -12,7 +12,7 @@ NAME = 'Orange3-WONDER'
 
 MAJOR = 0
 MINOR = 0
-MICRO = 25
+MICRO = 26
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 AUTHOR = 'Luca Rebuffi, Paolo Scardi, Alberto Flor'
@@ -67,7 +67,7 @@ ENTRY_POINTS = {
 
 }
 
-import site, shutil, sys, time
+import shutil, sys
 
 from distutils.core import setup
 from distutils.extension import Extension
@@ -85,6 +85,16 @@ class Package:
         self.package_url = package_url
         self.name = name
 
+def create_recovery():
+    for path, dirs, files in os.walk(os.path.join("orangecontrib", "xrdanalyzer")):
+      for file in files:
+        if file.endswith(".pyx"):
+            recovery_path = os.path.join("orangecontrib","xrdanalyzer","recovery", path[26:])
+
+            if not os.path.exists(recovery_path): os.makedirs(recovery_path)
+
+            shutil.copyfile(os.path.join(path, file), os.path.join(recovery_path,  file[:-1]))
+
 if __name__ == '__main__':
 
     is_sdist = False
@@ -92,6 +102,13 @@ if __name__ == '__main__':
         if arg == 'sdist':
             is_sdist = True
             break
+
+    if is_sdist:
+        create_recovery()
+
+    #########################################################
+    # check if Chyton is present, in case it install it
+    #########################################################
 
     if not is_sdist:
         try:
@@ -127,7 +144,10 @@ if __name__ == '__main__':
             ext_modules = ext_modules,
         )
     except:
+        #########################################################
         #in case of problems: restore full python installation
+        #########################################################
+
         setup(
             name=NAME,
             version=VERSION,
@@ -146,4 +166,7 @@ if __name__ == '__main__':
             entry_points=ENTRY_POINTS
         )
 
-        # in orangecontrib.xrdanalyzer.__init__.py there is the restore of the recovery files to replace the failed cytonized
+        #########################################################
+        # in orangecontrib.xrdanalyzer.__init__.py there is the
+        # restore of the recovery files to replace the failed cytonized
+        #########################################################

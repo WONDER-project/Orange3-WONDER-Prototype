@@ -48,7 +48,7 @@ class Singleton:
 # RECOVERY FROM FAILED INSTALLATIONS WITH CYTHON
 
 from Orange.canvas import resources
-import shutil
+import shutil, os
 
 try:
     import orangecontrib.xrdanalyzer.controller.fit.wppm_functions
@@ -56,8 +56,8 @@ except:
     wonder_dir = resources.package_dirname("orangecontrib.xrdanalyzer")
 
     try:
-        shutil.copyfile(wonder_dir + "/recovery/controller/fit/wppm_functions.py"             , wonder_dir + "/controller/fit/wppm_functions.py"        )
-        shutil.copyfile(wonder_dir + "/recovery/controller/fit/fitters/fitter_minpack.py"     , wonder_dir + "/controller/fit/fitters/fitter_minpack.py")
-        shutil.copyfile(wonder_dir + "/recovery/controller/fit/fitters/fitter_minpack_util.py", wonder_dir + "/controller/fit/fitters/fitter_minpack_util.py")
+        shutil.copyfile(os.path.join(wonder_dir, "recovery","controller","fit","wppm_functions.py"               ), os.path.join(wonder_dir, "controller","fit","wppm_functions.py"             ))
+        shutil.copyfile(os.path.join(wonder_dir, "recovery","controller","fit","fitters","fitter_minpack.py"     ), os.path.join(wonder_dir, "controller","fit","fitters","fitter_minpack.py"     ))
+        shutil.copyfile(os.path.join(wonder_dir, "recovery","controller","fit","fitters","fitter_minpack_util.py"), os.path.join(wonder_dir, "controller","fit","fitters","fitter_minpack_util.py"))
     except:
         pass
