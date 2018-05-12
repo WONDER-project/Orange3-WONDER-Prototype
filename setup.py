@@ -67,7 +67,7 @@ ENTRY_POINTS = {
 
 }
 
-import sys
+import site, shutil, sys, time
 
 from distutils.core import setup
 from distutils.extension import Extension
@@ -86,43 +86,64 @@ class Package:
         self.name = name
 
 if __name__ == '__main__':
-    pip = PipInstaller()
 
-    try:
-        if not sys.argv[1:][0] == "sdist": pip.upgrade(Package(package_url="pip", name="pip"))
-    except:
-        try:
-            pip.upgrade(Package(package_url="pip", name="pip"))
-        except:
-            pass
+    is_sdist = False
+    for arg in sys.argv:
+        if arg == 'sdist':
+            is_sdist = True
+            break
 
-    try:
-        from Cython.Distutils import build_ext
-    except:
+    if not is_sdist:
         try:
-            pip.arguments.append("--no-warn-script-location")
-            pip.install(Package(package_url="Cython"))
+            from Cython.Distutils import build_ext
         except:
-            pass
+            try:
+                pip = PipInstaller()
+                pip.arguments.append("--no-warn-script-location")
+                pip.install(Package(package_url="Cython"))
+            except:
+                pass
 
     from Cython.Distutils import build_ext
 
-    setup(
-        name=NAME,
-        version=VERSION,
-        author=AUTHOR,
-        author_email=AUTHOR_EMAIL,
-        url=URL,
-        description=DESCRIPTION,
-        long_description=LONG_DESCRIPTION,
-        license=LICENSE,
-        packages=PACKAGES,
-        package_data=PACKAGE_DATA,
-        keywords=KEYWORDS,
-        classifiers=CLASSIFIERS,
-        install_requires=INSTALL_REQUIRES,
-        namespace_packages=['orangecontrib'],
-        entry_points=ENTRY_POINTS,
-        cmdclass = {'build_ext': build_ext},
-        ext_modules = ext_modules,
-    )
+    try:
+        setup(
+            name=NAME,
+            version=VERSION,
+            author=AUTHOR,
+            author_email=AUTHOR_EMAIL,
+            url=URL,
+            description=DESCRIPTION,
+            long_description=LONG_DESCRIPTION,
+            license=LICENSE,
+            packages=PACKAGES,
+            package_data=PACKAGE_DATA,
+            keywords=KEYWORDS,
+            classifiers=CLASSIFIERS,
+            install_requires=INSTALL_REQUIRES,
+            namespace_packages=['orangecontrib'],
+            entry_points=ENTRY_POINTS,
+            cmdclass = {'build_ext': build_ext},
+            ext_modules = ext_modules,
+        )
+    except:
+        #in case of problems: restore full python installation
+        setup(
+            name=NAME,
+            version=VERSION,
+            author=AUTHOR,
+            author_email=AUTHOR_EMAIL,
+            url=URL,
+            description=DESCRIPTION,
+            long_description=LONG_DESCRIPTION,
+            license=LICENSE,
+            packages=PACKAGES,
+            package_data=PACKAGE_DATA,
+            keywords=KEYWORDS,
+            classifiers=CLASSIFIERS,
+            install_requires=INSTALL_REQUIRES,
+            namespace_packages=['orangecontrib'],
+            entry_points=ENTRY_POINTS
+        )
+
+        # in orangecontrib.xrdanalyzer.__init__.py there is the restore of the recovery files to replace the failed cytonized
