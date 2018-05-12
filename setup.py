@@ -12,7 +12,6 @@ NAME = 'Orange3-WONDER'
 
 MAJOR = 0
 MINOR = 0
-MICRO = 26
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 AUTHOR = 'Luca Rebuffi, Paolo Scardi, Alberto Flor'
