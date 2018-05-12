@@ -12,7 +12,7 @@ NAME = 'Orange3-WONDER'
 
 MAJOR = 0
 MINOR = 0
-MICRO = 27
+MICRO = 28
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 AUTHOR = 'Luca Rebuffi, Paolo Scardi, Alberto Flor'
@@ -94,6 +94,7 @@ def create_recovery():
             if not os.path.exists(recovery_path): os.makedirs(recovery_path)
 
             shutil.copyfile(os.path.join(path, file), os.path.join(recovery_path,  file[:-1]))
+            if os.path.exists(os.path.join(path, file[:-1])): os.remove(os.path.join(path, file[:-1]))
 
 if __name__ == '__main__':
 
