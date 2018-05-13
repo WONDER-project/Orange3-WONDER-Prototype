@@ -1,16 +1,18 @@
 
 from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
 from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_ERR
-
-from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface
-from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util import *
-from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import fit_function
-
 from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
 from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
 
-from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
+from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface
+
+try:
+    from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util import *
+    from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import fit_function
+except:
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fitters.fitter_minpack_util import *
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.wppm_functions import fit_function
 
 PRCSN = 2.5E-7
 

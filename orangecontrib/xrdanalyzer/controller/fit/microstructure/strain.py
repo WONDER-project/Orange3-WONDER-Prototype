@@ -390,7 +390,6 @@ class InvariantPAHLaueGroup14(InvariantPAHCubic):
                  e4  = FitParameter(parameter_name="e4" , value=1e-4)):
         super(InvariantPAHLaueGroup14, self).__init__(aa, bb, 14, e1, e4)
 
-
 class KrivoglazWilkensModel(FitParametersList):
     rho = None
     Re  = None
@@ -468,7 +467,10 @@ class KrivoglazWilkensModel(FitParametersList):
 
         C_hkl = self.mix.value*C_hkl_edge + (1-self.mix.value)*C_hkl_screw
 
-        from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import f_star
+        try:
+            from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import f_star
+        except:
+            from orangecontrib.xrdanalyzer.recovery.controller.fit.wppm_functions import f_star
 
         DL = numpy.sqrt(self.rho.value*C_hkl*(self.b.value**2)*(L**2)*f_star(L/self.Re.value)/(4*numpy.pi))
 
