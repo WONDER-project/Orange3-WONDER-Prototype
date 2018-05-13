@@ -74,13 +74,19 @@ class SizeParameters(FitParametersList):
         step = D_max/1000
 
         x = numpy.arange(start=step, stop=D_max + step, step=step)
-        y = numpy.zeros(len(x))
+
+        try:
+            from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import lognormal_distribution
+        except:
+            from orangecontrib.xrdanalyzer.recovery.controller.fit.wppm_functions import lognormal_distribution
 
         if self.distribution == Distribution.LOGNORMAL:
-            y = numpy.exp(-0.5*((numpy.log(x) - self.mu.value)/(self.sigma.value))**2)/(x*self.sigma.value*numpy.sqrt(2*numpy.pi))
+            y = lognormal_distribution(self.mu.value, self.sigma.value, x)
+        else:
+            y = numpy.zeros(len(x))
 
         if auto:
             D_max = x[numpy.where(y > 1e-4)][-1]
-            x, y = self.get_distribution(auto=False, D_max=D_max)
+            x, y, D_max = self.get_distribution(auto=False, D_max=D_max)
 
-        return x, y
+        return x, y, D_max

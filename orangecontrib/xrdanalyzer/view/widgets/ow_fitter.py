@@ -329,7 +329,7 @@ class OWFitter(OWGenericWidget):
     def set_data(self, data):
         try:
             if not data is None:
-                if self.fit_running: "Fit is Running: Input data are not accepted!"
+                if self.fit_running: raise RuntimeError("Fit is Running: Input data are not accepted!")
 
                 if self.is_incremental == 1 and not self.fit_global_parameters is None:
                     if not self.fit_global_parameters.is_compatibile(data):
@@ -339,6 +339,10 @@ class OWFitter(OWGenericWidget):
                                              QMessageBox.Ok)
 
                         self.is_incremental = 0
+                        self.current_iteration = 0
+
+                if self.is_incremental == 0:
+                    self.current_iteration = 0
 
                 self.fit_global_parameters = data.duplicate()
 
@@ -383,7 +387,7 @@ class OWFitter(OWGenericWidget):
                     self.fitted_pattern = self.fitter.build_fitted_diffraction_pattern(self.fitted_fit_global_parameters)
                     self.fit_data = None
 
-                    self.show_data()
+                    self.show_data(is_init=True)
 
                     self.tabs.setCurrentIndex(1)
                     self.tabs_plot.setCurrentIndex(0)
@@ -542,25 +546,33 @@ class OWFitter(OWGenericWidget):
 
             if self.IS_DEVELOP: raise e
 
-    def show_data(self):
+    def show_data(self, is_init=False):
         diffraction_pattern = self.fitted_fit_global_parameters.fit_initialization.diffraction_pattern
 
-        x = []
-        y = []
-        yf = []
-        res = []
+        if is_init:
+            self.x = []
+            self.y = []
+            yf = []
+            res = []
 
-        for index in range(0, self.fitted_pattern.diffraction_points_count()):
-            x.append(diffraction_pattern.get_diffraction_point(index).twotheta)
-            y.append(diffraction_pattern.get_diffraction_point(index).intensity)
-            yf.append(self.fitted_pattern.get_diffraction_point(index).intensity)
-            res.append(self.fitted_pattern.get_diffraction_point(index).error)
+            for index in range(0, self.fitted_pattern.diffraction_points_count()):
+                self.x.append(diffraction_pattern.get_diffraction_point(index).twotheta)
+                self.y.append(diffraction_pattern.get_diffraction_point(index).intensity)
+                yf.append(self.fitted_pattern.get_diffraction_point(index).intensity)
+                res.append(self.fitted_pattern.get_diffraction_point(index).error)
+        else:
+            yf = []
+            res = []
+
+            for index in range(0, self.fitted_pattern.diffraction_points_count()):
+                yf.append(self.fitted_pattern.get_diffraction_point(index).intensity)
+                res.append(self.fitted_pattern.get_diffraction_point(index).error)
 
         res = -10 + (res-numpy.max(res))
 
-        self.plot_fit.addCurve(x, y, legend="data", linewidth=4, color="blue")
-        self.plot_fit.addCurve(x, yf, legend="fit", color="red")
-        self.plot_fit.addCurve(x, res, legend="residual", color="#2D811B")
+        if is_init: self.plot_fit.addCurve(self.x, self.y, legend="data", linewidth=4, color="blue")
+        self.plot_fit.addCurve(self.x, yf, legend="fit", color="red")
+        self.plot_fit.addCurve(self.x, res, legend="residual", color="#2D811B")
 
         if not self.fit_data is None and self.is_interactive == 1:
             x = numpy.arange(1, self.current_iteration + 1)
@@ -571,7 +583,10 @@ class OWFitter(OWGenericWidget):
             self.plot_fit_gof.addCurve(x, self.current_gof, legend="gof", symbol='o', color="red")
 
         if not self.fitted_fit_global_parameters.size_parameters is None:
-            x, y = self.fitted_fit_global_parameters.size_parameters.get_distribution()
+            if self.current_iteration <= 1: #TO BE SURE...
+                x, y, self.D_max = self.fitted_fit_global_parameters.size_parameters.get_distribution()
+            else:
+                x, y, self.D_max = self.fitted_fit_global_parameters.size_parameters.get_distribution(auto=False, D_max=self.D_max)
 
             self.plot_size.addCurve(x, y, legend="distribution", color="blue")
 
@@ -625,6 +640,8 @@ class OWFitter(OWGenericWidget):
             QMessageBox.critical(self, "Error",
                                  str(e),
                                  QMessageBox.Ok)
+
+            if self.IS_DEVELOP: raise e
 
         self.fit_thread.mutex.unlock()
 

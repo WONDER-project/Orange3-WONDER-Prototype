@@ -26,8 +26,8 @@ class OWStrainKW(OWGenericWidget):
     rho_fixed = Setting(0)
     Re_fixed = Setting(0)
 
-    rho_has_min = Setting(0)
-    Re_has_min = Setting(0)
+    rho_has_min = Setting(1)
+    Re_has_min = Setting(1)
 
     rho_min = Setting(0.0)
     Re_min = Setting(0.0)
@@ -92,29 +92,29 @@ class OWStrainKW(OWGenericWidget):
     As_function_value = Setting("")
     Bs_function_value = Setting("")
 
-    mix = Setting(0.0)
+    mix = Setting(0.5)
     b = Setting(0.0)
 
     mix_fixed = Setting(0)
     b_fixed = Setting(0)
 
-    mix_has_min = Setting(0)
+    mix_has_min = Setting(1)
     b_has_min = Setting(0)
 
     mix_min = Setting(0.0)
     b_min = Setting(0.0)
 
-    mix_has_max = Setting(0)
+    mix_has_max = Setting(1)
     b_has_max = Setting(0)
 
-    mix_max = Setting(0.0)
+    mix_max = Setting(1.0)
     b_max = Setting(0.0)
 
     mix_function = Setting(0)
-    b_function = Setting(0)
+    b_function = Setting(1)
 
     mix_function_value = Setting("")
-    b_function_value = Setting("")
+    b_function_value = Setting("crystal_structure_a*sqrt(3)/2")
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]

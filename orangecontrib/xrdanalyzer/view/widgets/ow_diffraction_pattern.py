@@ -149,7 +149,7 @@ class OWDiffractionPattern(OWGenericWidget):
             x.append(self.diffraction_pattern.get_diffraction_point(index).twotheta)
             y.append(self.diffraction_pattern.get_diffraction_point(index).intensity)
 
-        self.plot.addCurve(x, y)
+        self.plot.addCurve(x, y, linewidth=4, color="blue")
 
         self.populate_table(self.table_data, self.diffraction_pattern)
 

@@ -14,8 +14,8 @@ from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import Invar
 
 class OWStrainInvariant(OWGenericWidget):
 
-    name = "Invariant Strain"
-    description = "Define Strain"
+    name = "Invariant PAH Strain"
+    description = "Define Invariant PAH Strain"
     icon = "icons/strain.png"
     priority = 11
 

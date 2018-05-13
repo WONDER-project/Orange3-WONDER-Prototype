@@ -173,10 +173,14 @@ class InvariantPAH(FitParametersList):
 
     def get_warren_plot(self, h, k, l, L_max=50):
         step = L_max/100
-
-        # TODO: VA BENE PER I CUBICI, DA VERIFICARE PER IL CASO GENERICO
         L = numpy.arange(start=step, stop=L_max + step, step=step)
-        DL = numpy.sqrt((self.get_invariant(h, k, l)*(self.aa.value*L + self.bb.value*(L**2)))/((h**2+k**2+l**2)**2))
+
+        try:
+            from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import displacement_invariant_pah
+        except:
+            from orangecontrib.xrdanalyzer.recovery.controller.fit.wppm_functions import displacement_invariant_pah
+
+        DL = displacement_invariant_pah(L, h, k, l, self.aa.value, self.bb.value, self.get_invariant(h, k, l))
 
         return L, DL
 
@@ -456,24 +460,22 @@ class KrivoglazWilkensModel(FitParametersList):
 
     def get_warren_plot(self, h, k, l, L_max=50):
         step = L_max/100
-
-        # TODO: VA BENE PER I CUBICI, DA VERIFICARE PER IL CASO GENERICO
         L = numpy.arange(start=step, stop=L_max + step, step=step)
 
-        H = Utilities.Hinvariant(h, k, l)
-
-        C_hkl_edge  = self.Ae.value + self.Be.value*H**2
-        C_hkl_screw = self.As.value + self.Bs.value*H**2
-
-        C_hkl = self.mix.value*C_hkl_edge + (1-self.mix.value)*C_hkl_screw
-
         try:
-            from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import f_star
+            from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import displacement_krivoglaz_wilkens
         except:
-            from orangecontrib.xrdanalyzer.recovery.controller.fit.wppm_functions import f_star
+            from orangecontrib.xrdanalyzer.recovery.controller.fit.wppm_functions import displacement_krivoglaz_wilkens
 
-        DL = numpy.sqrt(self.rho.value*C_hkl*(self.b.value**2)*(L**2)*f_star(L/self.Re.value)/(4*numpy.pi))
-
+        DL = displacement_krivoglaz_wilkens(L, h, k, l,
+                                            self.rho.value,
+                                            self.Re.value,
+                                            self.Ae.value,
+                                            self.Be.value,
+                                            self.As.value,
+                                            self.Bs.value,
+                                            self.mix.value,
+                                            self.b.value)
         return L, DL
 
 

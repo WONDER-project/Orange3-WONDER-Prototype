@@ -214,25 +214,25 @@ def create_one_peak(reflection_index, fit_global_parameters):
     if not fit_global_parameters.strain_parameters is None:
         if isinstance(fit_global_parameters.strain_parameters, InvariantPAH): # INVARIANT PAH
             if fourier_amplitudes is None:
-                fourier_amplitudes = strain_invariant_function(fit_space_parameters.L,
-                                                               reflection.h,
-                                                               reflection.k,
-                                                               reflection.l,
-                                                               crystal_structure.a.value,
-                                                               fit_global_parameters.strain_parameters.aa.value,
-                                                               fit_global_parameters.strain_parameters.bb.value,
-                                                               fit_global_parameters.strain_parameters.get_invariant(reflection.h,
+                fourier_amplitudes = strain_invariant_function_pah(fit_space_parameters.L,
+                                                                   reflection.h,
+                                                                   reflection.k,
+                                                                   reflection.l,
+                                                                   crystal_structure.a.value,
+                                                                   fit_global_parameters.strain_parameters.aa.value,
+                                                                   fit_global_parameters.strain_parameters.bb.value,
+                                                                   fit_global_parameters.strain_parameters.get_invariant(reflection.h,
                                                                                                                      reflection.k,
                                                                                                                      reflection.l))
             else:
-                fourier_amplitudes *= strain_invariant_function(fit_space_parameters.L,
-                                                                reflection.h,
-                                                                reflection.k,
-                                                                reflection.l,
-                                                                crystal_structure.a.value,
-                                                                fit_global_parameters.strain_parameters.aa.value,
-                                                                fit_global_parameters.strain_parameters.bb.value,
-                                                                fit_global_parameters.strain_parameters.get_invariant(reflection.h,
+                fourier_amplitudes *= strain_invariant_function_pah(fit_space_parameters.L,
+                                                                    reflection.h,
+                                                                    reflection.k,
+                                                                    reflection.l,
+                                                                    crystal_structure.a.value,
+                                                                    fit_global_parameters.strain_parameters.aa.value,
+                                                                    fit_global_parameters.strain_parameters.bb.value,
+                                                                    fit_global_parameters.strain_parameters.get_invariant(reflection.h,
                                                                                                                       reflection.k,
                                                                                                                       reflection.l))
 
@@ -382,16 +382,23 @@ def size_function_lognormal(L, sigma, mu):
 
     return  a + b + c
 
+def lognormal_distribution(mu, sigma, x):
+        return numpy.exp(-0.5*((numpy.log(x) - mu)/(sigma))**2)/(x*sigma*numpy.sqrt(2*numpy.pi))
+
 ######################################################################
 # STRAIN
 ######################################################################
 
 # INVARIANT PAH --------------------------------
 
-def strain_invariant_function(L, h, k, l, lattice_parameter, a, b, C_hkl):
+def strain_invariant_function_pah(L, h, k, l, lattice_parameter, a, b, C_hkl):
     s_hkl = Utilities.s_hkl(lattice_parameter, h, k, l)
 
     return numpy.exp(-((2*numpy.pi**2)/((s_hkl**2)*(lattice_parameter**4))) * C_hkl * (a*L + b*(L**2)))
+
+def displacement_invariant_pah(L, h, k, l, a, b, C_hkl):
+    return numpy.sqrt((C_hkl*(a*L + b*(L**2)))/((h**2+k**2+l**2)**2))
+
 
 # Krivoglaz-Wilkens  --------------------------------
 
@@ -429,16 +436,26 @@ def f_star(eta, use_simplified_calculation=True):
 
     return result
 
-def strain_krivoglaz_wilkens(L, h, k, l, lattice_parameter, rho, Re, Ae, Be, As, Bs, mix, b):
-    s_hkl = Utilities.s_hkl(lattice_parameter, h, k, l)
+
+def C_hkl_krivoglaz_wilkens(h, k, l, Ae, Be, As, Bs, mix):
     H = Utilities.Hinvariant(h, k, l)
 
-    C_hkl_edge = Ae + Be*H**2
+    C_hkl_edge  = Ae + Be*H**2
     C_hkl_screw = As + Bs*H**2
 
-    C_hkl = mix*C_hkl_edge + (1-mix)*C_hkl_screw
+    return mix*C_hkl_edge + (1-mix)*C_hkl_screw
 
-    return numpy.exp(-(0.5*pi*(s_hkl**2)*(b**2)*C_hkl*(L**2)*rho*f_star(L/Re)))
+def strain_krivoglaz_wilkens(L, h, k, l, lattice_parameter, rho, Re, Ae, Be, As, Bs, mix, b):
+    s_hkl = Utilities.s_hkl(lattice_parameter, h, k, l)
+    C_hkl = C_hkl_krivoglaz_wilkens(h, k, l, Ae, Be, As, Bs, mix)
+
+    return numpy.exp(-(0.5*pi*(s_hkl**2)*(b**2)*rho*C_hkl*(L**2)*f_star(L/Re)))
+
+def displacement_krivoglaz_wilkens(L, h, k, l, rho, Re, Ae, Be, As, Bs, mix, b):
+    C_hkl = C_hkl_krivoglaz_wilkens(h, k, l, Ae, Be, As, Bs, mix)
+
+    return numpy.sqrt(rho*C_hkl*(b**2)*(L**2)*f_star(L/Re)/(4*numpy.pi))
+
 
 # WARREN MODEL --------------------------------
 
