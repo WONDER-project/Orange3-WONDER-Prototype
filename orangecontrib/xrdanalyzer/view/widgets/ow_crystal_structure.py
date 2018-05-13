@@ -205,7 +205,7 @@ class OWCrystalStructure(OWGenericWidget):
             k = list[index][0][1]
             l = list[index][0][2]
 
-            text += Reflection(h, k, l, FitParameter(parameter_name="I" + str(index+1), value=1000, boundary=Boundary(min_value=0.0))).to_text() + "\n"
+            text += Reflection(h, k, l, FitParameter(parameter_name="I" + str(h) + str(k) + str(l), value=1000, boundary=Boundary(min_value=0.0))).to_text() + "\n"
 
         self.text_area.setText(text)
 

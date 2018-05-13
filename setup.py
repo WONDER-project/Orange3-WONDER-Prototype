@@ -86,15 +86,26 @@ class Package:
         self.name = name
 
 def create_recovery():
-    for path, dirs, files in os.walk(os.path.join("orangecontrib", "xrdanalyzer")):
-      for file in files:
-        if file.endswith(".pyx"):
-            recovery_path = os.path.join("orangecontrib","xrdanalyzer","recovery", path[26:])
 
-            if not os.path.exists(recovery_path): os.makedirs(recovery_path)
+    root_path = os.path.join("orangecontrib", "xrdanalyzer")
+    recovery_root_path = os.path.join(root_path, "recovery")
 
-            shutil.copyfile(os.path.join(path, file), os.path.join(recovery_path,  file[:-1]))
-            if os.path.exists(os.path.join(path, file[:-1])): os.remove(os.path.join(path, file[:-1]))
+    shutil.rmtree(recovery_root_path)
+    os.makedirs(recovery_root_path)
+    open(os.path.join(recovery_root_path,  "__init__.py"), 'a').close()
+
+    for path, dirs, files in os.walk(root_path):
+        recovery_path = os.path.join(recovery_root_path, path[26:])
+        if not recovery_path.endswith("__pycache__"):
+            if not os.path.exists(recovery_path):
+                os.makedirs(recovery_path)
+
+                if os.path.exists(os.path.join(path, "__init__.py")):
+                    shutil.copyfile(os.path.join(path, "__init__.py"), os.path.join(os.path.join(recovery_path,  "__init__.py")))
+
+            for file in files:
+                if file.endswith(".pyx"):
+                    shutil.copyfile(os.path.join(path, file), os.path.join(recovery_path,  file[:-1]))
 
 if __name__ == '__main__':
 
@@ -122,9 +133,10 @@ if __name__ == '__main__':
             except:
                 pass
 
-    from Cython.Distutils import build_ext
 
     try:
+        from Cython.Distutils import build_ext
+
         setup(
             name=NAME,
             version=VERSION,
@@ -146,7 +158,9 @@ if __name__ == '__main__':
         )
     except:
         #########################################################
-        #in case of problems: restore full python installation
+        # in case of problems: restore full python installation
+        # not cython files are replaced by recovery files generated
+        # during sdist
         #########################################################
 
         setup(
@@ -166,8 +180,3 @@ if __name__ == '__main__':
             namespace_packages=['orangecontrib'],
             entry_points=ENTRY_POINTS
         )
-
-        #########################################################
-        # in orangecontrib.xrdanalyzer.__init__.py there is the
-        # restore of the recovery files to replace the failed cytonized
-        #########################################################
