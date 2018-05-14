@@ -1,9 +1,9 @@
 
 
-NAME = "WONDER"
+NAME = "WONDER - OLD STRUCTURE!"
 DESCRIPTION = "Whole POdwer PatterN MoDelling in ORange"
 
-ICON = "icons/magnifyXRD.png"
-PRIORITY = 5000
+ICON = "icons/old.png"
+PRIORITY = 5011
 
 BACKGROUND = "#b8bcdb"

@@ -9,7 +9,7 @@ class ThermalPolarizationParameters(FitParametersList):
 
     def __init__(self,
                  debye_waller_factor = FitParameter(parameter_name="B", value=1e-1, boundary=Boundary(min_value=0.0)),
-                 use_lorentz_polarization_factor = True):
+                 use_lorentz_polarization_factor = False):
         self.debye_waller_factor = debye_waller_factor
         self.use_lorentz_polarization_factor = use_lorentz_polarization_factor
 

@@ -39,8 +39,14 @@ KEYWORDS = [
 PACKAGES = find_packages()
 
 PACKAGE_DATA = {
-    'orangecontrib.xrdanalyzer.view.widgets': ['icons/*.*'],
-    'orangecontrib.xrdanalyzer.view.widgets': ['icons/*.*'],
+    'orangecontrib.xrdanalyzer.view.widgets'           : ['icons/*.*'], # to be removed
+    'orangecontrib.xrdanalyzer.view.initialization'    : ['icons/*.*'],
+    'orangecontrib.xrdanalyzer.view.ipf_and_background': ['icons/*.*'],
+    'orangecontrib.xrdanalyzer.view.thermal_properties': ['icons/*.*'],
+    'orangecontrib.xrdanalyzer.view.microstructure'    : ['icons/*.*'],
+    'orangecontrib.xrdanalyzer.view.fitting'           : ['icons/*.*'],
+    'orangecontrib.xrdanalyzer.view._untrusted'        : ['icons/*.*'],
+
     'orangecontrib.xrdanalyzer.controller.fit.data': ['*.*', 'delta_l_files/*.*'],
 }
 
@@ -48,7 +54,12 @@ NAMESPACE_PACAKGES = ["orangecontrib",
                       "orangecontrib.xrdanalyzer",
                       "orangecontrib.xrdanalyzer.view",
                       "orangecontrib.xrdanalyzer.view.widgets",
-                      "orangecontrib.xrdanalyzer.view.untrusted",
+                      "orangecontrib.xrdanalyzer.view.initialization",    
+                      "orangecontrib.xrdanalyzer.view.ipf_and_background",
+                      "orangecontrib.xrdanalyzer.view.thermal_properties",
+                      "orangecontrib.xrdanalyzer.view.microstructure",    
+                      "orangecontrib.xrdanalyzer.view.fitting",           
+                      "orangecontrib.xrdanalyzer.view._untrusted",
                       ]
 
 INSTALL_REQUIRES = sorted(set(
@@ -57,8 +68,13 @@ INSTALL_REQUIRES = sorted(set(
 
 ENTRY_POINTS = {
     'orange.widgets':
-        ('WONDER = orangecontrib.xrdanalyzer.view.widgets',
-         'WONDER - UNTRUSTED = orangecontrib.xrdanalyzer.view.untrusted',
+        ('WONDER - OLD STRUCTURE! = orangecontrib.xrdanalyzer.view.widgets',
+         'WONDER - Initialization = orangecontrib.xrdanalyzer.view.initialization',
+         'WONDER - I.P.F. & Background = orangecontrib.xrdanalyzer.view.ipf_and_background',
+         'WONDER - Thermal Properties = orangecontrib.xrdanalyzer.view.thermal_properties',
+         'WONDER - Microstructure = orangecontrib.xrdanalyzer.view.microstructure',
+         'WONDER - Fitting = orangecontrib.xrdanalyzer.view.fitting',
+         'WONDER - Untrusted = orangecontrib.xrdanalyzer.view._untrusted',
          ),
     'orange3.addon':
         ('Orange3-WONDER = orangecontrib.xrdanalyzer',)
@@ -90,7 +106,7 @@ def create_recovery():
     root_path = os.path.join("orangecontrib", "xrdanalyzer")
     recovery_root_path = os.path.join(root_path, "recovery")
 
-    shutil.rmtree(recovery_root_path)
+    if os.path.exists(recovery_root_path): shutil.rmtree(recovery_root_path)
     os.makedirs(recovery_root_path)
     open(os.path.join(recovery_root_path,  "__init__.py"), 'a').close()
 
@@ -110,12 +126,14 @@ def create_recovery():
 if __name__ == '__main__':
 
     is_sdist = False
+    is_develop = False
     for arg in sys.argv:
         if arg == 'sdist':
             is_sdist = True
-            break
+        elif arg == "develop":
+            is_develop = True
 
-    if is_sdist:
+    if is_sdist and not is_develop: #to prevent creating recovery as sudoer
         create_recovery()
 
     #########################################################
@@ -135,6 +153,8 @@ if __name__ == '__main__':
 
 
     try:
+        if is_develop: raise Exception("to go in the other installation protocol")
+
         from Cython.Distutils import build_ext
 
         setup(
