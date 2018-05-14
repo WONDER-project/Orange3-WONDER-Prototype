@@ -256,7 +256,7 @@ class DiffractionPatternRawFactoryHandler(DiffractionPatternFactoryHandler):
         return ".raw"
 
     def create_diffraction_pattern_from_file(self, file_name, wavelength=None, limits=None):
-        return DiffractionPatternRaw(file_name= file_name, limits=limits)
+        return DiffractionPatternRaw(file_name= file_name, wavelength=wavelength, limits=limits)
 
 
 # ----------------------------------------------------
@@ -304,8 +304,8 @@ class DiffractionPatternXye(DiffractionPattern):
                                                                                   wavelength=self.wavelength))
 
 class DiffractionPatternRaw(DiffractionPattern):
-    def __init__(self, file_name= "", limits=None):
-        super(DiffractionPatternRaw, self).__init__(n_points = 0)
+    def __init__(self, file_name= "", wavelength=None, limits=None):
+        super(DiffractionPatternRaw, self).__init__(n_points = 0, wavelength=wavelength)
 
         self.__initialize_from_file(file_name, limits)
 
@@ -324,7 +324,8 @@ class DiffractionPatternRaw(DiffractionPattern):
         step = float(splitted_row[1])
         starting_theta = float(splitted_row[2])
 
-        self.wavelength = FitParameter(value=float(splitted_row[3])/10, parameter_name=self.get_parameters_prefix() + "wavelength")
+        self.wavelength.set_value(float(splitted_row[3])/10)
+
         if limits is None: self.diffraction_pattern = numpy.array([None] *n_points)
 
         for i in numpy.arange(2, n_points+2):
