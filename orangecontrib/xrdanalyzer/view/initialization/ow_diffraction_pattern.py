@@ -82,7 +82,7 @@ class OWDiffractionPattern(OWGenericWidget):
 
         orangegui.separator(main_box)
 
-        self.create_box(main_box,  "wavelength", label="\u03BB  [nm]")
+        self.create_box(main_box,  "wavelength", label="\u03BB  [nm]", disable_function=True)
 
         orangegui.separator(main_box)
 

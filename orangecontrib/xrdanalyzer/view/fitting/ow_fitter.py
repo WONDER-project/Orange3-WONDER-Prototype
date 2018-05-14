@@ -96,7 +96,7 @@ class OWFitter(OWGenericWidget):
         font.setBold(True)
         self.le_current_iteration.setFont(font)
 
-        orangegui.comboBox(iteration_box, self, "is_interactive", label="Refresh Plots while fitting", items=["No", "Yes"], orientation="horizontal")
+        self.cb_interactive = orangegui.comboBox(iteration_box, self, "is_interactive", label="Refresh Plots while fitting", items=["No", "Yes"], orientation="horizontal")
 
         button_box = gui.widgetBox(main_box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-25, height=90)
 
@@ -260,6 +260,8 @@ class OWFitter(OWGenericWidget):
         try:
             if not self.fit_global_parameters is None:
                 self.fit_button.setEnabled(False)
+                self.cb_interactive.setEnabled(False)
+
                 self.stop_fit = False
 
                 congruence.checkStrictlyPositiveNumber(self.n_iterations, "Nr. Iterations")
@@ -317,6 +319,7 @@ class OWFitter(OWGenericWidget):
             sys.stdout = self.standard_ouput
 
             self.fit_button.setEnabled(True)
+            self.cb_interactive.setEnabled(True)
 
             if self.IS_DEVELOP: raise e
 
@@ -681,6 +684,7 @@ class OWFitter(OWGenericWidget):
         self.send("Fit Global Parameters", self.fitted_fit_global_parameters)
 
         self.fit_button.setEnabled(True)
+        self.cb_interactive.setEnabled(True)
         self.fit_running = False
         self.stop_fit = False
         self.progressBarFinished()
