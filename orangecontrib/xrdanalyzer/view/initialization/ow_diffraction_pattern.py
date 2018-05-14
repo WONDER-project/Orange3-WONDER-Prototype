@@ -28,7 +28,15 @@ class OWDiffractionPattern(OWGenericWidget):
     want_main_area = True
 
     filename = Setting("<input file>")
+
     wavelength = Setting(0.826)
+    wavelength_fixed = Setting(0)
+    wavelength_has_min = Setting(0)
+    wavelength_min = Setting(0.0)
+    wavelength_has_max = Setting(0)
+    wavelength_max = Setting(0.0)
+    wavelength_function = Setting(0)
+    wavelength_function_value = Setting("")
 
     diffraction_pattern = None
 
@@ -62,8 +70,6 @@ class OWDiffractionPattern(OWGenericWidget):
 
         orangegui.button(file_box, self, "...", callback=self.open_folders)
 
-        gui.lineEdit(main_box, self, "wavelength", "Wavelength [nm]", labelWidth=350, valueType=float, validator=QDoubleValidator())
-
         box = gui.widgetBox(main_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 25)
 
         orangegui.checkBox(box, self, "twotheta_has_min", "2th min [deg]", labelWidth=350)
@@ -73,6 +79,12 @@ class OWDiffractionPattern(OWGenericWidget):
 
         orangegui.checkBox(box, self, "twotheta_has_max", "2th max [deg]", labelWidth=350)
         gui.lineEdit(box, self, "twotheta_max", "", labelWidth=5, valueType=float, validator=QDoubleValidator())
+
+        orangegui.separator(main_box)
+
+        self.create_box(main_box,  "wavelength", label="\u03BB  [nm]")
+
+        orangegui.separator(main_box)
 
         button_box = gui.widgetBox(main_box,
                                    "", orientation="horizontal",
@@ -123,9 +135,11 @@ class OWDiffractionPattern(OWGenericWidget):
             else:
                 limits=None
 
-            self.diffraction_pattern = DiffractionPatternFactory.create_diffraction_pattern_from_file(self.filename, self.wavelength, limits)
+            self.diffraction_pattern = DiffractionPatternFactory.create_diffraction_pattern_from_file(self.filename,
+                                                                                                      self.populate_parameter("wavelength", DiffractionPattern.get_parameters_prefix()),
+                                                                                                      limits)
 
-            self.wavelength = self.diffraction_pattern.wavelength
+            self.wavelength = self.diffraction_pattern.wavelength.value
 
             self.show_data()
 
@@ -141,7 +155,6 @@ class OWDiffractionPattern(OWGenericWidget):
             if self.IS_DEVELOP: raise e
 
     def show_data(self):
-        text = "2Theta [deg], s [Å-1], Intensity"
         x = []
         y = []
 
@@ -149,7 +162,7 @@ class OWDiffractionPattern(OWGenericWidget):
             x.append(self.diffraction_pattern.get_diffraction_point(index).twotheta)
             y.append(self.diffraction_pattern.get_diffraction_point(index).intensity)
 
-        self.plot.addCurve(x, y, linewidth=4, color="blue")
+        self.plot.addCurve(x, y, linewidth=2, color="#0B0B61")
 
         self.populate_table(self.table_data, self.diffraction_pattern)
 

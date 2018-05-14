@@ -17,7 +17,7 @@ class OWCalibrationPeakShift(OWGenericWidget):
 
     name = "Calibration Peak Shift"
     description = "Calibration Peak Shift"
-    icon = "icons/peak_shift.png"
+    icon = "icons/calibration_peak_shift.png"
     priority = 8
 
     want_main_area = False

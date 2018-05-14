@@ -355,25 +355,28 @@ class FitterMinpack(FitterInterface):
     def build_fit_global_parameters_out(self, fitted_parameters):
         fit_global_parameters = self.fit_global_parameters
 
+        diffraction_pattern = fit_global_parameters.fit_initialization.diffraction_pattern
         crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
 
-        crystal_structure.a.set_value(fitted_parameters[0].value)
-        crystal_structure.b.set_value(fitted_parameters[1].value)
-        crystal_structure.c.set_value(fitted_parameters[2].value)
-        crystal_structure.alpha.set_value(fitted_parameters[3].value)
-        crystal_structure.beta.set_value(fitted_parameters[4].value)
-        crystal_structure.gamma.set_value(fitted_parameters[5].value)
+        diffraction_pattern.wavelength.set_value(fitted_parameters[0].value)
 
-        last_index = 5
+        crystal_structure.a.set_value(fitted_parameters[1].value)
+        crystal_structure.b.set_value(fitted_parameters[2].value)
+        crystal_structure.c.set_value(fitted_parameters[3].value)
+        crystal_structure.alpha.set_value(fitted_parameters[4].value)
+        crystal_structure.beta.set_value(fitted_parameters[5].value)
+        crystal_structure.gamma.set_value(fitted_parameters[6].value)
 
         if crystal_structure.use_structure:
-            crystal_structure.intensity_scale_factor.set_value(fitted_parameters[6].value)
-            last_index += 1
+            crystal_structure.intensity_scale_factor.set_value(fitted_parameters[7].value)
+            last_index = 7
+        else:
+            last_index = 6
 
         for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
             crystal_structure.get_reflection(reflection_index).intensity.set_value(fitted_parameters[last_index + 1 + reflection_index].value)
 
-        last_index = crystal_structure.get_parameters_count() - 1
+        last_index += fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()
 
         if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None \
                 and not fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor is None:
@@ -470,25 +473,28 @@ class FitterMinpack(FitterInterface):
     def build_fit_global_parameters_out_errors(self, errors):
         fit_global_parameters = self.fit_global_parameters
 
+        diffraction_pattern = fit_global_parameters.fit_initialization.diffraction_pattern
         crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
 
-        crystal_structure.a.error = errors[0]
-        crystal_structure.b.error = errors[1]
-        crystal_structure.c.error = errors[2]
-        crystal_structure.alpha.error = errors[3]
-        crystal_structure.beta.error = errors[4]
-        crystal_structure.gamma.error = errors[5]
+        diffraction_pattern.wavelength.error = errors[0]
 
-        last_index = 5
+        crystal_structure.a.error = errors[1]
+        crystal_structure.b.error = errors[2]
+        crystal_structure.c.error = errors[3]
+        crystal_structure.alpha.error = errors[4]
+        crystal_structure.beta.error = errors[5]
+        crystal_structure.gamma.error = errors[6]
 
         if crystal_structure.use_structure:
-            crystal_structure.intensity_scale_factor.error = errors[6]
-            last_index += 1
+            crystal_structure.intensity_scale_factor.error = errors[7]
+            last_index = 7
+        else:
+            last_index = 6
 
         for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
             crystal_structure.get_reflection(reflection_index).intensity.error = errors[last_index+reflection_index]
 
-        last_index = crystal_structure.get_parameters_count() - 1
+        last_index += fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()
 
         if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None  \
                 and not fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor is None:
@@ -585,8 +591,7 @@ class FitterMinpack(FitterInterface):
     def build_fitted_diffraction_pattern(self, fit_global_parameters):
         wavelength = fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
 
-        fitted_pattern = DiffractionPattern()
-        fitted_pattern.wavelength = wavelength
+        fitted_pattern = DiffractionPattern(wavelength=wavelength)
 
         fitted_intensity = fit_function(self.s_experimental, fit_global_parameters)
         fitted_residual = self.intensity_experimental - fitted_intensity
@@ -594,8 +599,7 @@ class FitterMinpack(FitterInterface):
         for index in range(0, len(fitted_intensity)):
             fitted_pattern.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=self.twotheta_experimental[index],
                                                                                     intensity=fitted_intensity[index],
-                                                                                    error=fitted_residual[index],
-                                                                                    s=self.s_experimental[index]))
+                                                                                    error=fitted_residual[index]))
         return fitted_pattern
 
     def build_minpack_data(self, y=None):

@@ -17,7 +17,7 @@ class OWZeroErrorPeakShift(OWGenericWidget):
 
     name = "Zero Error Peak Shift"
     description = "Zero Error Peak Shift"
-    icon = "icons/peak_shift.png"
+    icon = "icons/zero_error_peak_shift.png"
     priority = 9
 
     want_main_area = False

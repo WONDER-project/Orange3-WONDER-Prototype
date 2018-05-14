@@ -169,6 +169,9 @@ def create_one_peak(reflection_index, fit_global_parameters):
     crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
     reflection = crystal_structure.get_reflection(reflection_index)
 
+    wavelength = fit_global_parameters.fit_initialization.diffraction_pattern.wavelength.value
+    lattice_parameter = crystal_structure.a.value
+
     fourier_amplitudes = None
 
     # INSTRUMENTAL PROFILE ---------------------------------------------------------------------------------------------
@@ -179,8 +182,8 @@ def create_one_peak(reflection_index, fit_global_parameters):
                                                        reflection.h,
                                                        reflection.k,
                                                        reflection.l,
-                                                       crystal_structure.a.value,
-                                                       fit_global_parameters.fit_initialization.diffraction_pattern.wavelength,
+                                                       lattice_parameter,
+                                                       wavelength,
                                                        fit_global_parameters.instrumental_parameters.U.value,
                                                        fit_global_parameters.instrumental_parameters.V.value,
                                                        fit_global_parameters.instrumental_parameters.W.value,
@@ -192,8 +195,8 @@ def create_one_peak(reflection_index, fit_global_parameters):
                                                         reflection.h,
                                                         reflection.k,
                                                         reflection.l,
-                                                        crystal_structure.a.value,
-                                                        fit_global_parameters.fit_initialization.diffraction_pattern.wavelength,
+                                                        lattice_parameter,
+                                                        wavelength,
                                                         fit_global_parameters.instrumental_parameters.U.value,
                                                         fit_global_parameters.instrumental_parameters.V.value,
                                                         fit_global_parameters.instrumental_parameters.W.value,
@@ -222,23 +225,23 @@ def create_one_peak(reflection_index, fit_global_parameters):
                                                                    reflection.h,
                                                                    reflection.k,
                                                                    reflection.l,
-                                                                   crystal_structure.a.value,
+                                                                   lattice_parameter,
                                                                    fit_global_parameters.strain_parameters.aa.value,
                                                                    fit_global_parameters.strain_parameters.bb.value,
                                                                    fit_global_parameters.strain_parameters.get_invariant(reflection.h,
-                                                                                                                     reflection.k,
-                                                                                                                     reflection.l))
+                                                                                                                         reflection.k,
+                                                                                                                         reflection.l))
             else:
                 fourier_amplitudes *= strain_invariant_function_pah(fit_space_parameters.L,
                                                                     reflection.h,
                                                                     reflection.k,
                                                                     reflection.l,
-                                                                    crystal_structure.a.value,
+                                                                    lattice_parameter,
                                                                     fit_global_parameters.strain_parameters.aa.value,
                                                                     fit_global_parameters.strain_parameters.bb.value,
                                                                     fit_global_parameters.strain_parameters.get_invariant(reflection.h,
-                                                                                                                      reflection.k,
-                                                                                                                      reflection.l))
+                                                                                                                          reflection.k,
+                                                                                                                          reflection.l))
 
         elif isinstance(fit_global_parameters.strain_parameters, KrivoglazWilkensModel): # KRIVOGLAZ-WILKENS
             if fourier_amplitudes is None:
@@ -246,7 +249,7 @@ def create_one_peak(reflection_index, fit_global_parameters):
                                                               reflection.h,
                                                               reflection.k,
                                                               reflection.l,
-                                                              crystal_structure.a.value,
+                                                              lattice_parameter,
                                                               fit_global_parameters.strain_parameters.rho.value,
                                                               fit_global_parameters.strain_parameters.Re.value,
                                                               fit_global_parameters.strain_parameters.Ae.value,
@@ -261,7 +264,7 @@ def create_one_peak(reflection_index, fit_global_parameters):
                                                                reflection.h,
                                                                reflection.k,
                                                                reflection.l,
-                                                               crystal_structure.a.value,
+                                                               lattice_parameter,
                                                                fit_global_parameters.strain_parameters.rho.value,
                                                                fit_global_parameters.strain_parameters.Re.value,
                                                                fit_global_parameters.strain_parameters.Ae.value,
@@ -276,7 +279,7 @@ def create_one_peak(reflection_index, fit_global_parameters):
                                                                                   reflection.h,
                                                                                   reflection.k,
                                                                                   reflection.l,
-                                                                                  crystal_structure.a.value,
+                                                                                  lattice_parameter,
                                                                                   fit_global_parameters.strain_parameters.average_cell_parameter.value)
             if fft_type == FFTTypes.FULL:
                 if fourier_amplitudes is None:
@@ -298,7 +301,7 @@ def create_one_peak(reflection_index, fit_global_parameters):
         s, I = FourierTransform.get_empty_fft(n_steps=fit_global_parameters.fit_initialization.fft_parameters.n_step,
                                               dL=fit_space_parameters.dL)
 
-    s_hkl = Utilities.s_hkl(crystal_structure.a.value, reflection.h, reflection.k, reflection.l)
+    s_hkl = Utilities.s_hkl(lattice_parameter, reflection.h, reflection.k, reflection.l)
 
     s += s_hkl
 
@@ -327,14 +330,14 @@ def create_one_peak(reflection_index, fit_global_parameters):
             if not shift_parameters is None:
                 if key == Lab6TanCorrection.__name__:
                     s += lab6_tan_correction(s,
-                                             fit_global_parameters.fit_initialization.diffraction_pattern.wavelength,
+                                             wavelength,
                                              shift_parameters.ax.value,
                                              shift_parameters.bx.value,
                                              shift_parameters.cx.value,
                                              shift_parameters.dx.value,
                                              shift_parameters.ex.value)
                 elif key == ZeroError.__name__:
-                    s += Utilities.s(shift_parameters.shift.value/2, fit_global_parameters.fit_initialization.diffraction_pattern.wavelength)
+                    s += Utilities.s(shift_parameters.shift.value/2, wavelength)
 
     # LORENTZ/POLARIZATION FACTOR --------------------------------------------------------------------------------------
 

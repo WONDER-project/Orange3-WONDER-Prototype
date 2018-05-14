@@ -20,9 +20,8 @@ class FitInitialization(FitParametersList):
     def get_parameters(self):
         parameters = []
 
-        # ADESSO WL e' fissa, dovra diventare un parametro di fit
-        #if not self.diffraction_pattern is None:
-        #    parameters.append(self.diffraction_pattern.get_parameters())
+        if not self.diffraction_pattern is None:
+            parameters.extend(self.diffraction_pattern.get_parameters())
 
         if not self.crystal_structure is None:
             parameters.extend(self.crystal_structure.get_parameters())
@@ -35,9 +34,8 @@ class FitInitialization(FitParametersList):
     def tuple(self):
         tuple = []
 
-        # ADESSO WL e' fissa, dovra diventare un parametro di fit
-        #if not self.diffraction_pattern is None:
-        #    tuple.append(self.diffraction_pattern.tuple())
+        if not self.diffraction_pattern is None:
+            tuple.extend(self.diffraction_pattern.tuple())
 
         if not self.crystal_structure is None:
             tuple.extend(self.crystal_structure.tuple())
@@ -49,9 +47,8 @@ class FitInitialization(FitParametersList):
 
     def append_to_tuple(self, parameters, boundaries):
 
-        # ADESSO WL e' fissa, dovra diventare un parametro di fit
-        #if not self.diffraction_pattern is None:
-        #parameters, boundaries = self.diffraction_pattern.append_to_tuple(parameters, boundaries)
+        if not self.diffraction_pattern is None:
+            parameters, boundaries = self.diffraction_pattern.append_to_tuple(parameters, boundaries)
 
         if not self.crystal_structure is None:
             parameters, boundaries = self.crystal_structure.append_to_tuple(parameters, boundaries)

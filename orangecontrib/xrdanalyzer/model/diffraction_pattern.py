@@ -3,6 +3,7 @@ import inspect
 
 from orangecontrib.xrdanalyzer.util import congruence
 from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
+from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, FitParametersList
 
 #---------------------------------------
 # DATA STRUCTURES
@@ -43,14 +44,14 @@ class DiffractionPoint:
         if twotheta is None: return None
 
         return Utilities.s(theta=numpy.radians(twotheta/2),
-                           wavelength=wavelength)
+                           wavelength=wavelength.value)
 
     @classmethod
     def _get_twotheta_from_s(cls, s, wavelength):
         if s is None: return None
 
         return numpy.degrees(2*Utilities.theta(s=s,
-                                               wavelength=wavelength))
+                                               wavelength=wavelength.value))
 
     def _check_attributes_congruence(self):
         if self.s is None:
@@ -59,20 +60,22 @@ class DiffractionPoint:
             congruence.checkPositiveNumber(self.s, "s")
         #congruence.checkPositiveNumber(self.intensity, "Intensity")
 
-class DiffractionPattern:
+class DiffractionPattern(FitParametersList):
 
     diffraction_pattern = None
     wavelength = None
+
+    @classmethod
+    def get_parameters_prefix(cls):
+        return "diffraction_pattern_"
 
     def __init__(self, n_points = 0, wavelength = None):
         if n_points > 0:
             self.diffraction_pattern = numpy.array([None]*n_points)
         else:
             self.diffraction_pattern = None
-        if not wavelength is None:
-            self.wavelength = wavelength
-        else:
-            self.wavelength = None
+
+        self.wavelength = wavelength
 
     def add_diffraction_point (self, diffraction_point):
         if diffraction_point is None: raise ValueError ("Diffraction Point is None")
@@ -95,19 +98,6 @@ class DiffractionPattern:
 
         return self.diffraction_pattern[index]
 
-    def set_wavelength(self, wavelength):
-        self.wavelength = wavelength
-
-    def get_wavelength(self):
-        self._check_wavelength()
-        return self.wavelength
-
-    def matrix(self):
-        n_points = self.diffraction_points_count()
-        matrix = numpy.array([None] * n_points )
-        for index in range(0, n_points):
-            matrix[index] = self.get_diffraction_point(index).get_array()
-
     def tuples(self):
         n_points = self.diffraction_points_count()
 
@@ -128,31 +118,24 @@ class DiffractionPattern:
     def duplicate(self):
         self._check_diffraction_pattern()
 
-        diffraction_pattern = DiffractionPattern(wavelength=self.wavelength)
-        diffraction_pattern.diffraction_pattern = self.diffraction_pattern
+        diffraction_pattern = DiffractionPattern(wavelength=None if self.wavelength is None else self.wavelength.duplicate())
+        diffraction_pattern.diffraction_pattern = self.diffraction_pattern # not duplicate: too many infos and typically read-only
 
         return diffraction_pattern
 
     def to_text(self):
         text = "DIFFRACTION PATTERN\n"
         text += "-----------------------------------\n"
-        text += "Wavelength: " + str(self.get_wavelength()) + "\n"
+        text += "Wavelength: " + self.wavelength.to_text() + "\n"
         text += "-----------------------------------\n"
 
         return text
-
-    def get_available_parameters(self):
-        return "diffraction_pattern.wavelength = " + str(self.get_wavelength()) + "\n"
 
     # "PRIVATE METHODS"
     def _check_diffraction_pattern(self):
         if self.diffraction_pattern is None:
             raise AttributeError("diffraction pattern is "
                                  "not initialized")
-    def _check_wavelength (self):
-        if self.wavelength is None:
-            raise AttributeError ("Wavelength (lambda) "
-                                  "is not initialized")
 
     def _check_diffraction_point(self, diffraction_point):
         if not self.wavelength is None:
@@ -312,13 +295,13 @@ class DiffractionPatternXye(DiffractionPattern):
                     self.set_diffraction_point(index=i-2,
                                                diffraction_point=DiffractionPoint(twotheta=twotheta,
                                                                                   intensity=intensity,
-                                                                                  error=error))
-                else:
-
-                    if  limits.twotheta_min <= twotheta <= limits.twotheta_max:
-                        self.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=twotheta,
-                                                                                      intensity=intensity,
-                                                                                      error=error))
+                                                                                  error=error,
+                                                                                  wavelength=self.wavelength))
+                elif  limits.twotheta_min <= twotheta <= limits.twotheta_max:
+                    self.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=twotheta,
+                                                                                  intensity=intensity,
+                                                                                  error=error,
+                                                                                  wavelength=self.wavelength))
 
 class DiffractionPatternRaw(DiffractionPattern):
     def __init__(self, file_name= "", limits=None):
@@ -341,7 +324,7 @@ class DiffractionPatternRaw(DiffractionPattern):
         step = float(splitted_row[1])
         starting_theta = float(splitted_row[2])
 
-        self.wavelength = float(splitted_row[3])/10
+        self.wavelength = FitParameter(value=float(splitted_row[3])/10, parameter_name=self.get_parameters_prefix() + "wavelength")
         if limits is None: self.diffraction_pattern = numpy.array([None] *n_points)
 
         for i in numpy.arange(2, n_points+2):

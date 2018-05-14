@@ -183,10 +183,9 @@ class OWCrystalStructure(OWGenericWidget):
         elif self.limit_type == 2:
             if not self.fit_global_parameters is None \
                and not self.fit_global_parameters.fit_initialization is None \
-               and not self.fit_global_parameters.fit_initialization.diffraction_pattern is None:
-                wavelength = self.fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
-
-
+               and not self.fit_global_parameters.fit_initialization.diffraction_pattern is None \
+               and not self.fit_global_parameters.fit_initialization.diffraction_pattern.wavelength.function:
+                wavelength = self.fit_global_parameters.fit_initialization.diffraction_pattern.wavelength.value
 
                 list = list_of_s_bragg(self.a,
                                        simmetry=self.cb_simmetry.currentText(),
@@ -232,27 +231,30 @@ class OWCrystalStructure(OWGenericWidget):
                         reflection.intensity.fixed = True
 
                 if not self.fit_global_parameters.fit_initialization is None \
-                   and not self.fit_global_parameters.fit_initialization.diffraction_pattern is None:
-                    wavelength = self.fit_global_parameters.fit_initialization.diffraction_pattern.wavelength
-                    s_min = self.fit_global_parameters.fit_initialization.diffraction_pattern.get_diffraction_point(0).s
-                    s_max = self.fit_global_parameters.fit_initialization.diffraction_pattern.get_diffraction_point(-1).s
+                   and not self.fit_global_parameters.fit_initialization.diffraction_pattern is None \
+                   and not self.fit_global_parameters.fit_initialization.diffraction_pattern.wavelength.function:
+                        wavelength = self.fit_global_parameters.fit_initialization.diffraction_pattern.wavelength.value
+                        s_min = self.fit_global_parameters.fit_initialization.diffraction_pattern.get_diffraction_point(0).s
+                        s_max = self.fit_global_parameters.fit_initialization.diffraction_pattern.get_diffraction_point(-1).s
 
-                    excluded_reflections = crystal_structure.get_congruence_check(wavelength=wavelength,
-                                                                                  min_value=s_min,
-                                                                                    max_value=s_max)
+                        print("DIO BOIA", s_max)
 
-                    if not excluded_reflections is None:
-                        text_before = "The following reflections lie outside the diffraction pattern:"
+                        excluded_reflections = crystal_structure.get_congruence_check(wavelength=wavelength,
+                                                                                      min_value=s_min,
+                                                                                      max_value=s_max)
 
-                        text = ""
-                        for reflection in excluded_reflections:
-                            text += "[" + str(reflection.h) + ", " + str(reflection.k) + ", " + str(reflection.l) +"]\n"
+                        if not excluded_reflections is None:
+                            text_before = "The following reflections lie outside the diffraction pattern:"
 
-                        text_after = "Proceed anyway?"
+                            text = ""
+                            for reflection in excluded_reflections:
+                                text += "[" + str(reflection.h) + ", " + str(reflection.k) + ", " + str(reflection.l) +"]\n"
 
-                        if not ConfirmTextDialog.confirm_text("Confirm Structure", text,
-                                                              text_after=text_after, text_before=text_before,
-                                                              width=350, parent=self): return
+                            text_after = "Proceed anyway?"
+
+                            if not ConfirmTextDialog.confirm_text("Confirm Structure", text,
+                                                                  text_after=text_after, text_before=text_before,
+                                                                  width=350, parent=self): return
 
                 self.fit_global_parameters.fit_initialization.crystal_structure = crystal_structure
 
