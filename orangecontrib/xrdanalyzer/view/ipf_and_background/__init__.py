@@ -1,6 +1,6 @@
 
 
-NAME = "WONDER - I.P.F. & Background"
+NAME = "WONDER - Instrument and Background"
 DESCRIPTION = "Whole POdwer PatterN MoDelling in ORange"
 
 ICON = "icons/ipf_and_background.png"

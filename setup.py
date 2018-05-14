@@ -68,13 +68,13 @@ INSTALL_REQUIRES = sorted(set(
 
 ENTRY_POINTS = {
     'orange.widgets':
-        ('WONDER - OLD STRUCTURE! = orangecontrib.xrdanalyzer.view.widgets',
-         'WONDER - Initialization = orangecontrib.xrdanalyzer.view.initialization',
-         'WONDER - I.P.F. & Background = orangecontrib.xrdanalyzer.view.ipf_and_background',
-         'WONDER - Thermal Properties = orangecontrib.xrdanalyzer.view.thermal_properties',
-         'WONDER - Microstructure = orangecontrib.xrdanalyzer.view.microstructure',
-         'WONDER - Fitting = orangecontrib.xrdanalyzer.view.fitting',
-         'WONDER - Untrusted = orangecontrib.xrdanalyzer.view._untrusted',
+        ('OLD STRUCTURE! = orangecontrib.xrdanalyzer.view.widgets',
+         'Initialization = orangecontrib.xrdanalyzer.view.initialization',
+         'Instrument and Background = orangecontrib.xrdanalyzer.view.ipf_and_background',
+         'Thermal Properties = orangecontrib.xrdanalyzer.view.thermal_properties',
+         'Microstructure = orangecontrib.xrdanalyzer.view.microstructure',
+         'Fitting = orangecontrib.xrdanalyzer.view.fitting',
+         'Untrusted = orangecontrib.xrdanalyzer.view._untrusted',
          ),
     'orange3.addon':
         ('Orange3-WONDER = orangecontrib.xrdanalyzer',)

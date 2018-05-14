@@ -74,8 +74,8 @@ class OWGenericWidget(widget.OWWidget):
 
         box_label = gui.widgetBox(box, "", orientation="horizontal", width=40, height=25)
         box_value =  gui.widgetBox(box, "", orientation="horizontal", width=100, height=25)
-        box_min_max = gui.widgetBox(box, "", orientation="horizontal", height=30)
         box_fixed = gui.widgetBox(box, "", orientation="horizontal", height=25)
+        box_min_max = gui.widgetBox(box, "", orientation="horizontal", height=30)
         box_function = gui.widgetBox(box, "", orientation="horizontal", height=25)
         box_function_value = gui.widgetBox(box, "", orientation="horizontal", height=25)
 

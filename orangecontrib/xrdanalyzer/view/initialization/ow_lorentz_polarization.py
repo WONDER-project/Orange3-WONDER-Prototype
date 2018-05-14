@@ -15,7 +15,7 @@ from orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_paramete
 class OWLorentzPolarization(OWGenericWidget):
 
     name = "Lorentz-Polarization Factors"
-    description = "Define Lorentz-olarization Factors"
+    description = "Define Lorentz-olarization Factor"
     icon = "icons/lorentz_polarization.png"
     priority = 4
 
@@ -30,7 +30,7 @@ class OWLorentzPolarization(OWGenericWidget):
         super().__init__(show_automatic_box=True)
 
         main_box = gui.widgetBox(self.controlArea,
-                                 "Thermal and Polarization Factors", orientation="vertical",
+                                 "Polarization Properties Setting", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 10, height=300)
 
         box = gui.widgetBox(main_box,
@@ -43,7 +43,7 @@ class OWLorentzPolarization(OWGenericWidget):
                                    "", orientation="horizontal",
                                    width=self.CONTROL_AREA_WIDTH-25)
 
-        gui.button(button_box, self, "Send Therma/Polarization Parameters", height=50, callback=self.send_lorentz_polarization)
+        gui.button(button_box, self, "Send Lorentz-Polarization Parameters", height=50, callback=self.send_lorentz_polarization)
 
     def send_lorentz_polarization(self):
         try:

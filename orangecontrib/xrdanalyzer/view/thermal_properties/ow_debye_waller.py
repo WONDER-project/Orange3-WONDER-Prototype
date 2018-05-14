@@ -39,7 +39,7 @@ class OWDebyeWaller(OWGenericWidget):
         super().__init__(show_automatic_box=True)
 
         main_box = gui.widgetBox(self.controlArea,
-                                 "Thermal and Polarization Factors", orientation="vertical",
+                                 "Thermal Properties Setting", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 10, height=300)
 
 
@@ -60,7 +60,7 @@ class OWDebyeWaller(OWGenericWidget):
                                    "", orientation="horizontal",
                                    width=self.CONTROL_AREA_WIDTH-25)
 
-        gui.button(button_box, self, "Send Therma/Polarization Parameters", height=50, callback=self.send_debye_waller)
+        gui.button(button_box, self, "Send Debye-Waller Parameters", height=50, callback=self.send_debye_waller)
 
     def set_dw(self):
         self.box_dw.setVisible(self.use_debye_waller_factor==1)
