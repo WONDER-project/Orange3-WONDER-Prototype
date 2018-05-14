@@ -15,7 +15,7 @@ from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInit
 
 class OWFitInitialization(OWGenericWidget):
 
-    name = "Fit Initialization"
+    name = "FFT Parameters"
     description = "Define FFT Parameters"
     icon = "icons/initialization.png"
     priority = 2

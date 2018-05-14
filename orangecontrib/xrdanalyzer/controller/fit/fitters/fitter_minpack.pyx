@@ -53,11 +53,16 @@ class MinpackData:
         return self.rwp / self.rexp
 
     def to_text(self):
-        text = "WSS, SS, WSQ: " + str(self.wss) + ", " + str(self.ss) + ", " + str(self.wsq) + "\n"
-        text += "LAMBDA: " + str(self.calc_lambda)+ "\n"
-        text += "GOF: " + str(self.gof())+ "\n"
-        text += "DOF, NOBS: " + str(self.dof) + ", " + str(self.nobs) + "\n"
-        text += "NPARAM, NFIT: " + str(self.nprm) + ", " + str(self.nfit)
+        text = "\nCurrent fit results:\n\n"
+        text += "  total parameters   (nprm): " + str(self.nprm) + "\n"
+        text += "  parameters to fit  (nfit): " + str(self.nfit) + "\n"
+        text += "  nr. of observables (nobs): " + str(self.nobs) + "\n"
+        text += "  dof (nobs - nfit)        : " + str(self.dof)  + "\n"
+        text += "  LAMBDA: " + str(self.calc_lambda)+ "\n"
+        text += "  wss: " + str(self.wss) + "\n"
+        text += "  ss : " + str(self.ss) + "\n"
+        text += "  wsq: " + str(self.wsq) + "\n"
+        text += "  gof: " + str(self.gof())+ "\n"
 
         return text
 
@@ -67,6 +72,8 @@ class FitterMinpack(FitterInterface):
         super().__init__()
 
     def init_fitter(self, fit_global_parameters):
+        print("Initializing Fitter...")
+
         self.fit_global_parameters = fit_global_parameters
 
         self.totalWeight = 0.0
@@ -134,7 +141,12 @@ class FitterMinpack(FitterInterface):
                 j += 1
                 self.initialpar.setitem(j, parameter.value)
 
+        print("Fitter Initialization done.")
+
+
     def do_fit(self, current_fit_global_parameters, current_iteration):
+        print("Fitter - Begin iteration nr. ", current_iteration)
+
         self.fit_global_parameters = current_fit_global_parameters.duplicate()
 
         if current_iteration <= current_fit_global_parameters.get_n_max_iterations() and not self.conver:
@@ -168,6 +180,8 @@ class FitterMinpack(FitterInterface):
             # emulate C++ do ... while cycle
             do_cycle = True
 
+            print("Begin Minization using LAMBDA: ", self._lambda)
+
             while do_cycle:
                 self.exitflag = False
                 self.conver = False
@@ -186,8 +200,6 @@ class FitterMinpack(FitterInterface):
                 if self.a.chodec() == 0: # Cholesky decomposition
                     # the matrix is inverted, so calculate g (change in the
                     # parameters) by back substitution
-
-                    print("Chlolesky decomposition ok")
 
                     self.a.choback(self.g)
 
@@ -272,7 +284,7 @@ class FitterMinpack(FitterInterface):
                 else:
                     self.parameters = self.build_fit_global_parameters_out(self.parameters).get_parameters()
 
-                    print("Chlolesky decomposition failed")
+                    print("Chlolesky decomposition failed!")
 
                 if not self.exitflag  and not self.conver:
                     if self._lambda<PRCSN: self._lambda = PRCSN
@@ -381,6 +393,10 @@ class FitterMinpack(FitterInterface):
                         background_parameters.c3.set_value(fitted_parameters[last_index + 4].value)
                         background_parameters.c4.set_value(fitted_parameters[last_index + 5].value)
                         background_parameters.c5.set_value(fitted_parameters[last_index + 6].value)
+                        background_parameters.c6.set_value(fitted_parameters[last_index + 7].value)
+                        background_parameters.c7.set_value(fitted_parameters[last_index + 8].value)
+                        background_parameters.c8.set_value(fitted_parameters[last_index + 9].value)
+                        background_parameters.c9.set_value(fitted_parameters[last_index + 10].value)
                     elif key == ExpDecayBackground.__name__:
                         background_parameters.a0.set_value(fitted_parameters[last_index + 1].value)
                         background_parameters.b0.set_value(fitted_parameters[last_index + 2].value)
@@ -492,6 +508,10 @@ class FitterMinpack(FitterInterface):
                         background_parameters.c3.error = errors[last_index + 4]
                         background_parameters.c4.error = errors[last_index + 5]
                         background_parameters.c5.error = errors[last_index + 6]
+                        background_parameters.c6.error = errors[last_index + 7]
+                        background_parameters.c7.error = errors[last_index + 8]
+                        background_parameters.c8.error = errors[last_index + 9]
+                        background_parameters.c9.error = errors[last_index + 10]
                     elif key == ExpDecayBackground.__name__:
                         background_parameters.a0.error = errors[last_index + 1]
                         background_parameters.b0.error = errors[last_index + 2]

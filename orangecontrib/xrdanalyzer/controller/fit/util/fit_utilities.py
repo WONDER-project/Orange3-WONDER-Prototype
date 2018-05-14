@@ -94,8 +94,6 @@ def list_of_s_bragg(lattice_param, simmetry=Simmetry.FCC, n_peaks=numpy.inf, s_m
     if not len(s_list) <= n_peaks:
         s_list = s_list[:n_peaks+1]
 
-    print("ZZZ", s_max, s_hkl_max)
-
     if not s_max > s_hkl_max:
         last_index = 0
         for item in s_list:

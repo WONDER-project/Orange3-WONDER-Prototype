@@ -8,12 +8,16 @@ class ChebyshevBackground(FitParametersList):
     c3 = None
     c4 = None
     c5 = None
+    c6 = None
+    c7 = None
+    c8 = None
+    c9 = None
 
     @classmethod
     def get_parameters_prefix(cls):
         return "chebyshev_"
 
-    def __init__(self, c0, c1, c2, c3, c4, c5):
+    def __init__(self, c0, c1, c2, c3, c4, c5, c6, c7, c8, c9):
         super(ChebyshevBackground, self).__init__()
 
         self.c0 = c0
@@ -22,6 +26,10 @@ class ChebyshevBackground(FitParametersList):
         self.c3 = c3
         self.c4 = c4
         self.c5 = c5
+        self.c6 = c6
+        self.c7 = c7
+        self.c8 = c8
+        self.c9 = c9
 
     def to_text(self):
         text = "BACKGROUND PARAMETERS\n"
@@ -33,6 +41,10 @@ class ChebyshevBackground(FitParametersList):
         text += self.c3.to_text() + "\n"
         text += self.c4.to_text() + "\n"
         text += self.c5.to_text() + "\n"
+        text += self.c6.to_text() + "\n"
+        text += self.c7.to_text() + "\n"
+        text += self.c8.to_text() + "\n"
+        text += self.c9.to_text() + "\n"
 
         text += "-----------------------------------\n"
         
@@ -44,7 +56,11 @@ class ChebyshevBackground(FitParametersList):
                                    c2=None if self.c2 is None else self.c2.duplicate(),
                                    c3=None if self.c3 is None else self.c3.duplicate(),
                                    c4=None if self.c4 is None else self.c4.duplicate(),
-                                   c5=None if self.c5 is None else self.c5.duplicate())
+                                   c5=None if self.c5 is None else self.c5.duplicate(),
+                                   c6=None if self.c6 is None else self.c6.duplicate(),
+                                   c7=None if self.c7 is None else self.c7.duplicate(),
+                                   c8=None if self.c8 is None else self.c8.duplicate(),
+                                   c9=None if self.c9 is None else self.c9.duplicate())
 
 class ExpDecayBackground(FitParametersList):
     a0 = None

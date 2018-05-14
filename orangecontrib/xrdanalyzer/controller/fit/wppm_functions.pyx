@@ -42,7 +42,11 @@ def fit_function(s, fit_global_parameters):
                                                              background_parameters.c2.value,
                                                              background_parameters.c3.value,
                                                              background_parameters.c4.value,
-                                                             background_parameters.c5.value])
+                                                             background_parameters.c5.value,
+                                                             background_parameters.c6.value,
+                                                             background_parameters.c7.value,
+                                                             background_parameters.c8.value,
+                                                             background_parameters.c9.value])
                     elif key == ExpDecayBackground.__name__:
                         add_expdecay_background(s,
                                                 I,
@@ -654,7 +658,7 @@ def lab6_tan_correction(s, wavelength, ax, bx, cx, dx, ex):
 # BACKGROUND
 ######################################################################
 
-def add_chebyshev_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
+def add_chebyshev_background(s, I, parameters=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):
     T = numpy.zeros((len(s), len(parameters)))
 
     for j in range(0, len(parameters)):
