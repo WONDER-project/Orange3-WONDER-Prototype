@@ -10,6 +10,7 @@ with io.open('about.md', 'r', encoding='utf-8') as f:
 
 NAME = 'Orange3-WONDER'
 
+
 MAJOR = 0
 MINOR = 1
 MICRO = 2
