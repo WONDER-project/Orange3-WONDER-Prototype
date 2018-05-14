@@ -11,8 +11,8 @@ with io.open('about.md', 'r', encoding='utf-8') as f:
 NAME = 'Orange3-WONDER'
 
 MAJOR = 0
-MINOR = 0
-MICRO = 30
+MINOR = 1
+MICRO = 0
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 AUTHOR = 'Luca Rebuffi, Paolo Scardi, Alberto Flor'
