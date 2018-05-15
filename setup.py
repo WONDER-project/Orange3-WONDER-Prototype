@@ -103,6 +103,8 @@ class Package:
 
 def create_recovery():
 
+    recovered_paths = [os.path.join("orangecontrib", "xrdanalyzer", "controller")]
+
     root_path = os.path.join("orangecontrib", "xrdanalyzer")
     recovery_root_path = os.path.join(root_path, "recovery")
 
@@ -111,17 +113,24 @@ def create_recovery():
     open(os.path.join(recovery_root_path,  "__init__.py"), 'a').close()
 
     for path, dirs, files in os.walk(root_path):
-        recovery_path = os.path.join(recovery_root_path, path[26:])
-        if not recovery_path.endswith("__pycache__"):
-            if not os.path.exists(recovery_path):
-                os.makedirs(recovery_path)
+        do_recovery = False
+        for recovered_path in recovered_paths:
+            if path.startswith(recovered_path):
+                do_recovery = True
+                break
 
-                if os.path.exists(os.path.join(path, "__init__.py")):
-                    shutil.copyfile(os.path.join(path, "__init__.py"), os.path.join(os.path.join(recovery_path,  "__init__.py")))
+        if do_recovery:
+            recovery_path = os.path.join(recovery_root_path, path[26:])
+            if not recovery_path.endswith("__pycache__"):
+                if not os.path.exists(recovery_path):
+                    os.makedirs(recovery_path)
 
-            for file in files:
-                if file.endswith(".pyx"):
-                    shutil.copyfile(os.path.join(path, file), os.path.join(recovery_path,  file[:-1]))
+                    if os.path.exists(os.path.join(path, "__init__.py")):
+                        shutil.copyfile(os.path.join(path, "__init__.py"), os.path.join(os.path.join(recovery_path,  "__init__.py")))
+
+                for file in files:
+                    if file.endswith(".pyx"):
+                        shutil.copyfile(os.path.join(path, file), os.path.join(recovery_path,  file[:-1]))
 
 if __name__ == '__main__':
 
