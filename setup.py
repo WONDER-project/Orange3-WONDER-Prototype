@@ -12,7 +12,7 @@ NAME = 'Orange3-WONDER'
 
 MAJOR = 0
 MINOR = 1
-MICRO = 2
+MICRO = 3
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 AUTHOR = 'Luca Rebuffi, Paolo Scardi, Alberto Flor'
@@ -68,13 +68,13 @@ INSTALL_REQUIRES = sorted(set(
 
 ENTRY_POINTS = {
     'orange.widgets':
-        ('OLD STRUCTURE! = orangecontrib.xrdanalyzer.view.widgets',
+        (#'OLD STRUCTURE! = orangecontrib.xrdanalyzer.view.widgets',
          'Initialization = orangecontrib.xrdanalyzer.view.initialization',
          'Instrument and Background = orangecontrib.xrdanalyzer.view.ipf_and_background',
          'Thermal Properties = orangecontrib.xrdanalyzer.view.thermal_properties',
          'Microstructure = orangecontrib.xrdanalyzer.view.microstructure',
          'Fitting = orangecontrib.xrdanalyzer.view.fitting',
-         'Untrusted = orangecontrib.xrdanalyzer.view._untrusted',
+         #'Untrusted = orangecontrib.xrdanalyzer.view._untrusted',
          ),
     'orange3.addon':
         ('Orange3-WONDER = orangecontrib.xrdanalyzer',)

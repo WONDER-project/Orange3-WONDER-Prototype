@@ -145,7 +145,7 @@ class FitterMinpack(FitterInterface):
 
 
     def do_fit(self, current_fit_global_parameters, current_iteration):
-        print("Fitter - Begin iteration nr. ", current_iteration)
+        print("Fitter - Begin iteration nr. " + str(current_iteration))
 
         self.fit_global_parameters = current_fit_global_parameters.duplicate()
 
