@@ -237,8 +237,6 @@ class OWCrystalStructure(OWGenericWidget):
                         s_min = self.fit_global_parameters.fit_initialization.diffraction_pattern.get_diffraction_point(0).s
                         s_max = self.fit_global_parameters.fit_initialization.diffraction_pattern.get_diffraction_point(-1).s
 
-                        print("DIO BOIA", s_max)
-
                         excluded_reflections = crystal_structure.get_congruence_check(wavelength=wavelength,
                                                                                       min_value=s_min,
                                                                                       max_value=s_max)
