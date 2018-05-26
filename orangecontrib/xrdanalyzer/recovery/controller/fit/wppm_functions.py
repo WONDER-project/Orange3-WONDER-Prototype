@@ -172,7 +172,7 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
     crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
     reflection = crystal_structure.get_reflection(reflection_index)
 
-    wavelength = fit_global_parameters.fit_initialization.get_diffraction_pattern(diffraction_pattern_index).wavelength.value
+    wavelength = fit_global_parameters.fit_initialization.diffraction_patterns[diffraction_pattern_index].wavelength.value
     lattice_parameter = crystal_structure.a.value
 
     fourier_amplitudes = None
