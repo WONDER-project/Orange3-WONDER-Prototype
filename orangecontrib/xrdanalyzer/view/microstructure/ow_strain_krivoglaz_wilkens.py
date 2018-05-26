@@ -144,14 +144,14 @@ class OWStrainKW(OWGenericWidget):
     def send_strain(self):
         try:
             if not self.fit_global_parameters is None:
-                self.fit_global_parameters.strain_parameters = KrivoglazWilkensModel(rho=self.populate_parameter("rho", KrivoglazWilkensModel.get_parameters_prefix()),
-                                                                                     Re=self.populate_parameter("Re", KrivoglazWilkensModel.get_parameters_prefix()),
-                                                                                     Ae=self.populate_parameter("Ae", KrivoglazWilkensModel.get_parameters_prefix()),
-                                                                                     Be=self.populate_parameter("Be", KrivoglazWilkensModel.get_parameters_prefix()),
-                                                                                     As=self.populate_parameter("As", KrivoglazWilkensModel.get_parameters_prefix()),
-                                                                                     Bs=self.populate_parameter("Bs", KrivoglazWilkensModel.get_parameters_prefix()),
-                                                                                     mix=self.populate_parameter("mix", KrivoglazWilkensModel.get_parameters_prefix()),
-                                                                                     b=self.populate_parameter("b", KrivoglazWilkensModel.get_parameters_prefix()))
+                self.fit_global_parameters.strain_parameters = [KrivoglazWilkensModel(rho=self.populate_parameter("rho", KrivoglazWilkensModel.get_parameters_prefix()),
+                                                                                      Re=self.populate_parameter("Re", KrivoglazWilkensModel.get_parameters_prefix()),
+                                                                                      Ae=self.populate_parameter("Ae", KrivoglazWilkensModel.get_parameters_prefix()),
+                                                                                      Be=self.populate_parameter("Be", KrivoglazWilkensModel.get_parameters_prefix()),
+                                                                                      As=self.populate_parameter("As", KrivoglazWilkensModel.get_parameters_prefix()),
+                                                                                      Bs=self.populate_parameter("Bs", KrivoglazWilkensModel.get_parameters_prefix()),
+                                                                                      mix=self.populate_parameter("mix", KrivoglazWilkensModel.get_parameters_prefix()),
+                                                                                      b=self.populate_parameter("b", KrivoglazWilkensModel.get_parameters_prefix()))]
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -167,14 +167,14 @@ class OWStrainKW(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.strain_parameters is None:
-                self.populate_fields("rho", self.fit_global_parameters.strain_parameters.rho)
-                self.populate_fields("Re", self.fit_global_parameters.strain_parameters.Re)
-                self.populate_fields("Ae", self.fit_global_parameters.strain_parameters.Ae)
-                self.populate_fields("Be", self.fit_global_parameters.strain_parameters.Be)
-                self.populate_fields("As", self.fit_global_parameters.strain_parameters.rho)
-                self.populate_fields("Bs", self.fit_global_parameters.strain_parameters.Re)
-                self.populate_fields("mix", self.fit_global_parameters.strain_parameters.Ae)
-                self.populate_fields("b", self.fit_global_parameters.strain_parameters.Be)
+                self.populate_fields("rho", self.fit_global_parameters.strain_parameters[0].rho)
+                self.populate_fields("Re",  self.fit_global_parameters.strain_parameters[0].Re)
+                self.populate_fields("Ae",  self.fit_global_parameters.strain_parameters[0].Ae)
+                self.populate_fields("Be",  self.fit_global_parameters.strain_parameters[0].Be)
+                self.populate_fields("As",  self.fit_global_parameters.strain_parameters[0].rho)
+                self.populate_fields("Bs",  self.fit_global_parameters.strain_parameters[0].Re)
+                self.populate_fields("mix", self.fit_global_parameters.strain_parameters[0].Ae)
+                self.populate_fields("b",   self.fit_global_parameters.strain_parameters[0].Be)
 
             if self.is_automatic_run:
                 self.send_strain()

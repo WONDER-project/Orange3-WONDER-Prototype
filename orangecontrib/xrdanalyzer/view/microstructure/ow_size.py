@@ -103,10 +103,10 @@ class OWSize(OWGenericWidget):
     def send_size(self):
         try:
             if not self.fit_global_parameters is None:
-                self.fit_global_parameters.size_parameters = SizeParameters(shape=self.cb_shape.currentText(),
+                self.fit_global_parameters.size_parameters = [SizeParameters(shape=self.cb_shape.currentText(),
                                                                             distribution=self.cb_distribution.currentText(),
                                                                             mu=self.populate_parameter("mu", SizeParameters.get_parameters_prefix()),
-                                                                            sigma=self.populate_parameter("sigma", SizeParameters.get_parameters_prefix()))
+                                                                            sigma=self.populate_parameter("sigma", SizeParameters.get_parameters_prefix()))]
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -124,8 +124,8 @@ class OWSize(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.size_parameters is None:
-                self.populate_fields("mu", self.fit_global_parameters.size_parameters.mu)
-                self.populate_fields("sigma", self.fit_global_parameters.size_parameters.sigma)
+                self.populate_fields("mu",    self.fit_global_parameters.size_parameters[0].mu)
+                self.populate_fields("sigma", self.fit_global_parameters.size_parameters[0].sigma)
 
             if self.is_automatic_run:
                 self.send_size()

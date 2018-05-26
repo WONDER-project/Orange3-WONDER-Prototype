@@ -103,10 +103,10 @@ class FitterMinpack(FitterInterface):
         for index in range(self.diffraction_patterns_number):
             twotheta_experimental, intensity_experimental, error_experimental, s_experimental = self.fit_global_parameters.fit_initialization.diffraction_patterns[index].tuples()
 
-            self.twotheta_experimental[index] = twotheta_experimental
-            self.intensity_experimental[index] = intensity_experimental
-            self.error_experimental[index] = error_experimental
-            self.s_experimental[index] = s_experimental
+            self.twotheta_experimental_list[index] = twotheta_experimental
+            self.intensity_experimental_list[index] = intensity_experimental
+            self.error_experimental_list[index] = error_experimental
+            self.s_experimental_list[index] = s_experimental
 
         self.nprm = len(self.parameters)
         self.nfit = self.getNrParamToFit()
@@ -368,11 +368,11 @@ class FitterMinpack(FitterInterface):
     def build_fit_global_parameters_out(self, fitted_parameters):
         fit_global_parameters = self.fit_global_parameters
 
-        last_index = 0
+        for index in range(fit_global_parameters.fit_initialization.get_diffraction_patterns_number()):
+            diffraction_pattern = fit_global_parameters.fit_initialization.diffraction_patterns[index]
+            diffraction_pattern.wavelength.set_value(fitted_parameters[index].value)
 
-        for diffraction_pattern in fit_global_parameters.fit_initialization.diffraction_patterns:
-            diffraction_pattern.wavelength.set_value(fitted_parameters[last_index].value)
-            last_index += 1
+        last_index = fit_global_parameters.fit_initialization.get_diffraction_patterns_number() - 1
 
         crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
 
@@ -495,11 +495,11 @@ class FitterMinpack(FitterInterface):
     def build_fit_global_parameters_out_errors(self, errors):
         fit_global_parameters = self.fit_global_parameters
 
-        last_index = 0
+        for index in range(fit_global_parameters.fit_initialization.get_diffraction_patterns_number()):
+            diffraction_pattern = fit_global_parameters.fit_initialization.diffraction_patterns[index]
+            diffraction_pattern.wavelength.error = errors[index]
 
-        for diffraction_pattern in fit_global_parameters.fit_initialization.diffraction_patterns:
-            diffraction_pattern.wavelength.error = errors[last_index]
-            last_index += 1
+        last_index = fit_global_parameters.fit_initialization.get_diffraction_patterns_number() - 1
 
         crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
 
@@ -626,13 +626,13 @@ class FitterMinpack(FitterInterface):
 
             fitted_pattern = DiffractionPattern(wavelength=wavelength)
 
-            fitted_intensity = fit_function(self.s_experimental, fit_global_parameters, diffraction_pattern_index=index)
-            fitted_residual = self.intensity_experimental - fitted_intensity
+            fitted_intensity = fit_function(self.s_experimental_list[index], fit_global_parameters, diffraction_pattern_index=index)
+            fitted_residual = self.intensity_experimental_list[index] - fitted_intensity
 
-            for index in range(0, len(fitted_intensity)):
-                fitted_pattern.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=self.twotheta_experimental[index],
-                                                                                        intensity=fitted_intensity[index],
-                                                                                        error=fitted_residual[index]))
+            for i in range(0, len(fitted_intensity)):
+                fitted_pattern.add_diffraction_point(diffraction_point=DiffractionPoint(twotheta=self.twotheta_experimental_list[index][i],
+                                                                                        intensity=fitted_intensity[i],
+                                                                                        error=fitted_residual[i]))
             fitted_patterns.append(fitted_pattern)
 
         return fitted_patterns
@@ -674,17 +674,21 @@ class FitterMinpack(FitterInterface):
         fmm = []
 
         for index in range(self.diffraction_patterns_number):
-            y = fit_function(self.s_experimental,
+            s_experimental = self.s_experimental_list[index]
+            intensity_experimental = self.intensity_experimental_list[index]
+            error_experimental = self.error_experimental_list[index]
+
+            y = fit_function(s_experimental,
                              self.build_fit_global_parameters_out(self.parameters),
                              diffraction_pattern_index=index)
 
             fmm_i = [0]*self.getNrPoints(index)
 
             for i in range (0, self.getNrPoints(index)):
-                if self.error_experimental[i] == 0:
+                if error_experimental[i] == 0:
                     fmm_i[i] = 0
                 else:
-                    fmm_i[i] = (y[i] - self.intensity_experimental[i])/self.error_experimental[i]
+                    fmm_i[i] = (y[i] - intensity_experimental[i])/error_experimental[i]
 
             fmm.extend(fmm_i)
 
@@ -714,7 +718,7 @@ class FitterMinpack(FitterInterface):
                         parameter.value = pk * (1.0 + step)
                         parameter.check_value()
 
-                        deriv[jj] = fit_function(self.s_experimental_list[index],
+                        deriv[jj] = fit_function(s_experimental,
                                                  self.build_fit_global_parameters_out(self.parameters),
                                                  diffraction_pattern_index=index)
                     else:
@@ -722,7 +726,7 @@ class FitterMinpack(FitterInterface):
                         parameter.value = pk + d
                         parameter.check_value()
 
-                        deriv[jj] = fit_function(self.s_experimental,
+                        deriv[jj] = fit_function(s_experimental,
                                                  self.build_fit_global_parameters_out(self.parameters),
                                                  diffraction_pattern_index=index)
 

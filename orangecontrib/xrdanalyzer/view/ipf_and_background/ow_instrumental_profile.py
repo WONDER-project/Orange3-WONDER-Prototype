@@ -123,12 +123,12 @@ class OWInstrumentalProfile(OWGenericWidget):
         try:
             if not self.fit_global_parameters is None:
 
-                self.fit_global_parameters.instrumental_parameters = Caglioti(U=self.populate_parameter("U", Caglioti.get_parameters_prefix()),
+                self.fit_global_parameters.instrumental_parameters = [Caglioti(U=self.populate_parameter("U", Caglioti.get_parameters_prefix()),
                                                                               V=self.populate_parameter("V", Caglioti.get_parameters_prefix()),
                                                                               W=self.populate_parameter("W", Caglioti.get_parameters_prefix()),
                                                                               a=self.populate_parameter("a", Caglioti.get_parameters_prefix()),
                                                                               b=self.populate_parameter("b", Caglioti.get_parameters_prefix()),
-                                                                              c=self.populate_parameter("c", Caglioti.get_parameters_prefix()))
+                                                                              c=self.populate_parameter("c", Caglioti.get_parameters_prefix()))]
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -145,12 +145,12 @@ class OWInstrumentalProfile(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.instrumental_parameters is None:
-                self.populate_fields("U", self.fit_global_parameters.instrumental_parameters.U)
-                self.populate_fields("V", self.fit_global_parameters.instrumental_parameters.V)
-                self.populate_fields("W", self.fit_global_parameters.instrumental_parameters.W)
-                self.populate_fields("a", self.fit_global_parameters.instrumental_parameters.a)
-                self.populate_fields("b", self.fit_global_parameters.instrumental_parameters.b)
-                self.populate_fields("c", self.fit_global_parameters.instrumental_parameters.c)
+                self.populate_fields("U", self.fit_global_parameters.instrumental_parameters[0].U)
+                self.populate_fields("V", self.fit_global_parameters.instrumental_parameters[0].V)
+                self.populate_fields("W", self.fit_global_parameters.instrumental_parameters[0].W)
+                self.populate_fields("a", self.fit_global_parameters.instrumental_parameters[0].a)
+                self.populate_fields("b", self.fit_global_parameters.instrumental_parameters[0].b)
+                self.populate_fields("c", self.fit_global_parameters.instrumental_parameters[0].c)
 
             if self.is_automatic_run:
                 self.send_intrumental_profile()

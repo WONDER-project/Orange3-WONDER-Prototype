@@ -102,11 +102,11 @@ class OWCalibrationPeakShift(OWGenericWidget):
         try:
             if not self.fit_global_parameters is None:
 
-                self.fit_global_parameters.set_shift_parameters(Lab6TanCorrection(ax=self.populate_parameter("ax", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                  bx=self.populate_parameter("bx", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                  cx=self.populate_parameter("cx", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                  dx=self.populate_parameter("dx", Lab6TanCorrection.get_parameters_prefix()),
-                                                                                  ex=self.populate_parameter("ex", Lab6TanCorrection.get_parameters_prefix())))
+                self.fit_global_parameters.set_shift_parameters([Lab6TanCorrection(ax=self.populate_parameter("ax", Lab6TanCorrection.get_parameters_prefix()),
+                                                                                   bx=self.populate_parameter("bx", Lab6TanCorrection.get_parameters_prefix()),
+                                                                                   cx=self.populate_parameter("cx", Lab6TanCorrection.get_parameters_prefix()),
+                                                                                   dx=self.populate_parameter("dx", Lab6TanCorrection.get_parameters_prefix()),
+                                                                                   ex=self.populate_parameter("ex", Lab6TanCorrection.get_parameters_prefix()))])
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -125,11 +125,11 @@ class OWCalibrationPeakShift(OWGenericWidget):
                 shift_parameters = self.fit_global_parameters.get_shift_parameters(Lab6TanCorrection.__name__)
 
                 if not shift_parameters is None:
-                    self.populate_fields("ax", shift_parameters.ax)
-                    self.populate_fields("bx", shift_parameters.bx)
-                    self.populate_fields("cx", shift_parameters.cx)
-                    self.populate_fields("dx", shift_parameters.dx)
-                    self.populate_fields("ex", shift_parameters.ex)
+                    self.populate_fields("ax", shift_parameters[0].ax)
+                    self.populate_fields("bx", shift_parameters[0].bx)
+                    self.populate_fields("cx", shift_parameters[0].cx)
+                    self.populate_fields("dx", shift_parameters[0].dx)
+                    self.populate_fields("ex", shift_parameters[0].ex)
 
             if self.is_automatic_run:
                 self.send_peak_shift()

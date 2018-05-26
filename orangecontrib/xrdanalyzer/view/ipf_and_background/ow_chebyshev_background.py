@@ -146,7 +146,7 @@ class OWChebyshevBackground(OWGenericWidget):
     def send_background(self):
         try:
             if not self.fit_global_parameters is None:
-                self.fit_global_parameters.set_background_parameters(ChebyshevBackground(c0=self.populate_parameter("c0", ChebyshevBackground.get_parameters_prefix()),
+                self.fit_global_parameters.set_background_parameters([ChebyshevBackground(c0=self.populate_parameter("c0", ChebyshevBackground.get_parameters_prefix()),
                                                                                          c1=self.populate_parameter("c1", ChebyshevBackground.get_parameters_prefix()),
                                                                                          c2=self.populate_parameter("c2", ChebyshevBackground.get_parameters_prefix()),
                                                                                          c3=self.populate_parameter("c3", ChebyshevBackground.get_parameters_prefix()),
@@ -155,7 +155,7 @@ class OWChebyshevBackground(OWGenericWidget):
                                                                                          c6=self.populate_parameter("c6", ChebyshevBackground.get_parameters_prefix()),
                                                                                          c7=self.populate_parameter("c7", ChebyshevBackground.get_parameters_prefix()),
                                                                                          c8=self.populate_parameter("c8", ChebyshevBackground.get_parameters_prefix()),
-                                                                                         c9=self.populate_parameter("c9", ChebyshevBackground.get_parameters_prefix())))
+                                                                                         c9=self.populate_parameter("c9", ChebyshevBackground.get_parameters_prefix()))])
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -175,16 +175,16 @@ class OWChebyshevBackground(OWGenericWidget):
                 background_parameters = self.fit_global_parameters.get_background_parameters(ChebyshevBackground.__name__)
 
                 if not background_parameters is None:
-                    self.populate_fields("c0", background_parameters.c0)
-                    self.populate_fields("c1", background_parameters.c1)
-                    self.populate_fields("c2", background_parameters.c2)
-                    self.populate_fields("c3", background_parameters.c3)
-                    self.populate_fields("c4", background_parameters.c4)
-                    self.populate_fields("c5", background_parameters.c5)
-                    self.populate_fields("c6", background_parameters.c6)
-                    self.populate_fields("c7", background_parameters.c7)
-                    self.populate_fields("c8", background_parameters.c8)
-                    self.populate_fields("c9", background_parameters.c9)
+                    self.populate_fields("c0", background_parameters[0].c0)
+                    self.populate_fields("c1", background_parameters[0].c1)
+                    self.populate_fields("c2", background_parameters[0].c2)
+                    self.populate_fields("c3", background_parameters[0].c3)
+                    self.populate_fields("c4", background_parameters[0].c4)
+                    self.populate_fields("c5", background_parameters[0].c5)
+                    self.populate_fields("c6", background_parameters[0].c6)
+                    self.populate_fields("c7", background_parameters[0].c7)
+                    self.populate_fields("c8", background_parameters[0].c8)
+                    self.populate_fields("c9", background_parameters[0].c9)
 
             if self.is_automatic_run:
                 self.send_background()

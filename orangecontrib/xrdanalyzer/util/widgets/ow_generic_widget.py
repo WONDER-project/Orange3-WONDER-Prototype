@@ -151,7 +151,7 @@ class OWGenericWidget(widget.OWWidget):
         set_flags()
 
     def populate_parameter(self, parameter_name, parameter_prefix, parameter_suffix = ""):
-        self.populate_parameter_in_widget(self, parameter_name, parameter_prefix, parameter_suffix)
+        return self.populate_parameter_in_widget(self, parameter_name, parameter_prefix, parameter_suffix)
     
     @classmethod
     def populate_parameter_in_widget(cls, widget, parameter_name, parameter_prefix, parameter_suffix = ""):

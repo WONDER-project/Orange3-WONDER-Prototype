@@ -656,8 +656,7 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
             self.diffraction_pattern = DiffractionPatternFactory.create_diffraction_pattern_from_file(self.filename,
                                                                                                       self.widget.populate_parameter_in_widget(self,
                                                                                                                                                "wavelength",
-                                                                                                                                               DiffractionPattern.get_parameters_prefix(),
-                                                                                                                                               parameter_suffix="_" + str(self.index+1)),
+                                                                                                                                               DiffractionPattern.get_parameters_prefix() + "_" + str(self.index+1)),
                                                                                                       limits)
 
             self.wavelength = self.diffraction_pattern.wavelength.value

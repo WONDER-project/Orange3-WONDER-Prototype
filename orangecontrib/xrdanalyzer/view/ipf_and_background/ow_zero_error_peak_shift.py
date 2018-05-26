@@ -59,7 +59,7 @@ class OWZeroErrorPeakShift(OWGenericWidget):
         try:
             if not self.fit_global_parameters is None:
 
-                self.fit_global_parameters.set_shift_parameters(ZeroError(shift=self.populate_parameter("shift", ZeroError.get_parameters_prefix())))
+                self.fit_global_parameters.set_shift_parameters([ZeroError(shift=self.populate_parameter("shift", ZeroError.get_parameters_prefix()))])
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -78,7 +78,7 @@ class OWZeroErrorPeakShift(OWGenericWidget):
                 shift_parameters = self.fit_global_parameters.get_shift_parameters(ZeroError.__name__)
 
                 if not shift_parameters is None:
-                    self.populate_fields("shift", shift_parameters.shift)
+                    self.populate_fields("shift", shift_parameters[0].shift)
 
             if self.is_automatic_run:
                 self.send_peak_shift()

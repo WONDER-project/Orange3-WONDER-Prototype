@@ -23,25 +23,13 @@ class FitInitialization(FitParametersList):
         else:
             self.diffraction_patterns.append(diffraction_pattern)
 
-    def get_diffraction_patterns(self):
-        return self.diffraction_patterns
-
     def get_diffraction_patterns_number(self):
         return 0 if self.diffraction_patterns is None else len(self.diffraction_patterns)
-
-    def get_diffraction_pattern(self, index):
-        return self.diffraction_patterns[index]
-
-    def set_diffraction_pattern(self, index, diffraction_pattern):
-        self.diffraction_patterns[index] = diffraction_pattern
-
-    def insert_diffraction_pattern(self, index, diffraction_pattern):
-        self.diffraction_patterns.insert(index, diffraction_pattern)
 
     def get_parameters(self):
         parameters = []
 
-        if not self.diffraction_pattern is None:
+        if not self.diffraction_patterns is None:
             for diffraction_pattern in self.diffraction_patterns:
                 parameters.extend(diffraction_pattern.get_parameters())
 
@@ -49,7 +37,8 @@ class FitInitialization(FitParametersList):
             parameters.extend(self.crystal_structure.get_parameters())
 
         if not self.thermal_polarization_parameters is None:
-            parameters.extend(self.thermal_polarization_parameters.get_parameters())
+            for thermal_polarization_parameters in self.thermal_polarization_parameters:
+                parameters.extend(thermal_polarization_parameters.get_parameters())
 
         return parameters
 
@@ -64,7 +53,8 @@ class FitInitialization(FitParametersList):
             tuple.extend(self.crystal_structure.tuple())
 
         if not self.thermal_polarization_parameters is None:
-            tuple.extend(self.thermal_polarization_parameters.tuple())
+            for thermal_polarization_parameters in self.thermal_polarization_parameters:
+                tuple.extend(thermal_polarization_parameters.tuple())
 
         return tuple
 
@@ -78,7 +68,8 @@ class FitInitialization(FitParametersList):
             parameters, boundaries = self.crystal_structure.append_to_tuple(parameters, boundaries)
 
         if not self.thermal_polarization_parameters is None:
-            parameters, boundaries = self.thermal_polarization_parameters.append_to_tuple(parameters, boundaries)
+            for thermal_polarization_parameters in self.thermal_polarization_parameters:
+                parameters, boundaries = thermal_polarization_parameters.append_to_tuple(parameters, boundaries)
 
         return parameters, boundaries
 
@@ -86,7 +77,7 @@ class FitInitialization(FitParametersList):
         text = "FIT INITIALIZATION\n\n"
         text += "***********************************\n\n"
 
-        if not self.diffraction_pattern is None:
+        if not self.diffraction_patterns is None:
             for diffraction_pattern in self.diffraction_patterns:
                 text += diffraction_pattern.to_text()
 
@@ -97,7 +88,8 @@ class FitInitialization(FitParametersList):
             text += self.crystal_structure.to_text()
 
         if not self.thermal_polarization_parameters is None:
-            text += self.thermal_polarization_parameters.to_text()
+            for thermal_polarization_parameters in self.thermal_polarization_parameters:
+                text += thermal_polarization_parameters.to_text()
 
 
         text += "\n***********************************\n"
@@ -108,12 +100,24 @@ class FitInitialization(FitParametersList):
     def duplicate(self):
         if self.diffraction_patterns is None: diffraction_patterns = None
         else:
-            diffraction_patterns = []
-            for diffraction_pattern in self.diffraction_patterns:
-                diffraction_patterns.append(diffraction_pattern.duplicate())
+            dimension = len(self.diffraction_patterns)
+            diffraction_patterns = [None]*dimension
+            for index in range(dimension):
+                diffraction_patterns[index] = self.diffraction_patterns[index].duplicate()
+
+        crystal_structure = None if self.crystal_structure is None else self.crystal_structure.duplicate()
+
+        fft_parameters = None if self.fft_parameters is None else self.fft_parameters.duplicate()
+
+        if self.thermal_polarization_parameters is None: thermal_polarization_parameters = None
+        else:
+            dimension = len(self.thermal_polarization_parameters)
+            thermal_polarization_parameters = [None]*dimension
+            for index in range(dimension):
+                thermal_polarization_parameters[index] = self.thermal_polarization_parameters[index].duplicate()
 
         return FitInitialization(diffraction_patterns=diffraction_patterns,
-                                 crystal_structure=None if self.crystal_structure is None else self.crystal_structure.duplicate(),
-                                 fft_parameters=None if self.fft_parameters is None else self.fft_parameters.duplicate(),
-                                 thermal_polarization_parameters=None if self.thermal_polarization_parameters is None else self.thermal_polarization_parameters.duplicate())
+                                 crystal_structure=crystal_structure,
+                                 fft_parameters=fft_parameters,
+                                 thermal_polarization_parameters=thermal_polarization_parameters)
     

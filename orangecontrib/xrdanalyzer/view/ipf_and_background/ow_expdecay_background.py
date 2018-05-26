@@ -110,12 +110,12 @@ class OWExpDecayBackground(OWGenericWidget):
     def send_background(self):
         try:
             if not self.fit_global_parameters is None:
-                self.fit_global_parameters.set_background_parameters(ExpDecayBackground(a0=self.populate_parameter("a0", ExpDecayBackground.get_parameters_prefix()),
+                self.fit_global_parameters.set_background_parameters([ExpDecayBackground(a0=self.populate_parameter("a0", ExpDecayBackground.get_parameters_prefix()),
                                                                                         b0=self.populate_parameter("b0", ExpDecayBackground.get_parameters_prefix()),
                                                                                         a1=self.populate_parameter("a1", ExpDecayBackground.get_parameters_prefix()),
                                                                                         b1=self.populate_parameter("b1", ExpDecayBackground.get_parameters_prefix()),
                                                                                         a2=self.populate_parameter("a2", ExpDecayBackground.get_parameters_prefix()),
-                                                                                        b2=self.populate_parameter("b2", ExpDecayBackground.get_parameters_prefix())))
+                                                                                        b2=self.populate_parameter("b2", ExpDecayBackground.get_parameters_prefix()))])
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -135,12 +135,12 @@ class OWExpDecayBackground(OWGenericWidget):
                 background_parameters = self.fit_global_parameters.get_background_parameters(ExpDecayBackground.__name__)
 
                 if not background_parameters is None:
-                    self.populate_fields("a0", background_parameters.a0)
-                    self.populate_fields("b0", background_parameters.b0)
-                    self.populate_fields("a1", background_parameters.a1)
-                    self.populate_fields("b1", background_parameters.b1)
-                    self.populate_fields("a2", background_parameters.a2)
-                    self.populate_fields("b2", background_parameters.b2)
+                    self.populate_fields("a0", background_parameters[0].a0)
+                    self.populate_fields("b0", background_parameters[0].b0)
+                    self.populate_fields("a1", background_parameters[0].a1)
+                    self.populate_fields("b1", background_parameters[0].b1)
+                    self.populate_fields("a2", background_parameters[0].a2)
+                    self.populate_fields("b2", background_parameters[0].b2)
 
             if self.is_automatic_run:
                 self.send_background()

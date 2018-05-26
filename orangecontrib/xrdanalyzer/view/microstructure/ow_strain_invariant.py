@@ -112,15 +112,15 @@ class OWStrainInvariant(OWGenericWidget):
         try:
             if not self.fit_global_parameters is None:
                 if self.laue_id == 12:
-                    self.fit_global_parameters.strain_parameters = InvariantPAHLaueGroup13(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
+                    self.fit_global_parameters.strain_parameters = [InvariantPAHLaueGroup13(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
                                                                                            bb=self.populate_parameter("bb", InvariantPAH.get_parameters_prefix()),
                                                                                            e1=self.populate_parameter("e1", InvariantPAH.get_parameters_prefix()),
-                                                                                           e4=self.populate_parameter("e4", InvariantPAH.get_parameters_prefix()))
+                                                                                           e4=self.populate_parameter("e4", InvariantPAH.get_parameters_prefix()))]
                 elif self.laue_id == 13:
-                    self.fit_global_parameters.strain_parameters = InvariantPAHLaueGroup14(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
+                    self.fit_global_parameters.strain_parameters = [InvariantPAHLaueGroup14(aa=self.populate_parameter("aa", InvariantPAH.get_parameters_prefix()),
                                                                                            bb=self.populate_parameter("bb", InvariantPAH.get_parameters_prefix()),
                                                                                            e1=self.populate_parameter("e1", InvariantPAH.get_parameters_prefix()),
-                                                                                           e4=self.populate_parameter("e4", InvariantPAH.get_parameters_prefix()))
+                                                                                           e4=self.populate_parameter("e4", InvariantPAH.get_parameters_prefix()))]
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -138,10 +138,10 @@ class OWStrainInvariant(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.strain_parameters is None:
-                self.populate_fields("aa", self.fit_global_parameters.strain_parameters.aa)
-                self.populate_fields("bb", self.fit_global_parameters.strain_parameters.bb)
-                self.populate_fields("e1", self.fit_global_parameters.strain_parameters.e1)
-                self.populate_fields("e4", self.fit_global_parameters.strain_parameters.e4)
+                self.populate_fields("aa", self.fit_global_parameters.strain_parameters[0].aa)
+                self.populate_fields("bb", self.fit_global_parameters.strain_parameters[0].bb)
+                self.populate_fields("e1", self.fit_global_parameters.strain_parameters[0].e1)
+                self.populate_fields("e4", self.fit_global_parameters.strain_parameters[0].e4)
 
             if self.is_automatic_run:
                 self.send_strain()

@@ -63,7 +63,7 @@ class FitGlobalParameters(FitParametersList):
             self.background_parameters = {}
 
         if not background_parameters is None:
-            key = background_parameters.__class__.__name__
+            key = background_parameters[0].__class__.__name__
             self.background_parameters[key] = background_parameters
 
     def get_shift_parameters(self, key):
@@ -77,7 +77,7 @@ class FitGlobalParameters(FitParametersList):
             self.shift_parameters = {}
 
         if not shift_parameters is None:
-            key = shift_parameters.__class__.__name__
+            key = shift_parameters[0].__class__.__name__
             self.shift_parameters[key] = shift_parameters
 
 
@@ -232,26 +232,64 @@ class FitGlobalParameters(FitParametersList):
             self.free_output_parameters.set_functions_values(parameters_dictionary)
 
     def duplicate(self):
+        fit_initialization = None if self.fit_initialization is None else self.fit_initialization.duplicate()
+
         if self.background_parameters is None:
             background_parameters = None
         else:
             background_parameters = {}
             for key in self.background_parameters.keys():
-                background_parameters[key] = self.background_parameters[key].duplicate()
+                background_parameters_list = self.get_background_parameters(key)
 
+                if background_parameters_list is None: background_parameters[key] = None
+                else:
+                    dimension = len(background_parameters_list)
+                    background_parameters[key] = [None]*dimension
+                    for index in range(dimension):
+                        background_parameters[key][index]= background_parameters_list[index].duplicate()
+        
+        if self.instrumental_parameters is None: instrumental_parameters = None
+        else:
+            dimension = len(self.instrumental_parameters)
+            instrumental_parameters = [None]*dimension
+            for index in range(dimension):
+                instrumental_parameters[index] = self.instrumental_parameters[index].duplicate()
+        
         if self.shift_parameters is None:
             shift_parameters = None
         else:
             shift_parameters = {}
             for key in self.shift_parameters.keys():
-                shift_parameters[key] = self.shift_parameters[key].duplicate()
+                shift_parameters_list = self.get_shift_parameters(key)
 
-        fit_global_parameters = FitGlobalParameters(fit_initialization=None if self.fit_initialization is None else self.fit_initialization.duplicate(),
+                if shift_parameters_list is None: shift_parameters[key] = None
+                else:
+                    dimension = len(shift_parameters_list)
+                    shift_parameters[key] = [None]*dimension
+                    for index in range(dimension):
+                        shift_parameters[key][index]= shift_parameters_list[index].duplicate() 
+
+        if self.size_parameters is None: size_parameters = None
+        else:
+            dimension = len(self.size_parameters)
+            size_parameters = [None]*dimension
+            for index in range(dimension):
+                size_parameters[index] = self.size_parameters[index].duplicate()
+
+        if self.strain_parameters is None: strain_parameters = None
+        else:
+            dimension = len(self.strain_parameters)
+            strain_parameters = [None]*dimension
+            for index in range(dimension):
+                strain_parameters[index] = self.strain_parameters[index].duplicate()
+
+
+        fit_global_parameters = FitGlobalParameters(fit_initialization=fit_initialization,
                                                     background_parameters=background_parameters,
-                                                    instrumental_parameters=None if self.instrumental_parameters is None else self.instrumental_parameters.duplicate(),
+                                                    instrumental_parameters=instrumental_parameters,
                                                     shift_parameters=shift_parameters,
-                                                    size_parameters=None if self.size_parameters is None else self.size_parameters.duplicate(),
-                                                    strain_parameters=None if self.strain_parameters is None else self.strain_parameters.duplicate())
+                                                    size_parameters=size_parameters,
+                                                    strain_parameters=strain_parameters)
 
         fit_global_parameters.free_input_parameters = self.free_input_parameters.duplicate()
         fit_global_parameters.free_output_parameters = self.free_output_parameters.duplicate()

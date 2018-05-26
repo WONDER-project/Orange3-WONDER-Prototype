@@ -272,7 +272,7 @@ class OWFitter(OWGenericWidget):
                 if self.fit_global_parameters.fit_initialization.fft_parameters is None:
                     raise ValueError("FFT parameters is missing: add the proper widget before the Fitter")
 
-                if self.fit_global_parameters.fit_initialization.diffraction_pattern is None:
+                if self.fit_global_parameters.fit_initialization.diffraction_patterns is None:
                     raise ValueError("Diffraction Pattern is missing: add the proper widget before the Fitter")
 
                 if self.fit_global_parameters.fit_initialization.crystal_structure is None:
@@ -390,7 +390,7 @@ class OWFitter(OWGenericWidget):
                                                               fitting_method=self.cb_fitting_method.currentText())
                     self.fitter.init_fitter(self.fitted_fit_global_parameters)
 
-                    self.fitted_pattern = self.fitter.build_fitted_diffraction_pattern(self.fitted_fit_global_parameters)
+                    self.fitted_patterns = self.fitter.build_fitted_diffraction_pattern(self.fitted_fit_global_parameters)
                     self.fit_data = None
 
                     self.show_data(is_init=True)
@@ -521,7 +521,7 @@ class OWFitter(OWGenericWidget):
 
     def save_data(self):
         try:
-            if hasattr(self, "fitted_pattern") and not self.fitted_pattern is None:
+            if hasattr(self, "fitted_patterns") and not self.fitted_patterns is None:
                 file_path = QFileDialog.getOpenFileName(self, "Select File", os.path.dirname(self.save_file_name))[0]
 
                 if not file_path is None and not file_path.strip() == "":
@@ -529,12 +529,12 @@ class OWFitter(OWGenericWidget):
 
                     text = "2Theta [deg], s [Å-1], Intensity, Fit, Residual"
 
-                    for index in range(0, self.fitted_pattern.diffraction_points_count()):
-                        text += "\n" + str(self.fitted_pattern.get_diffraction_point(index).twotheta) + "  " + \
-                                str(self.fitted_pattern.get_diffraction_point(index).s) + " " + \
+                    for index in range(0, self.fitted_patterns.diffraction_points_count()):
+                        text += "\n" + str(self.fitted_patterns.get_diffraction_point(index).twotheta) + "  " + \
+                                str(self.fitted_patterns.get_diffraction_point(index).s) + " " + \
                                 str(self.fit_global_parameters.fit_initialization.diffraction_pattern.get_diffraction_point(index).intensity) + " " + \
-                                str(self.fitted_pattern.get_diffraction_point(index).intensity) + " " + \
-                                str(self.fitted_pattern.get_diffraction_point(index).error) + " "
+                                str(self.fitted_patterns.get_diffraction_point(index).intensity) + " " + \
+                                str(self.fitted_patterns.get_diffraction_point(index).error) + " "
 
                     file = open(self.save_file_name, "w")
                     file.write(text)
@@ -553,7 +553,8 @@ class OWFitter(OWGenericWidget):
             if self.IS_DEVELOP: raise e
 
     def show_data(self, is_init=False):
-        diffraction_pattern = self.fitted_fit_global_parameters.fit_initialization.diffraction_pattern
+        diffraction_pattern = self.fitted_fit_global_parameters.fit_initialization.diffraction_patterns[0]
+        fitted_pattern = self.fitted_patterns[0]
 
         if is_init:
             self.x = []
@@ -561,18 +562,18 @@ class OWFitter(OWGenericWidget):
             yf = []
             res = []
 
-            for index in range(0, self.fitted_pattern.diffraction_points_count()):
+            for index in range(0, fitted_pattern.diffraction_points_count()):
                 self.x.append(diffraction_pattern.get_diffraction_point(index).twotheta)
                 self.y.append(diffraction_pattern.get_diffraction_point(index).intensity)
-                yf.append(self.fitted_pattern.get_diffraction_point(index).intensity)
-                res.append(self.fitted_pattern.get_diffraction_point(index).error)
+                yf.append(fitted_pattern.get_diffraction_point(index).intensity)
+                res.append(fitted_pattern.get_diffraction_point(index).error)
         else:
             yf = []
             res = []
 
-            for index in range(0, self.fitted_pattern.diffraction_points_count()):
-                yf.append(self.fitted_pattern.get_diffraction_point(index).intensity)
-                res.append(self.fitted_pattern.get_diffraction_point(index).error)
+            for index in range(0, fitted_pattern.diffraction_points_count()):
+                yf.append(fitted_pattern.get_diffraction_point(index).intensity)
+                res.append(fitted_pattern.get_diffraction_point(index).error)
 
         res = -10 + (res-numpy.max(res))
 
@@ -590,18 +591,18 @@ class OWFitter(OWGenericWidget):
 
         if not self.fitted_fit_global_parameters.size_parameters is None:
             if self.current_iteration <= 1: #TO BE SURE...
-                x, y, self.D_max = self.fitted_fit_global_parameters.size_parameters.get_distribution()
+                x, y, self.D_max = self.fitted_fit_global_parameters.size_parameters[0].get_distribution()
             else:
-                x, y, self.D_max = self.fitted_fit_global_parameters.size_parameters.get_distribution(auto=False, D_max=self.D_max)
+                x, y, self.D_max = self.fitted_fit_global_parameters.size_parameters[0].get_distribution(auto=False, D_max=self.D_max)
 
             self.plot_size.addCurve(x, y, legend="distribution", color="blue")
 
         if not self.fitted_fit_global_parameters.strain_parameters is None:
-            x, y = self.fitted_fit_global_parameters.strain_parameters.get_warren_plot(1, 0, 0)
+            x, y = self.fitted_fit_global_parameters.strain_parameters[0].get_warren_plot(1, 0, 0)
             self.plot_strain.addCurve(x, y, legend="h00", color='blue')
-            x, y = self.fitted_fit_global_parameters.strain_parameters.get_warren_plot(1, 1, 1)
+            x, y = self.fitted_fit_global_parameters.strain_parameters[0].get_warren_plot(1, 1, 1)
             self.plot_strain.addCurve(x, y, legend="hhh", color='red')
-            x, y = self.fitted_fit_global_parameters.strain_parameters.get_warren_plot(1, 1, 0)
+            x, y = self.fitted_fit_global_parameters.strain_parameters[0].get_warren_plot(1, 1, 0)
             self.plot_strain.addCurve(x, y, legend="hh0", color='green')
 
 ##########################################
@@ -708,7 +709,7 @@ class FitThread(QThread):
             for iteration in range(1, self.fitter_widget.n_iterations + 1):
                 if self.fitter_widget.stop_fit: break
 
-                self.fitter_widget.fitted_pattern, \
+                self.fitter_widget.fitted_patterns, \
                 self.fitter_widget.fitted_fit_global_parameters, \
                 self.fitter_widget.fit_data = \
                     self.fitter_widget.fitter.do_fit(current_fit_global_parameters=self.fitter_widget.fitted_fit_global_parameters,
