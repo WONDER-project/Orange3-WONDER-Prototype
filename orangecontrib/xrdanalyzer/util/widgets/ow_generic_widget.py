@@ -69,8 +69,14 @@ class OWGenericWidget(widget.OWWidget):
         gui.button(self.general_options_box, self, "Show Available Parameters", callback=self.show_available_parameters)
 
 
-    def create_box(self, parent_box, var, label=None, disable_function=False):
-        box = gui.widgetBox(parent_box, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 50, height=25)
+    
+
+    def create_box(self, parent_box, var, label=None, disable_function=False, add_callback=False):
+        self.create_box_in_widget(self, parent_box, var, label, disable_function, add_callback)
+    
+    @classmethod
+    def create_box_in_widget(cls, widget, parent_box, var, label=None, disable_function=False, add_callback=False):
+        box = gui.widgetBox(parent_box, "", orientation="horizontal", width=widget.CONTROL_AREA_WIDTH - 50, height=25)
 
         box_label = gui.widgetBox(box, "", orientation="horizontal", width=40, height=25)
         box_value =  gui.widgetBox(box, "", orientation="horizontal", width=100, height=25)
@@ -81,17 +87,18 @@ class OWGenericWidget(widget.OWWidget):
         box_function_value = gui.widgetBox(box, "", orientation="horizontal", height=25)
 
         gui.widgetLabel(box_label, var if label is None else label)
-        le_var = gui.lineEdit(box_value, self, var, "", valueType=float, validator=QDoubleValidator())
+        if add_callback: le_var = gui.lineEdit(box_value, widget, var, "", valueType=float, validator=QDoubleValidator(), callback=getattr(widget, "callback_" + var))
+        else: le_var = gui.lineEdit(box_value, widget, var, "", valueType=float, validator=QDoubleValidator())
 
         def set_flags():
-            fixed = getattr(self, var + "_fixed") == 1
-            function = getattr(self, var + "_function") == 1
+            fixed = getattr(widget, var + "_fixed") == 1
+            function = getattr(widget, var + "_function") == 1
             if disable_function:
                 function = False
-                setattr(self, var + "_function", 0)
+                setattr(widget, var + "_function", 0)
 
             if function:
-                setattr(self, var + "_fixed", 0)
+                setattr(widget, var + "_fixed", 0)
 
                 box_min_max.setVisible(False)
                 box_fixed.setVisible(False)
@@ -99,7 +106,7 @@ class OWGenericWidget(widget.OWWidget):
                 box_value.setFixedWidth(5)
                 box_function_value.setVisible(True)
             elif fixed:
-                setattr(self, var + "_function", 0)
+                setattr(widget, var + "_function", 0)
 
                 box_min_max.setVisible(False)
                 le_var.setVisible(True)
@@ -114,66 +121,87 @@ class OWGenericWidget(widget.OWWidget):
                 box_function.setVisible(True)
                 box_function_value.setVisible(False)
 
-        self.parameter_functions[var] = set_flags
+            if add_callback: getattr(widget, "callback_" + var)()
 
-        orangegui.checkBox(box_fixed, self, var + "_fixed", "fix", callback=set_flags)
+        widget.parameter_functions[var] = set_flags
 
-        orangegui.checkBox(box_min_max, self, var + "_has_min", "min")
-        gui.lineEdit(box_min_max, self, var + "_min", "", valueType=float, validator=QDoubleValidator())
-        orangegui.checkBox(box_min_max, self, var + "_has_max", "max")
-        gui.lineEdit(box_min_max, self, var + "_max", "", valueType=float, validator=QDoubleValidator())
+        orangegui.checkBox(box_fixed, widget, var + "_fixed", "fix", callback=set_flags)
 
-        cb = orangegui.checkBox(box_function, self, var + "_function", "f(x)", callback=set_flags)
-        cb.setEnabled(not disable_function)
+        if add_callback:
+            orangegui.checkBox(box_min_max, widget, var + "_has_min", "min", callback=getattr(widget, "callback_" + var))
+            gui.lineEdit(box_min_max, widget, var + "_min", "", valueType=float, validator=QDoubleValidator(), callback=getattr(widget, "callback_" + var))
+            orangegui.checkBox(box_min_max, widget, var + "_has_max", "max", callback=getattr(widget, "callback_" + var))
+            gui.lineEdit(box_min_max, widget, var + "_max", "", valueType=float, validator=QDoubleValidator(), callback=getattr(widget, "callback_" + var))
 
-        gui.lineEdit(box_function_value, self, var + "_function_value", "expression", valueType=str)
+            cb = orangegui.checkBox(box_function, widget, var + "_function", "f(x)", callback=set_flags)
+            cb.setEnabled(not disable_function)
+
+            gui.lineEdit(box_function_value, widget, var + "_function_value", "expression", valueType=str, callback=getattr(widget, "callback_" + var))
+        else:
+            orangegui.checkBox(box_min_max, widget, var + "_has_min", "min")
+            gui.lineEdit(box_min_max, widget, var + "_min", "", valueType=float, validator=QDoubleValidator())
+            orangegui.checkBox(box_min_max, widget, var + "_has_max", "max")
+            gui.lineEdit(box_min_max, widget, var + "_max", "", valueType=float, validator=QDoubleValidator())
+
+            cb = orangegui.checkBox(box_function, widget, var + "_function", "f(x)", callback=set_flags)
+            cb.setEnabled(not disable_function)
+
+            gui.lineEdit(box_function_value, widget, var + "_function_value", "expression", valueType=str)
 
         set_flags()
 
-    def populate_parameter(self, parameter_name, parameter_prefix):
-        if getattr(self, parameter_name + "_function") == 1:
-            return FitParameter(parameter_name=parameter_prefix + parameter_name, function=True, function_value=getattr(self, parameter_name + "_function_value"))
-        elif getattr(self, parameter_name + "_fixed") == 1:
-            return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(self, parameter_name), fixed=True)
+    def populate_parameter(self, parameter_name, parameter_prefix, parameter_suffix = ""):
+        self.populate_parameter_in_widget(self, parameter_name, parameter_prefix, parameter_suffix)
+    
+    @classmethod
+    def populate_parameter_in_widget(cls, widget, parameter_name, parameter_prefix, parameter_suffix = ""):
+        if getattr(widget, parameter_name + "_function") == 1:
+            return FitParameter(parameter_name=parameter_prefix + parameter_name + parameter_suffix, function=True, function_value=getattr(widget, parameter_name + "_function_value"))
+        elif getattr(widget, parameter_name + "_fixed") == 1:
+            return FitParameter(parameter_name=parameter_prefix + parameter_name + parameter_suffix, value=getattr(widget, parameter_name), fixed=True)
         else:
             boundary = None
 
             min_value = PARAM_HWMIN
             max_value = PARAM_HWMAX
 
-            if getattr(self, parameter_name + "_has_min") == 1: min_value = getattr(self, parameter_name + "_min")
-            if getattr(self, parameter_name + "_has_max") == 1: max_value = getattr(self, parameter_name + "_max")
+            if getattr(widget, parameter_name + "_has_min") == 1: min_value = getattr(widget, parameter_name + "_min")
+            if getattr(widget, parameter_name + "_has_max") == 1: max_value = getattr(widget, parameter_name + "_max")
 
             if min_value != PARAM_HWMIN or max_value != PARAM_HWMAX:
                 boundary = Boundary(min_value=min_value, max_value=max_value)
 
-            return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(self, parameter_name), boundary=boundary)
+            return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(widget, parameter_name), boundary=boundary)
 
     def populate_fields(self, var, parameter, value_only=True):
+        self.populate_fields_in_widget(self, var, parameter, value_only=True)
+        
+    @classmethod
+    def populate_fields_in_widget(cls, widget, var, parameter, value_only=True):
 
-        setattr(self, var, round(parameter.value, 8) if not parameter.value is None else 0.0)
+        setattr(widget, var, round(parameter.value, 8) if not parameter.value is None else 0.0)
 
         if not value_only:
-            setattr(self, var + "_function", 1 if parameter.function else 0)
-            setattr(self, var + "_function_value", parameter.function_value if parameter.function else "")
-            setattr(self, var + "_fixed", 1 if parameter.fixed else 0)
+            setattr(widget, var + "_function", 1 if parameter.function else 0)
+            setattr(widget, var + "_function_value", parameter.function_value if parameter.function else "")
+            setattr(widget, var + "_fixed", 1 if parameter.fixed else 0)
 
             if not parameter.boundary is None:
                 if parameter.boundary.min_value != PARAM_HWMIN:
-                    setattr(self, var + "_has_min", 1)
-                    setattr(self, var + "_min", round(parameter.boundary.min_value, 6))
+                    setattr(widget, var + "_has_min", 1)
+                    setattr(widget, var + "_min", round(parameter.boundary.min_value, 6))
                 else:
-                    setattr(self, var + "_has_min", 0)
-                    setattr(self, var + "_min", 0.0)
+                    setattr(widget, var + "_has_min", 0)
+                    setattr(widget, var + "_min", 0.0)
 
                 if parameter.boundary.max_value != PARAM_HWMAX:
-                    setattr(self, var + "_has_max", 1)
-                    setattr(self, var + "_max", round(parameter.boundary.max_value, 6))
+                    setattr(widget, var + "_has_max", 1)
+                    setattr(widget, var + "_max", round(parameter.boundary.max_value, 6))
                 else:
-                    setattr(self, var + "_has_max", 0)
-                    setattr(self, var + "_max", 0.0)
+                    setattr(widget, var + "_has_max", 0)
+                    setattr(widget, var + "_max", 0.0)
 
-            self.parameter_functions[var]()
+            widget.parameter_functions[var]()
 
     def callResetSettings(self):
         if ConfirmDialog.confirmed(parent=self, message="Confirm Reset of the Fields?"):

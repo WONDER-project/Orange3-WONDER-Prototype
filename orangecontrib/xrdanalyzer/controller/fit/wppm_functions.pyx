@@ -11,7 +11,7 @@
 
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
 
-def fit_function(s, fit_global_parameters):
+def fit_function(s, fit_global_parameters, diffraction_pattern_index = 0):
     if CrystalStructure.is_cube(fit_global_parameters.fit_initialization.crystal_structure.simmetry):
 
         # CONSTRUCTION OF EACH SEPARATE PEAK ---------------------------------------------------------------------------
@@ -163,13 +163,13 @@ from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters
 from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
 from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
 
-def create_one_peak(reflection_index, fit_global_parameters):
+def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern_index=0):
     fft_type = fit_global_parameters.fit_initialization.fft_parameters.fft_type
     fit_space_parameters = fit_global_parameters.space_parameters()
     crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
     reflection = crystal_structure.get_reflection(reflection_index)
 
-    wavelength = fit_global_parameters.fit_initialization.diffraction_pattern.wavelength.value
+    wavelength = fit_global_parameters.fit_initialization.get_diffraction_pattern(diffraction_pattern_index).wavelength.value
     lattice_parameter = crystal_structure.a.value
 
     fourier_amplitudes = None
