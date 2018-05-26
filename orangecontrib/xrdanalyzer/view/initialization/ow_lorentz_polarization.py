@@ -50,10 +50,10 @@ class OWLorentzPolarization(OWGenericWidget):
             if not self.fit_global_parameters is None:
 
                 if self.fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
-                    self.fit_global_parameters.fit_initialization.thermal_polarization_parameters = ThermalPolarizationParameters(debye_waller_factor=None,
-                                                                                                                                  use_lorentz_polarization_factor=self.use_lorentz_polarization_factor==1)
+                    self.fit_global_parameters.fit_initialization.thermal_polarization_parameters = [ThermalPolarizationParameters(debye_waller_factor=None,
+                                                                                                                                  use_lorentz_polarization_factor=self.use_lorentz_polarization_factor==1)]
                 else:
-                    self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.use_lorentz_polarization_factor = self.use_lorentz_polarization_factor==1
+                    self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].use_lorentz_polarization_factor = self.use_lorentz_polarization_factor==1
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -69,7 +69,7 @@ class OWLorentzPolarization(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
-                self.use_lorentz_polarization_factor = 1 if self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.use_lorentz_polarization_factor else 0
+                self.use_lorentz_polarization_factor = 1 if self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].use_lorentz_polarization_factor else 0
 
             if self.is_automatic_run:
                 self.send_lorentz_polarization()

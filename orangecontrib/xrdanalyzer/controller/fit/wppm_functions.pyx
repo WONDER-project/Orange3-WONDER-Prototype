@@ -19,7 +19,7 @@ def fit_function(s, fit_global_parameters, diffraction_pattern_index = 0):
         separated_peaks_functions = []
 
         for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
-            sanalitycal, Ianalitycal = create_one_peak(reflection_index, fit_global_parameters)
+            sanalitycal, Ianalitycal = create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern_index)
 
             separated_peaks_functions.append([sanalitycal, Ianalitycal])
 
@@ -31,9 +31,11 @@ def fit_function(s, fit_global_parameters, diffraction_pattern_index = 0):
 
         if not fit_global_parameters.background_parameters is None:
             for key in fit_global_parameters.background_parameters.keys():
-                background_parameters = fit_global_parameters.get_background_parameters(key)
+                background_parameters_list = fit_global_parameters.get_background_parameters(key)
 
-                if not background_parameters is None:
+                if not background_parameters_list is None:
+                    background_parameters = background_parameters_list[0 if len(background_parameters_list) == 1 else diffraction_pattern_index]
+
                     if key == ChebyshevBackground.__name__:
                         add_chebyshev_background(s,
                                                  I,
@@ -59,10 +61,11 @@ def fit_function(s, fit_global_parameters, diffraction_pattern_index = 0):
 
         # ADD DEBYE-WALLER FACTOR --------------------------------------------------------------------------------------
 
-        if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None \
-                and not fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor is None:
-            I *= debye_waller(s, fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor.value)
+        if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
+            thermal_polarization_parameters = fit_global_parameters.fit_initialization.thermal_polarization_parameters[0 if len(fit_global_parameters.fit_initialization.thermal_polarization_parameters) == 1 else diffraction_pattern_index]
 
+            if not thermal_polarization_parameters.debye_waller_factor is None:
+                I *= debye_waller(s, thermal_polarization_parameters.debye_waller_factor.value)
 
         return I
     else:
@@ -177,6 +180,8 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
     # INSTRUMENTAL PROFILE ---------------------------------------------------------------------------------------------
 
     if not fit_global_parameters.instrumental_parameters is None:
+        instrumental_parameters = fit_global_parameters.instrumental_parameters[0 if len(fit_global_parameters.instrumental_parameters) == 1 else diffraction_pattern_index]
+            
         if fourier_amplitudes is None:
             fourier_amplitudes = instrumental_function(fit_space_parameters.L,
                                                        reflection.h,
@@ -184,12 +189,12 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
                                                        reflection.l,
                                                        lattice_parameter,
                                                        wavelength,
-                                                       fit_global_parameters.instrumental_parameters.U.value,
-                                                       fit_global_parameters.instrumental_parameters.V.value,
-                                                       fit_global_parameters.instrumental_parameters.W.value,
-                                                       fit_global_parameters.instrumental_parameters.a.value,
-                                                       fit_global_parameters.instrumental_parameters.b.value,
-                                                       fit_global_parameters.instrumental_parameters.c.value)
+                                                       instrumental_parameters.U.value,
+                                                       instrumental_parameters.V.value,
+                                                       instrumental_parameters.W.value,
+                                                       instrumental_parameters.a.value,
+                                                       instrumental_parameters.b.value,
+                                                       instrumental_parameters.c.value)
         else:
             fourier_amplitudes *= instrumental_function(fit_space_parameters.L,
                                                         reflection.h,
@@ -197,67 +202,71 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
                                                         reflection.l,
                                                         lattice_parameter,
                                                         wavelength,
-                                                        fit_global_parameters.instrumental_parameters.U.value,
-                                                        fit_global_parameters.instrumental_parameters.V.value,
-                                                        fit_global_parameters.instrumental_parameters.W.value,
-                                                        fit_global_parameters.instrumental_parameters.a.value,
-                                                        fit_global_parameters.instrumental_parameters.b.value,
-                                                        fit_global_parameters.instrumental_parameters.c.value)
+                                                        instrumental_parameters.U.value,
+                                                        instrumental_parameters.V.value,
+                                                        instrumental_parameters.W.value,
+                                                        instrumental_parameters.a.value,
+                                                        instrumental_parameters.b.value,
+                                                        instrumental_parameters.c.value)
 
     # SIZE -------------------------------------------------------------------------------------------------------------
 
     if not fit_global_parameters.size_parameters is None:
+        size_parameters = fit_global_parameters.size_parameters[0 if len(fit_global_parameters.size_parameters) == 1 else diffraction_pattern_index]
+
         if fourier_amplitudes is None:
             fourier_amplitudes = size_function_lognormal(fit_space_parameters.L,
-                                                         fit_global_parameters.size_parameters.sigma.value,
-                                                         fit_global_parameters.size_parameters.mu.value)
+                                                         size_parameters.sigma.value,
+                                                         size_parameters.mu.value)
         else:
             fourier_amplitudes *= size_function_lognormal(fit_space_parameters.L,
-                                                          fit_global_parameters.size_parameters.sigma.value,
-                                                          fit_global_parameters.size_parameters.mu.value)
+                                                          size_parameters.sigma.value,
+                                                          size_parameters.mu.value)
 
     # STRAIN -----------------------------------------------------------------------------------------------------------
 
     if not fit_global_parameters.strain_parameters is None:
-        if isinstance(fit_global_parameters.strain_parameters, InvariantPAH): # INVARIANT PAH
+        strain_parameters = fit_global_parameters.strain_parameters[0 if len(fit_global_parameters.strain_parameters) == 1 else diffraction_pattern_index]
+
+        if isinstance(strain_parameters, InvariantPAH): # INVARIANT PAH
             if fourier_amplitudes is None:
                 fourier_amplitudes = strain_invariant_function_pah(fit_space_parameters.L,
                                                                    reflection.h,
                                                                    reflection.k,
                                                                    reflection.l,
                                                                    lattice_parameter,
-                                                                   fit_global_parameters.strain_parameters.aa.value,
-                                                                   fit_global_parameters.strain_parameters.bb.value,
-                                                                   fit_global_parameters.strain_parameters.get_invariant(reflection.h,
-                                                                                                                         reflection.k,
-                                                                                                                         reflection.l))
+                                                                   strain_parameters.aa.value,
+                                                                   strain_parameters.bb.value,
+                                                                   strain_parameters.get_invariant(reflection.h,
+                                                                                                   reflection.k,
+                                                                                                   reflection.l))
             else:
                 fourier_amplitudes *= strain_invariant_function_pah(fit_space_parameters.L,
                                                                     reflection.h,
                                                                     reflection.k,
                                                                     reflection.l,
                                                                     lattice_parameter,
-                                                                    fit_global_parameters.strain_parameters.aa.value,
-                                                                    fit_global_parameters.strain_parameters.bb.value,
-                                                                    fit_global_parameters.strain_parameters.get_invariant(reflection.h,
-                                                                                                                          reflection.k,
-                                                                                                                          reflection.l))
+                                                                    strain_parameters.aa.value,
+                                                                    strain_parameters.bb.value,
+                                                                    strain_parameters.get_invariant(reflection.h,
+                                                                                                    reflection.k,
+                                                                                                    reflection.l))
 
-        elif isinstance(fit_global_parameters.strain_parameters, KrivoglazWilkensModel): # KRIVOGLAZ-WILKENS
+        elif isinstance(strain_parameters, KrivoglazWilkensModel): # KRIVOGLAZ-WILKENS
             if fourier_amplitudes is None:
                 fourier_amplitudes = strain_krivoglaz_wilkens(fit_space_parameters.L,
                                                               reflection.h,
                                                               reflection.k,
                                                               reflection.l,
                                                               lattice_parameter,
-                                                              fit_global_parameters.strain_parameters.rho.value,
-                                                              fit_global_parameters.strain_parameters.Re.value,
-                                                              fit_global_parameters.strain_parameters.Ae.value,
-                                                              fit_global_parameters.strain_parameters.Be.value,
-                                                              fit_global_parameters.strain_parameters.As.value,
-                                                              fit_global_parameters.strain_parameters.Bs.value,
-                                                              fit_global_parameters.strain_parameters.mix.value,
-                                                              fit_global_parameters.strain_parameters.b.value)
+                                                              strain_parameters.rho.value,
+                                                              strain_parameters.Re.value,
+                                                              strain_parameters.Ae.value,
+                                                              strain_parameters.Be.value,
+                                                              strain_parameters.As.value,
+                                                              strain_parameters.Bs.value,
+                                                              strain_parameters.mix.value,
+                                                              strain_parameters.b.value)
 
             else:
                 fourier_amplitudes *= strain_krivoglaz_wilkens(fit_space_parameters.L,
@@ -265,22 +274,22 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
                                                                reflection.k,
                                                                reflection.l,
                                                                lattice_parameter,
-                                                               fit_global_parameters.strain_parameters.rho.value,
-                                                               fit_global_parameters.strain_parameters.Re.value,
-                                                               fit_global_parameters.strain_parameters.Ae.value,
-                                                               fit_global_parameters.strain_parameters.Be.value,
-                                                               fit_global_parameters.strain_parameters.As.value,
-                                                               fit_global_parameters.strain_parameters.Bs.value,
-                                                               fit_global_parameters.strain_parameters.mix.value,
-                                                               fit_global_parameters.strain_parameters.b.value)
+                                                               strain_parameters.rho.value,
+                                                               strain_parameters.Re.value,
+                                                               strain_parameters.Ae.value,
+                                                               strain_parameters.Be.value,
+                                                               strain_parameters.As.value,
+                                                               strain_parameters.Bs.value,
+                                                               strain_parameters.mix.value,
+                                                               strain_parameters.b.value)
 
-        elif isinstance(fit_global_parameters.strain_parameters, WarrenModel): # WARREN
+        elif isinstance(strain_parameters, WarrenModel): # WARREN
             fourier_amplitudes_re, fourier_amplitudes_im = strain_warren_function(fit_space_parameters.L,
                                                                                   reflection.h,
                                                                                   reflection.k,
                                                                                   reflection.l,
                                                                                   lattice_parameter,
-                                                                                  fit_global_parameters.strain_parameters.average_cell_parameter.value)
+                                                                                  strain_parameters.average_cell_parameter.value)
             if fft_type == FFTTypes.FULL:
                 if fourier_amplitudes is None:
                     fourier_amplitudes = fourier_amplitudes_re + 1j*fourier_amplitudes_im
@@ -325,7 +334,7 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
 
     if not fit_global_parameters.shift_parameters is None:
         for key in fit_global_parameters.shift_parameters.keys():
-            shift_parameters = fit_global_parameters.get_shift_parameters(key)
+            shift_parameters = fit_global_parameters.get_shift_parameters(key)[0 if len(fit_global_parameters.get_shift_parameters(key)) == 1 else diffraction_pattern_index]
 
             if not shift_parameters is None:
                 if key == Lab6TanCorrection.__name__:
@@ -341,9 +350,11 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
 
     # LORENTZ/POLARIZATION FACTOR --------------------------------------------------------------------------------------
 
-    if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None and \
-            fit_global_parameters.fit_initialization.thermal_polarization_parameters.use_lorentz_polarization_factor:
-        I *= lorentz_polarization_factor(s, s_hkl)
+    if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
+        thermal_polarization_parameters = fit_global_parameters.fit_initialization.thermal_polarization_parameters[0 if len(fit_global_parameters.fit_initialization.thermal_polarization_parameters) == 1 else diffraction_pattern_index]
+
+        if thermal_polarization_parameters.use_lorentz_polarization_factor:
+            I *= lorentz_polarization_factor(s, s_hkl)
 
     return s, I
 

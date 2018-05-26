@@ -89,20 +89,25 @@ class FitGlobalParameters(FitParametersList):
 
         if not self.background_parameters is None:
             for key in self.background_parameters.keys():
-                parameters.extend(self.background_parameters[key].get_parameters())
+                for background_parameters in self.background_parameters[key]:
+                    parameters.extend(background_parameters.get_parameters())
 
         if not self.instrumental_parameters is None:
-            parameters.extend(self.instrumental_parameters.get_parameters())
+            for instrumental_parameters in self.instrumental_parameters:
+                parameters.extend(instrumental_parameters.get_parameters())
 
         if not self.shift_parameters is None:
             for key in self.shift_parameters.keys():
-                parameters.extend(self.shift_parameters[key].get_parameters())
+                for shift_parameters in self.shift_parameters[key]:
+                    parameters.extend(shift_parameters.get_parameters())
 
         if not self.size_parameters is None:
-            parameters.extend(self.size_parameters.get_parameters())
+            for size_parameters in self.size_parameters:
+                parameters.extend(size_parameters.get_parameters())
 
         if not self.strain_parameters is None:
-            parameters.extend(self.strain_parameters.get_parameters())
+            for strain_parameters in self.strain_parameters:
+                parameters.extend(strain_parameters.get_parameters())
 
         return parameters
 
@@ -114,20 +119,25 @@ class FitGlobalParameters(FitParametersList):
 
         if not self.background_parameters is None:
             for key in self.background_parameters.keys():
-                tuple.extend(self.background_parameters[key].tuple())
+                for background_parameters in self.background_parameters[key]:
+                    tuple.extend(background_parameters.tuple())
 
         if not self.instrumental_parameters is None:
-            tuple.extend(self.instrumental_parameters.tuple())
+            for instrumental_parameters in self.instrumental_parameters:
+                tuple.extend(instrumental_parameters.tuple())
 
         if not self.shift_parameters is None:
             for key in self.shift_parameters.keys():
-                tuple.extend(self.shift_parameters[key].tuple())
+                for shift_parameters in self.shift_parameters[key]:
+                    tuple.extend(shift_parameters.tuple())
 
         if not self.size_parameters is None:
-            tuple.extend(self.size_parameters.tuple())
+            for size_parameters in self.size_parameters:
+                tuple.extend(size_parameters.tuple())
 
         if not self.strain_parameters is None:
-            tuple.extend(self.strain_parameters.tuple())
+            for strain_parameters in self.strain_parameters:
+                tuple.extend(strain_parameters.tuple())
 
         return tuple
 
@@ -138,20 +148,25 @@ class FitGlobalParameters(FitParametersList):
 
         if not self.background_parameters is None:
             for key in self.background_parameters.keys():
-                parameters, boundaries = self.background_parameters[key].append_to_tuple(parameters, boundaries)
+                for background_parameters in self.background_parameters[key]:
+                    parameters, boundaries = background_parameters.append_to_tuple(parameters, boundaries)
 
         if not self.instrumental_parameters is None:
-            parameters, boundaries = self.instrumental_parameters.append_to_tuple(parameters, boundaries)
+            for instrumental_parameters in self.instrumental_parameters:
+                parameters, boundaries = instrumental_parameters.append_to_tuple(parameters, boundaries)
 
         if not self.shift_parameters is None:
             for key in self.shift_parameters.keys():
-                parameters, boundaries = self.shift_parameters[key].append_to_tuple(parameters, boundaries)
+                for shift_parameters in self.shift_parameters[key]:
+                    parameters, boundaries = shift_parameters.append_to_tuple(parameters, boundaries)
 
         if not self.size_parameters is None:
-            parameters, boundaries = self.size_parameters.append_to_tuple(parameters, boundaries)
+            for size_parameters in self.size_parameters:
+                parameters, boundaries = size_parameters.append_to_tuple(parameters, boundaries)
 
         if not self.strain_parameters is None:
-            parameters, boundaries = self.strain_parameters.append_to_tuple(parameters, boundaries)
+            for strain_parameters in self.strain_parameters:
+                parameters, boundaries = strain_parameters.append_to_tuple(parameters, boundaries)
 
         return parameters, boundaries
 
@@ -167,20 +182,25 @@ class FitGlobalParameters(FitParametersList):
 
         if not self.background_parameters is None:
             for key in self.background_parameters.keys():
-                text += self.background_parameters[key].to_text()
+                for background_parameters in self.background_parameters[key]:
+                    text += background_parameters.to_text()
             
         if not self.instrumental_parameters is None:
-            text += self.instrumental_parameters.to_text()
+            for instrumental_parameters in self.instrumental_parameters:
+                text += instrumental_parameters.to_text()
             
         if not self.shift_parameters is None:
             for key in self.shift_parameters.keys():
-                text += self.shift_parameters[key].to_text()
+                for shift_parameters in self.shift_parameters[key]:
+                    text += shift_parameters.to_text()
 
         if not self.size_parameters is None:
-            text += self.size_parameters.to_text()
+            for size_parameters in self.size_parameters:
+                text += size_parameters.to_text()
 
         if not self.strain_parameters is None:
-            text += self.strain_parameters.to_text()
+            for strain_parameters in self.strain_parameters:
+                text += strain_parameters.to_text()
         
         text += self.free_output_parameters.to_text()
 
