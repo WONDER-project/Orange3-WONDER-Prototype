@@ -182,11 +182,9 @@ class OWCrystalStructure(OWGenericWidget):
             if not self.fit_global_parameters is None:
                 self.dumpSettings()
     
-                crystal_structures = []
+                self.fit_global_parameters.fit_initialization.crystal_structures = []
                 for index in range(len(self.a)):
-                    crystal_structures.append(self.crystal_structure_box_array[index].send_fit_initialization())
-    
-                self.fit_global_parameters.fit_initialization.crystal_structures = crystal_structures
+                    self.crystal_structure_box_array[index].append_fit_initialization()
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -208,7 +206,6 @@ class OWCrystalStructure(OWGenericWidget):
                 if diffraction_patterns is None: raise ValueError("No Diffraction Pattern in input data!")
 
                 if len(diffraction_patterns) != len(self.crystal_structure_box_array):
-
                     recycle = ConfirmDialog.confirmed(message="Number of Diffraction Patterns changed:\ndo you want to use the existing structures where possible?\n\nIf yes, check for possible incongruences",
                                                       title="Warning")
 
@@ -249,7 +246,7 @@ class OWCrystalStructure(OWGenericWidget):
 
                         self.crystal_structure_box_array.append(crystal_structure_box)
 
-                if not crystal_structures is None:
+                elif not crystal_structures is None:
                     for index in range(len(crystal_structures)):
                         self.crystal_structure_box_array[index].set_data(crystal_structures[index])
 
@@ -687,7 +684,7 @@ class CrystalStructureBox(QtWidgets.QWidget, OWComponent):
         return str(self.index+1) + "_"
 
     def set_data(self, crystal_structure):
-        self.populate_fields("a", crystal_structure.a)
+        self.widget.populate_fields_in_widget(self, "a", crystal_structure.a)
         self.use_structure = 1 if crystal_structure.use_structure else 0
 
         if self.use_structure == 0:
@@ -730,12 +727,15 @@ class CrystalStructureBox(QtWidgets.QWidget, OWComponent):
         self.text_area.setText(text)
 
 
-    def send_fit_initialization(self):
+    def append_fit_initialization(self):
         try:
             if self.use_structure == 0:
                 crystal_structure = CrystalStructure.init_cube(a0=self.widget.populate_parameter_in_widget(self, "a", self.get_parameters_prefix()),
                                                                simmetry=self.cb_simmetry.currentText(),
                                                                progressive=self.get_parameter_progressive())
+
+                self.widget.fit_global_parameters.fit_initialization.crystal_structures.append(crystal_structure)
+                self.widget.fit_global_parameters.evaluate_functions() # in case that a is a function of other parameters
 
                 crystal_structure.parse_reflections(self.reflections, progressive=self.get_parameter_progressive())
 
@@ -746,6 +746,9 @@ class CrystalStructureBox(QtWidgets.QWidget, OWComponent):
                                                                formula=congruence.checkEmptyString(self.formula, "Chemical Formula"),
                                                                intensity_scale_factor=self.widget.populate_parameter_in_widget(self, "intensity_scale_factor", self.get_parameters_prefix()),
                                                                progressive=self.get_parameter_progressive())
+
+                self.widget.fit_global_parameters.fit_initialization.crystal_structures.append(crystal_structure)
+                self.widget.fit_global_parameters.evaluate_functions() # in case that a is a function of other parameters
 
                 crystal_structure.parse_reflections(self.reflections, progressive=self.get_parameter_progressive())
 

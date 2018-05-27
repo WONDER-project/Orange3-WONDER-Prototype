@@ -158,7 +158,10 @@ class CrystalStructure(FitParametersList):
 
     def get_d_spacing(self, h, k, l):
         if self.is_cube(self.simmetry):
-            return 1/Utilities.s_hkl(self.a.value, h, k, l)
+            if self.a.value is None:
+                return 0
+            else:
+                return 1/Utilities.s_hkl(self.a.value, h, k, l)
         #elif self.simmetry == Simmetry.HCP:
         #    return 1/numpy.sqrt((4/3)*((h**2 + h*k + k**2)/ self.a.value**2  + (l/self.c.value)**2))
         else:
