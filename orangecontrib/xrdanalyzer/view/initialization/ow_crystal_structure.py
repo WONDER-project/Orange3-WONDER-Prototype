@@ -522,7 +522,7 @@ class CrystalStructureBox(QtWidgets.QWidget, OWComponent):
 
         self.CONTROL_AREA_WIDTH = widget.CONTROL_AREA_WIDTH
 
-        container = gui.widgetBox(parent, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-35)
+        container = gui.widgetBox(parent, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-45)
 
 
         self.cb_simmetry = orangegui.comboBox(container, self, "simmetry", label="Simmetry", items=Simmetry.tuple(), callback=self.set_simmetry, orientation="horizontal")
@@ -533,7 +533,7 @@ class CrystalStructureBox(QtWidgets.QWidget, OWComponent):
 
         structure_box = gui.widgetBox(container,
                                        "", orientation="vertical",
-                                       width=self.CONTROL_AREA_WIDTH - 20)
+                                       width=self.CONTROL_AREA_WIDTH - 45)
 
         orangegui.comboBox(structure_box, self, "use_structure", label="Use Structural Model", items=["No", "Yes"],
                            callback=self.set_structure, labelWidth=350, orientation="horizontal")
@@ -541,14 +541,14 @@ class CrystalStructureBox(QtWidgets.QWidget, OWComponent):
 
         self.structure_box_1 = gui.widgetBox(structure_box,
                                        "", orientation="vertical",
-                                       width=self.CONTROL_AREA_WIDTH - 30, height=60)
+                                       width=self.CONTROL_AREA_WIDTH - 50, height=60)
 
         gui.lineEdit(self.structure_box_1, self, "formula", "Chemical Formula", labelWidth=90, valueType=str, callback=widget.dump_formula)
         widget.create_box_in_widget(self, self.structure_box_1, "intensity_scale_factor", "I0", add_callback=True)
 
         self.structure_box_2 = gui.widgetBox(structure_box,
                                        "", orientation="vertical",
-                                       width=self.CONTROL_AREA_WIDTH - 30, height=60)
+                                       width=self.CONTROL_AREA_WIDTH - 50, height=60)
 
         orangegui.separator(container)
 

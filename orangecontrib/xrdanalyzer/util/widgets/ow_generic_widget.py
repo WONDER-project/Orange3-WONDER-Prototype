@@ -47,16 +47,18 @@ class OWGenericWidget(widget.OWWidget):
         else:
             max_width = self.MAX_WIDTH_NO_MAIN
 
-        self.setGeometry(QRect(round(geom.width()*0.05),
-                               round(geom.height()*0.05),
-                               round(min(geom.width()*0.98, max_width)),
+        self.setGeometry(QRect(round(geom.width()*0.01),
+                               round(geom.height()*0.01),
+                               round(min(geom.width()*0.95, max_width)),
                                round(min(geom.height()*0.95, self.MAX_HEIGHT))))
 
+        self.setMinimumWidth(self.geometry().width()/2)
+        self.setMinimumHeight(self.geometry().height()/2)
         self.setMaximumHeight(self.geometry().height())
         self.setMaximumWidth(self.geometry().width())
 
-        #from PyQt5.QtWidgets import QSizePolicy
-        #self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        from PyQt5.QtWidgets import QSizePolicy
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.controlArea.setFixedWidth(self.CONTROL_AREA_WIDTH)
 
@@ -67,9 +69,6 @@ class OWGenericWidget(widget.OWWidget):
 
         gui.button(self.general_options_box, self, "Reset Fields", callback=self.callResetSettings)
         gui.button(self.general_options_box, self, "Show Available Parameters", callback=self.show_available_parameters)
-
-
-    
 
     def create_box(self, parent_box, var, label=None, disable_function=False, add_callback=False):
         self.create_box_in_widget(self, parent_box, var, label, disable_function, add_callback)
@@ -82,7 +81,6 @@ class OWGenericWidget(widget.OWWidget):
         box_value =  gui.widgetBox(box, "", orientation="horizontal", width=100, height=25)
         box_fixed = gui.widgetBox(box, "", orientation="horizontal", height=25)
         box_min_max = gui.widgetBox(box, "", orientation="horizontal", height=30)
-
         box_function = gui.widgetBox(box, "", orientation="horizontal", height=25)
         box_function_value = gui.widgetBox(box, "", orientation="horizontal", height=25)
 

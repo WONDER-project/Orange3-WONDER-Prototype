@@ -366,8 +366,10 @@ class OWChebyshevBackground(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
 
 
-        orangegui.comboBox(main_box, self, "use_single_parameter_set", label="Use single set of Parameters", labelWidth=250, orientation="horizontal",
+        orangegui.comboBox(main_box, self, "use_single_parameter_set", label="Use single set of Parameters", labelWidth=350, orientation="horizontal",
                            items=["No", "Yes"], callback=self.set_use_single_parameter_set, sendSelectedValue=False)
+
+        orangegui.separator(main_box)
 
         self.chebyshev_tabs = gui.tabWidget(main_box)
 
