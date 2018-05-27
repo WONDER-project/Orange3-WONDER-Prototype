@@ -127,11 +127,19 @@ class OWGenericWidget(widget.OWWidget):
 
         orangegui.checkBox(box_fixed, widget, var + "_fixed", "fix", callback=set_flags)
 
+        def set_min():
+            setattr(widget, var + "_has_min", 1)
+            if add_callback: getattr(widget, "callback_" + var)()
+
+        def set_max():
+            setattr(widget, var + "_has_max", 1)
+            if add_callback: getattr(widget, "callback_" + var)()
+
         if add_callback:
             orangegui.checkBox(box_min_max, widget, var + "_has_min", "min", callback=getattr(widget, "callback_" + var))
-            gui.lineEdit(box_min_max, widget, var + "_min", "", valueType=float, validator=QDoubleValidator(), callback=getattr(widget, "callback_" + var))
+            gui.lineEdit(box_min_max, widget, var + "_min", "", valueType=float, validator=QDoubleValidator(), callback=set_min)
             orangegui.checkBox(box_min_max, widget, var + "_has_max", "max", callback=getattr(widget, "callback_" + var))
-            gui.lineEdit(box_min_max, widget, var + "_max", "", valueType=float, validator=QDoubleValidator(), callback=getattr(widget, "callback_" + var))
+            gui.lineEdit(box_min_max, widget, var + "_max", "", valueType=float, validator=QDoubleValidator(), callback=set_max)
 
             cb = orangegui.checkBox(box_function, widget, var + "_function", "f(x)", callback=set_flags)
             cb.setEnabled(not disable_function)
@@ -139,9 +147,9 @@ class OWGenericWidget(widget.OWWidget):
             gui.lineEdit(box_function_value, widget, var + "_function_value", "expression", valueType=str, callback=getattr(widget, "callback_" + var))
         else:
             orangegui.checkBox(box_min_max, widget, var + "_has_min", "min")
-            gui.lineEdit(box_min_max, widget, var + "_min", "", valueType=float, validator=QDoubleValidator())
+            gui.lineEdit(box_min_max, widget, var + "_min", "", valueType=float, validator=QDoubleValidator(), callback=set_min)
             orangegui.checkBox(box_min_max, widget, var + "_has_max", "max")
-            gui.lineEdit(box_min_max, widget, var + "_max", "", valueType=float, validator=QDoubleValidator())
+            gui.lineEdit(box_min_max, widget, var + "_max", "", valueType=float, validator=QDoubleValidator(), callback=set_max)
 
             cb = orangegui.checkBox(box_function, widget, var + "_function", "f(x)", callback=set_flags)
             cb.setEnabled(not disable_function)

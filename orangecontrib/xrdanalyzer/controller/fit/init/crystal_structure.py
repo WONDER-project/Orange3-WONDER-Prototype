@@ -96,21 +96,21 @@ class CrystalStructure(FitParametersList):
         return simmetry in (Simmetry.BCC, Simmetry.FCC, Simmetry.SIMPLE_CUBIC)
 
     @classmethod
-    def init_cube(cls, a0, simmetry=Simmetry.FCC, use_structure=False, formula=None, intensity_scale_factor=None):
+    def init_cube(cls, a0, simmetry=Simmetry.FCC, use_structure=False, formula=None, intensity_scale_factor=None, progressive = ""):
         if not cls.is_cube(simmetry): raise ValueError("Simmetry doesn't belong to a cubic crystal cell")
 
         if a0.fixed:
-            a = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "a", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
-            b = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "b", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
-            c = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "c", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+            a = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + progressive + "a", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+            b = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + progressive + "b", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
+            c = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + progressive + "c", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
         else:
             a = a0
-            b = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "b", function=True, function_value=CrystalStructure.get_parameters_prefix() + "a")
-            c = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "c", function=True, function_value=CrystalStructure.get_parameters_prefix() + "a" )
+            b = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + progressive + "b", function=True, function_value=CrystalStructure.get_parameters_prefix() + progressive + "a")
+            c = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + progressive + "c", function=True, function_value=CrystalStructure.get_parameters_prefix() + progressive + "a" )
 
-        alpha = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "alpha", value=90, fixed=True)
-        beta  = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "beta",  value=90, fixed=True)
-        gamma = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + "gamma", value=90, fixed=True)
+        alpha = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + progressive + "alpha", value=90, fixed=True)
+        beta  = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + progressive + "beta",  value=90, fixed=True)
+        gamma = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + progressive + "gamma", value=90, fixed=True)
 
         return CrystalStructure(a,
                                 b,
@@ -164,7 +164,7 @@ class CrystalStructure(FitParametersList):
         else:
             NotImplementedError("Only Cubic supported: TODO!!!!!!")
 
-    def parse_reflections(self, text):
+    def parse_reflections(self, text, progressive=""):
         congruence.checkEmptyString(text, "Reflections")
 
         lines = text.splitlines()
@@ -194,9 +194,9 @@ class CrystalStructure(FitParametersList):
                         function_value = data[3].strip()
 
                     if intensity_name is None:
-                        intensity_name = CrystalStructure.get_parameters_prefix() + "I" + str(h) + str(k) + str(l)
+                        intensity_name = CrystalStructure.get_parameters_prefix() + progressive + "I" + str(h) + str(k) + str(l)
                     elif not intensity_name.startswith(CrystalStructure.get_parameters_prefix()):
-                        intensity_name = CrystalStructure.get_parameters_prefix() + intensity_name
+                        intensity_name = CrystalStructure.get_parameters_prefix() + progressive + intensity_name
 
                     reflection = Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
                                                                             function=True,
@@ -233,9 +233,9 @@ class CrystalStructure(FitParametersList):
                                 boundary = Boundary()
 
                     if intensity_name is None:
-                        intensity_name = CrystalStructure.get_parameters_prefix() + "I" + str(h) + str(k) + str(l)
+                        intensity_name = CrystalStructure.get_parameters_prefix() + progressive + "I" + str(h) + str(k) + str(l)
                     elif not intensity_name.startswith(CrystalStructure.get_parameters_prefix()):
-                        intensity_name = CrystalStructure.get_parameters_prefix() + intensity_name
+                        intensity_name = CrystalStructure.get_parameters_prefix() + progressive + intensity_name
 
                     reflection = Reflection(h, k, l, intensity=FitParameter(parameter_name=intensity_name,
                                                                             value=intensity_value,

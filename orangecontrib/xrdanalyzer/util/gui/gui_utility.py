@@ -225,7 +225,6 @@ class ConfirmTextDialog(QDialog):
 class ConfirmDialog(QMessageBox):
     def __init__(self, parent, message, title):
         super(ConfirmDialog, self).__init__(parent)
-
         self.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
         self.setIcon(QMessageBox.Question)
         self.setText(message)
@@ -240,7 +239,8 @@ class OptionDialog(QMessageBox):
     selection = 0
 
     def __init__(self, parent, message, title, options, default):
-        super(OptionDialog, self).__init__(parent)
+        super(OptionDialog, self).__init__()
+        self.setParent(parent)
 
         self.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
         self.setIcon(QMessageBox.Question)

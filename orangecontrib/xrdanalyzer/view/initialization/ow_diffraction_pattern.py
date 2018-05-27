@@ -47,6 +47,7 @@ class OWDiffractionPattern(OWGenericWidget):
 
     diffraction_patterns = None
 
+    # TO PRESERVE RETRO-COMPATIBILITY
     def fix_input(self, emergency=False):
         if not isinstance(self.filename                 , list): self.filename                  = [self.filename                 ]
         if not isinstance(self.wavelength               , list): self.wavelength                = [self.wavelength               ]
@@ -142,7 +143,7 @@ class OWDiffractionPattern(OWGenericWidget):
                                    "", orientation="horizontal",
                                    width=self.CONTROL_AREA_WIDTH-25)
 
-        gui.button(button_box,  self, "Load Data", height=50, callback=self.load_diffraction_pattern)
+        gui.button(button_box, self, "Load Data", height=50, callback=self.load_diffraction_patterns)
 
         self.tabs = gui.tabWidget(self.mainArea)
         self.tab_diff = []
@@ -332,7 +333,7 @@ class OWDiffractionPattern(OWGenericWidget):
                 self.diffraction_pattern_tabs.setCurrentIndex(current_index)
                 self.tabs.setCurrentIndex(current_index)
 
-    def load_diffraction_pattern(self):
+    def load_diffraction_patterns(self):
         try:
             self.dumpSettings()
 
@@ -614,18 +615,30 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
         box = gui.widgetBox(container, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 35, spacing=0)
 
         orangegui.checkBox(box, self, "twotheta_has_min", "2th min [deg]", labelWidth=350, callback=widget.dump_twotheta_has_min)
-        gui.lineEdit(box, self, "twotheta_min", "", labelWidth=5, valueType=float, validator=QDoubleValidator(), callback=widget.dump_twotheta_min)
+        gui.lineEdit(box, self, "twotheta_min", "", labelWidth=5, valueType=float, validator=QDoubleValidator(), callback=self.set_twotheta_min)
 
         box = gui.widgetBox(container, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 35, spacing=0)
 
         orangegui.checkBox(box, self, "twotheta_has_max", "2th max [deg]", labelWidth=350, callback=widget.dump_twotheta_has_max)
-        gui.lineEdit(box, self, "twotheta_max", "", labelWidth=5, valueType=float, validator=QDoubleValidator(), callback=widget.dump_twotheta_max)
+        gui.lineEdit(box, self, "twotheta_max", "", labelWidth=5, valueType=float, validator=QDoubleValidator(), callback=self.set_twotheta_max)
 
         orangegui.separator(container)
 
         widget.create_box_in_widget(self, container,  "wavelength", label="\u03BB  [nm]", disable_function=True, add_callback=True)
 
         self.is_on_init = False
+
+    def set_twotheta_min(self):
+        self.twotheta_has_min = 1
+        if not self.is_on_init:
+            self.widget.dump_twotheta_min()
+            self.widget.dump_twotheta_has_min()
+
+    def set_twotheta_max(self):
+        self.twotheta_has_max = 1
+        if not self.is_on_init:
+            self.widget.dump_twotheta_max()
+            self.widget.dump_twotheta_has_max()
 
     def callback_wavelength(self):
         if not self.is_on_init: self.widget.dump_wavelength()
@@ -656,7 +669,7 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
             self.diffraction_pattern = DiffractionPatternFactory.create_diffraction_pattern_from_file(self.filename,
                                                                                                       self.widget.populate_parameter_in_widget(self,
                                                                                                                                                "wavelength",
-                                                                                                                                               DiffractionPattern.get_parameters_prefix() + "_" + str(self.index+1)),
+                                                                                                                                               DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"),
                                                                                                       limits)
 
             self.wavelength = self.diffraction_pattern.wavelength.value
