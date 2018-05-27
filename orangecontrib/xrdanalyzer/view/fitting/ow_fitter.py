@@ -45,6 +45,7 @@ class OWFitter(OWGenericWidget):
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 
+    fit_global_parameters = None
     fitted_fit_global_parameters = None
     current_wss = []
     current_gof = []
@@ -167,13 +168,9 @@ class OWFitter(OWGenericWidget):
         self.tab_plot_fit_wss  = gui.createTabPage(self.tabs_plot_fit, "W.S.S.")
         self.tab_plot_fit_gof  = gui.createTabPage(self.tabs_plot_fit, "G.o.F.")
 
-        self.plot_fit = PlotWindow()
-        self.plot_fit.setDefaultPlotLines(True)
-        self.plot_fit.setActiveCurveColor(color="#00008B")
-        self.plot_fit.setGraphXLabel(r"2$\theta$")
-        self.plot_fit.setGraphYLabel("Intensity")
+        self.tabs_plot_fit_data = gui.tabWidget(self.tab_plot_fit_data)
 
-        self.tab_plot_fit_data.layout().addWidget(self.plot_fit)
+        self.build_plot_fit()
 
         self.plot_fit_wss = PlotWindow()
         self.plot_fit_wss.setDefaultPlotLines(True)
@@ -241,6 +238,24 @@ class OWFitter(OWGenericWidget):
         self.scrollarea_fit_out.setWidgetResizable(1)
 
         self.tab_fit_out.layout().addWidget(self.scrollarea_fit_out, alignment=Qt.AlignHCenter)
+
+    def build_plot_fit(self):
+        fit_global_parameter = self.fit_global_parameters if self.fitted_fit_global_parameters is None else self.fitted_fit_global_parameters
+
+        self.plot_fit = []
+        self.tabs_plot_fit_data.clear()
+
+        for index in range(1 if fit_global_parameter is None else len(fit_global_parameter.fit_initialization.diffraction_patterns)):
+            tab_plot_fit_data = gui.createTabPage(self.tabs_plot_fit_data, "Diff. Patt. " + str(index+1))
+
+            plot_fit = PlotWindow()
+            plot_fit.setDefaultPlotLines(True)
+            plot_fit.setActiveCurveColor(color="#00008B")
+            plot_fit.setGraphXLabel(r"2$\theta$")
+            plot_fit.setGraphYLabel("Intensity")
+
+            self.plot_fit.append(plot_fit)
+            tab_plot_fit_data.layout().addWidget(plot_fit)
 
     def write_stdout(self, text):
         cursor = self.std_output.textCursor()
@@ -524,19 +539,28 @@ class OWFitter(OWGenericWidget):
     def save_data(self):
         try:
             if hasattr(self, "fitted_patterns") and not self.fitted_patterns is None:
-                file_path = QFileDialog.getOpenFileName(self, "Select File", os.path.dirname(self.save_file_name))[0]
+                file_path = QFileDialog.getSaveFileName(self, "Select File", os.path.dirname(self.save_file_name))[0]
 
                 if not file_path is None and not file_path.strip() == "":
                     self.save_file_name=file_path
 
-                    text = "2Theta [deg], s [Å-1], Intensity, Fit, Residual"
+                    text = ""
+                    for diffraction_pattern_index in range(len(self.fitted_patterns)):
+                        fitted_pattern = self.fitted_patterns[diffraction_pattern_index]
+                        diffraction_pattern = self.fit_global_parameters.fit_initialization.diffraction_patterns[diffraction_pattern_index]
 
-                    for index in range(0, self.fitted_patterns.diffraction_points_count()):
-                        text += "\n" + str(self.fitted_patterns.get_diffraction_point(index).twotheta) + "  " + \
-                                str(self.fitted_patterns.get_diffraction_point(index).s) + " " + \
-                                str(self.fit_global_parameters.fit_initialization.diffraction_pattern.get_diffraction_point(index).intensity) + " " + \
-                                str(self.fitted_patterns.get_diffraction_point(index).intensity) + " " + \
-                                str(self.fitted_patterns.get_diffraction_point(index).error) + " "
+                        text += "" if diffraction_pattern_index==0 else "\n"
+                        text += "------------------------------------------------------------------------\n"
+                        text +="DIFFRACTION PATTERN Nr. " + str(diffraction_pattern_index+1) + "\n\n"
+                        text += "2Theta [deg], s [Å-1], Intensity, Fit, Residual\n"
+                        text += "------------------------------------------------------------------------"
+
+                        for index in range(0, fitted_pattern.diffraction_points_count()):
+                            text += "\n" + str(fitted_pattern.get_diffraction_point(index).twotheta) + "  " + \
+                                    str(fitted_pattern.get_diffraction_point(index).s) + " " + \
+                                    str(diffraction_pattern.get_diffraction_point(index).intensity) + " " + \
+                                    str(fitted_pattern.get_diffraction_point(index).intensity) + " " + \
+                                    str(fitted_pattern.get_diffraction_point(index).error) + " "
 
                     file = open(self.save_file_name, "w")
                     file.write(text)
@@ -555,33 +579,44 @@ class OWFitter(OWGenericWidget):
             if self.IS_DEVELOP: raise e
 
     def show_data(self, is_init=False):
-        diffraction_pattern = self.fitted_fit_global_parameters.fit_initialization.diffraction_patterns[0]
-        fitted_pattern = self.fitted_patterns[0]
+        diffraction_pattern_number = len(self.fitted_fit_global_parameters.fit_initialization.diffraction_patterns)
 
         if is_init:
-            self.x = []
-            self.y = []
-            yf = []
-            res = []
+            self.build_plot_fit()
+            self.x = [None]*diffraction_pattern_number
+            self.y = [None]*diffraction_pattern_number
 
-            for index in range(0, fitted_pattern.diffraction_points_count()):
-                self.x.append(diffraction_pattern.get_diffraction_point(index).twotheta)
-                self.y.append(diffraction_pattern.get_diffraction_point(index).intensity)
-                yf.append(fitted_pattern.get_diffraction_point(index).intensity)
-                res.append(fitted_pattern.get_diffraction_point(index).error)
-        else:
-            yf = []
-            res = []
+        for diffraction_pattern_index in range(diffraction_pattern_number):
+            diffraction_pattern = self.fitted_fit_global_parameters.fit_initialization.diffraction_patterns[diffraction_pattern_index]
+            fitted_pattern = self.fitted_patterns[diffraction_pattern_index]
 
-            for index in range(0, fitted_pattern.diffraction_points_count()):
-                yf.append(fitted_pattern.get_diffraction_point(index).intensity)
-                res.append(fitted_pattern.get_diffraction_point(index).error)
+            if is_init:
+                x = []
+                y = []
+                yf = []
+                res = []
 
-        res = -10 + (res-numpy.max(res))
+                for index in range(0, fitted_pattern.diffraction_points_count()):
+                    x.append(diffraction_pattern.get_diffraction_point(index).twotheta)
+                    y.append(diffraction_pattern.get_diffraction_point(index).intensity)
+                    yf.append(fitted_pattern.get_diffraction_point(index).intensity)
+                    res.append(fitted_pattern.get_diffraction_point(index).error)
 
-        if is_init: self.plot_fit.addCurve(self.x, self.y, legend="data", linewidth=4, color="blue")
-        self.plot_fit.addCurve(self.x, yf, legend="fit", color="red")
-        self.plot_fit.addCurve(self.x, res, legend="residual", color="#2D811B")
+                self.x[diffraction_pattern_index] = x
+                self.y[diffraction_pattern_index] = y
+            else:
+                yf = []
+                res = []
+
+                for index in range(0, fitted_pattern.diffraction_points_count()):
+                    yf.append(fitted_pattern.get_diffraction_point(index).intensity)
+                    res.append(fitted_pattern.get_diffraction_point(index).error)
+
+            res = -10 + (res-numpy.max(res))
+
+            if is_init: self.plot_fit[diffraction_pattern_index].addCurve(self.x[diffraction_pattern_index], self.y[diffraction_pattern_index], legend="data", linewidth=4, color="blue")
+            self.plot_fit[diffraction_pattern_index].addCurve(self.x[diffraction_pattern_index], yf, legend="fit", color="red")
+            self.plot_fit[diffraction_pattern_index].addCurve(self.x[diffraction_pattern_index], res, legend="residual", color="#2D811B")
 
         if not self.fit_data is None and self.is_interactive == 1:
             x = numpy.arange(1, self.current_iteration + 1)
