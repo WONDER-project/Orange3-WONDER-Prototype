@@ -45,13 +45,14 @@ class OWFitter(OWGenericWidget):
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 
-
     fitted_fit_global_parameters = None
     current_wss = []
     current_gof = []
 
     stop_fit = False
     fit_running = False
+
+    thread_exception = None
 
     def __init__(self):
         super().__init__(show_automatic_box=True)
@@ -275,7 +276,7 @@ class OWFitter(OWGenericWidget):
                 if self.fit_global_parameters.fit_initialization.diffraction_patterns is None:
                     raise ValueError("Diffraction Pattern is missing: add the proper widget before the Fitter")
 
-                if self.fit_global_parameters.fit_initialization.crystal_structure is None:
+                if self.fit_global_parameters.fit_initialization.crystal_structures is None:
                     raise ValueError("Crystal Structure is missing: add the proper widget before the Fitter")
 
                 self.fit_global_parameters.set_n_max_iterations(self.n_iterations)
@@ -307,6 +308,7 @@ class OWFitter(OWGenericWidget):
                     self.fit_thread.begin.connect(self.fit_begin)
                     self.fit_thread.update.connect(self.fit_update)
                     self.fit_thread.finished.connect(self.fit_completed)
+                    self.fit_thread.error.connect(self.fit_error)
                     self.fit_thread.start()
                 except Exception as e:
                     raise FitNotStartedException(str(e))
@@ -690,12 +692,22 @@ class OWFitter(OWGenericWidget):
         self.stop_fit = False
         self.progressBarFinished()
 
+    def fit_error(self):
+        QMessageBox.critical(self, "Error",
+                             "Fit Failed: " + str(self.thread_exception),
+                             QMessageBox.Ok)
+
+        self.fit_completed()
+
+        if self.IS_DEVELOP: raise self.thread_exception
+
 from PyQt5.QtCore import QThread, pyqtSignal
 
 class FitThread(QThread):
 
     begin = pyqtSignal()
     update = pyqtSignal()
+    error = pyqtSignal()
     mutex = QMutex()
 
     def __init__(self, fitter_widget):
@@ -719,14 +731,10 @@ class FitThread(QThread):
 
                 if self.fitter_widget.stop_fit: break
                 if self.fitter_widget.fitted_fit_global_parameters.is_convergence_reached(): break
-        except Exception as e:
-            QMessageBox.critical(self.fitter_widget, "Error",
-                                 "Fit Failed: " + str(e),
-                                 QMessageBox.Ok)
+        except Exception as exception:
+            self.fitter_widget.thread_exception = exception
 
-            self.fitter_widget.fit_completed()
-
-            if self.fitter_widget.IS_DEVELOP: raise e
+            self.error.emit()
 
 class FitNotStartedException(Exception):
     def __init__(self, *args, **kwargs): # real signature unknown

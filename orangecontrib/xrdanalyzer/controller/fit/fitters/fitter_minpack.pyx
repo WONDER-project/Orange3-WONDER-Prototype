@@ -108,9 +108,11 @@ class FitterMinpack(FitterInterface):
             self.error_experimental_list[index] = error_experimental
             self.s_experimental_list[index] = s_experimental
 
+        self.nr_points = self.getNrPoints()
+
         self.nprm = len(self.parameters)
         self.nfit = self.getNrParamToFit()
-        self.nobs = self.getNrPoints()
+        self.nobs = self.nr_points
         self.dof = self.nobs - self.nfit
 
         self.a = CTriMatrix()
@@ -352,14 +354,18 @@ class FitterMinpack(FitterInterface):
         fmm = self.getWeightedDelta()
         deriv = self.getDerivative()
 
-        for i in range(1, self.getNrPoints() + 1):
-            for jj in range(1, self.nfit + 1):
+        for index in range(self.diffraction_patterns_number):
+            deriv_i = deriv[index]
+            fmm_i = fmm[index]
 
-                l = int(jj * (jj - 1) / 2)
-                self.grad.setitem(jj, self.grad.getitem(jj) + deriv.getitem(jj, i) * fmm[i - 1])
+            for i in range(1, self.getNrPoints(index) + 1):
+                for jj in range(1, self.nfit + 1):
 
-                for k in range(1, jj + 1):
-                    self.a.setitem(l + k, self.a.getitem(l + k) + deriv.getitem(jj, i) * deriv.getitem(k, i))
+                    l = int(jj * (jj - 1) / 2)
+                    self.grad.setitem(jj, self.grad.getitem(jj) + deriv_i.getitem(jj, i) * fmm_i[i - 1])
+
+                    for k in range(1, jj + 1):
+                        self.a.setitem(l + k, self.a.getitem(l + k) + deriv_i.getitem(jj, i) * deriv_i.getitem(k, i))
 
     def finalize_fit(self):
         pass
@@ -368,31 +374,32 @@ class FitterMinpack(FitterInterface):
     def build_fit_global_parameters_out(self, fitted_parameters):
         fit_global_parameters = self.fit_global_parameters
 
-        for index in range(fit_global_parameters.fit_initialization.get_diffraction_patterns_number()):
+        for index in range(len(fit_global_parameters.fit_initialization.diffraction_patterns)):
             diffraction_pattern = fit_global_parameters.fit_initialization.diffraction_patterns[index]
             diffraction_pattern.wavelength.set_value(fitted_parameters[index].value)
 
         last_index = fit_global_parameters.fit_initialization.get_diffraction_patterns_number() - 1
 
-        crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
+        for index in range(len(fit_global_parameters.fit_initialization.crystal_structures)):
+            crystal_structure = fit_global_parameters.fit_initialization.crystal_structures[index]
 
-        crystal_structure.a.set_value(fitted_parameters[last_index + 1].value)
-        crystal_structure.b.set_value(fitted_parameters[last_index + 2].value)
-        crystal_structure.c.set_value(fitted_parameters[last_index + 3].value)
-        crystal_structure.alpha.set_value(fitted_parameters[last_index + 4].value)
-        crystal_structure.beta.set_value(fitted_parameters[last_index + 5].value)
-        crystal_structure.gamma.set_value(fitted_parameters[last_index + 6].value)
+            crystal_structure.a.set_value(fitted_parameters[last_index + 1].value)
+            crystal_structure.b.set_value(fitted_parameters[last_index + 2].value)
+            crystal_structure.c.set_value(fitted_parameters[last_index + 3].value)
+            crystal_structure.alpha.set_value(fitted_parameters[last_index + 4].value)
+            crystal_structure.beta.set_value(fitted_parameters[last_index + 5].value)
+            crystal_structure.gamma.set_value(fitted_parameters[last_index + 6].value)
 
-        if crystal_structure.use_structure:
-            crystal_structure.intensity_scale_factor.set_value(fitted_parameters[last_index + 7].value)
-            last_index += 7
-        else:
-            last_index += 6
+            if crystal_structure.use_structure:
+                crystal_structure.intensity_scale_factor.set_value(fitted_parameters[last_index + 7].value)
+                last_index += 7
+            else:
+                last_index += 6
 
-        for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
-            crystal_structure.get_reflection(reflection_index).intensity.set_value(fitted_parameters[last_index + 1 + reflection_index].value)
+            for reflection_index in range(crystal_structure.get_reflections_count()):
+                crystal_structure.get_reflection(reflection_index).intensity.set_value(fitted_parameters[last_index + 1 + reflection_index].value)
 
-        last_index += fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()
+            last_index += crystal_structure.get_reflections_count()
 
         if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
             for thermal_polarization_parameters in fit_global_parameters.fit_initialization.thermal_polarization_parameters:
@@ -501,25 +508,26 @@ class FitterMinpack(FitterInterface):
 
         last_index = fit_global_parameters.fit_initialization.get_diffraction_patterns_number() - 1
 
-        crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
+        for index in range(len(fit_global_parameters.fit_initialization.crystal_structures)):
+            crystal_structure = fit_global_parameters.fit_initialization.crystal_structures[index]
 
-        crystal_structure.a.error = errors[last_index + 1]
-        crystal_structure.b.error = errors[last_index + 2]
-        crystal_structure.c.error = errors[last_index + 3]
-        crystal_structure.alpha.error = errors[last_index + 4]
-        crystal_structure.beta.error = errors[last_index + 5]
-        crystal_structure.gamma.error = errors[last_index + 6]
+            crystal_structure.a.error = errors[last_index + 1]
+            crystal_structure.b.error = errors[last_index + 2]
+            crystal_structure.c.error = errors[last_index + 3]
+            crystal_structure.alpha.error = errors[last_index + 4]
+            crystal_structure.beta.error = errors[last_index + 5]
+            crystal_structure.gamma.error = errors[last_index + 6]
 
-        if crystal_structure.use_structure:
-            crystal_structure.intensity_scale_factor.error = errors[last_index + 7]
-            last_index += 7
-        else:
-            last_index += 6
+            if crystal_structure.use_structure:
+                crystal_structure.intensity_scale_factor.error = errors[last_index + 7]
+                last_index += 7
+            else:
+                last_index += 6
 
-        for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
-            crystal_structure.get_reflection(reflection_index).intensity.error = errors[last_index+reflection_index]
+            for reflection_index in range(crystal_structure.get_reflections_count()):
+                crystal_structure.get_reflection(reflection_index).intensity.error = errors[last_index+reflection_index]
 
-        last_index += fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()
+            last_index += crystal_structure.get_reflections_count()
 
         if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
             for thermal_polarization_parameters in fit_global_parameters.fit_initialization.thermal_polarization_parameters:
@@ -690,21 +698,25 @@ class FitterMinpack(FitterInterface):
                 else:
                     fmm_i[i] = (y[i] - intensity_experimental[i])/error_experimental[i]
 
-            fmm.extend(fmm_i)
+            fmm.append(fmm_i)
 
-        return numpy.array(fmm)
+        return fmm
 
     def getDerivative(self):
-        deriv = CMatrix(self.getNrParamToFit(), self.getNrPoints())
+        deriv = []
 
-        jj = 0
         for index in range(self.diffraction_patterns_number):
             s_experimental = self.s_experimental_list[index]
+            error_experimental = self.error_experimental_list[index]
 
             y = fit_function(s_experimental,
                              self.build_fit_global_parameters_out(self.parameters),
                              diffraction_pattern_index=index)
 
+            nr_points_i = self.getNrPoints(index)
+            deriv_i = CMatrix(self.getNrParamToFit(), nr_points_i)
+
+            jj = 0
             for k in range (0, self.nprm):
                 parameter = self.parameters[k]
 
@@ -718,7 +730,7 @@ class FitterMinpack(FitterInterface):
                         parameter.value = pk * (1.0 + step)
                         parameter.check_value()
 
-                        deriv[jj] = fit_function(s_experimental,
+                        deriv_i[jj] = fit_function(s_experimental,
                                                  self.build_fit_global_parameters_out(self.parameters),
                                                  diffraction_pattern_index=index)
                     else:
@@ -726,20 +738,22 @@ class FitterMinpack(FitterInterface):
                         parameter.value = pk + d
                         parameter.check_value()
 
-                        deriv[jj] = fit_function(s_experimental,
+                        deriv_i[jj] = fit_function(s_experimental,
                                                  self.build_fit_global_parameters_out(self.parameters),
                                                  diffraction_pattern_index=index)
 
                     parameter.value = pk
                     parameter.check_value()
 
-                    for i in range(0, self.getNrPoints(index)):
-                        if self.error_experimental_list[index][i] == 0:
-                            deriv[jj][i] = 0.0
+                    for i in range(0, nr_points_i):
+                        if error_experimental[i] == 0:
+                            deriv_i[jj][i] = 0.0
                         else:
-                            deriv[jj][i] = (deriv[jj][i] - y[i]) / (d * self.error_experimental_list[index][i])
+                            deriv_i[jj][i] = (deriv_i[jj][i] - y[i]) / (d * error_experimental[i])
                     jj += 1
-                    
+
+            deriv.append(deriv_i)
+
         return deriv
 
     def getWSSQ(self, y_list=None):

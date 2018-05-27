@@ -12,13 +12,15 @@
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
 
 def fit_function(s, fit_global_parameters, diffraction_pattern_index = 0):
-    if CrystalStructure.is_cube(fit_global_parameters.fit_initialization.crystal_structure.simmetry):
+    crystal_structure = fit_global_parameters.fit_initialization.crystal_structures[diffraction_pattern_index]
+
+    if CrystalStructure.is_cube(crystal_structure.simmetry):
 
         # CONSTRUCTION OF EACH SEPARATE PEAK ---------------------------------------------------------------------------
 
         separated_peaks_functions = []
 
-        for reflection_index in range(fit_global_parameters.fit_initialization.crystal_structure.get_reflections_count()):
+        for reflection_index in range(crystal_structure.get_reflections_count()):
             sanalitycal, Ianalitycal = create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern_index)
 
             separated_peaks_functions.append([sanalitycal, Ianalitycal])
@@ -169,7 +171,7 @@ from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import Invar
 def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern_index=0):
     fft_type = fit_global_parameters.fit_initialization.fft_parameters.fft_type
     fit_space_parameters = fit_global_parameters.space_parameters()
-    crystal_structure = fit_global_parameters.fit_initialization.crystal_structure
+    crystal_structure = fit_global_parameters.fit_initialization.crystal_structures[diffraction_pattern_index]
     reflection = crystal_structure.get_reflection(reflection_index)
 
     wavelength = fit_global_parameters.fit_initialization.diffraction_patterns[diffraction_pattern_index].wavelength.value
