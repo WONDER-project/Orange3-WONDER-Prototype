@@ -647,7 +647,7 @@ class CrystalStructureBox(QtWidgets.QWidget, OWComponent):
                and not self.widget.fit_global_parameters.fit_initialization is None \
                and not self.widget.fit_global_parameters.fit_initialization.diffraction_patterns is None \
                and not self.widget.fit_global_parameters.fit_initialization.diffraction_patterns[self.index].wavelength.function:
-                wavelength = self.fit_global_parameters.fit_initialization.diffraction_patterns[self.index].wavelength.value
+                wavelength = self.widget.fit_global_parameters.fit_initialization.diffraction_patterns[self.index].wavelength.value
 
                 list = list_of_s_bragg(self.a,
                                        simmetry=self.cb_simmetry.currentText(),
