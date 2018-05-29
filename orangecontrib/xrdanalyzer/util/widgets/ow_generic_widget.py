@@ -37,6 +37,36 @@ class OWGenericWidget(widget.OWWidget):
 
     IS_DEVELOP = False if not "ORANGEDEVELOP" in os.environ.keys() else str(os.environ.get('ORANGEDEVELOP')) == "1"
 
+    '''
+    def _insert_control_area(self):
+        super(OWGenericWidget, self)._insert_control_area()
+
+        container = self.left_side.parent()
+        area = QScrollArea()
+        area.setGeometry(QRect(4,
+                               4,
+                               self.CONTROL_AREA_WIDTH-135,
+                               self.MAX_HEIGHT))
+        container.insertWidget(container.indexOf(self.left_side), area)
+        area.setAlignment(Qt.AlignCenter)
+        area.setWidget(self.left_side)
+        area.setWidgetResizable(True)
+
+    def _insert_main_area(self):
+        super(OWGenericWidget, self)._insert_main_area()
+
+        container = self.mainArea.parent()
+        area = QScrollArea()
+        area.setGeometry(QRect(4,
+                               4,
+                               650,
+                               self.MAX_HEIGHT))
+        container.insertWidget(container.indexOf(self.mainArea), area)
+        area.setAlignment(Qt.AlignCenter)
+        area.setWidget(self.mainArea)
+        area.setWidgetResizable(True)
+    '''
+
     def __init__(self, show_automatic_box=True):
         super().__init__()
 
