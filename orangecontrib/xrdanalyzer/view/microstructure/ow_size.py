@@ -65,6 +65,12 @@ class OWSize(OWGenericWidget):
                                  "Size", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box,  self, "Send Size", height=50, callback=self.send_size)
+
         self.cb_shape = orangegui.comboBox(main_box, self, "shape", label="Shape", items=Shape.tuple(), callback=self.set_shape, orientation="horizontal")
         self.cb_distribution = orangegui.comboBox(main_box, self, "distribution", label="Distribution", items=Distribution.tuple(), callback=self.set_distribution, orientation="horizontal")
 
@@ -78,11 +84,6 @@ class OWSize(OWGenericWidget):
         self.create_box(size_box, "mu")
         self.create_box(size_box, "sigma")
 
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box,  self, "Send Size", height=50, callback=self.send_size)
 
     def set_shape(self):
         if not self.cb_shape.currentText() == Shape.SPHERE:

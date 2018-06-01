@@ -81,6 +81,12 @@ class OWCalibrationPeakShift(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 10, height=300)
 
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box, self, "Send Peak Shift", height=50, callback=self.send_peak_shift)
+
         lab6_box = gui.widgetBox(main_box,
                                     "Lab6 Tan Correction", orientation="vertical",
                                     width=self.CONTROL_AREA_WIDTH - 30)
@@ -90,12 +96,6 @@ class OWCalibrationPeakShift(OWGenericWidget):
         self.create_box(lab6_box, "cx")
         self.create_box(lab6_box, "dx")
         self.create_box(lab6_box, "ex")
-
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box, self, "Send Peak Shift", height=50, callback=self.send_peak_shift)
 
 
     def send_peak_shift(self):

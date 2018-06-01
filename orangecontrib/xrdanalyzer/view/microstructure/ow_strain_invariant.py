@@ -81,6 +81,12 @@ class OWStrainInvariant(OWGenericWidget):
                                  "Strain", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box,  self, "Send Strain", height=50, callback=self.send_strain)
+
         self.create_box(main_box, "aa")
         self.create_box(main_box, "bb")
 
@@ -94,11 +100,6 @@ class OWStrainInvariant(OWGenericWidget):
         self.create_box(invariant_box, "e1")
         self.create_box(invariant_box, "e4")
 
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box,  self, "Send Strain", height=50, callback=self.send_strain)
 
     def set_laue_id(self):
         if not (self.laue_id == 12 or self.laue_id == 13):

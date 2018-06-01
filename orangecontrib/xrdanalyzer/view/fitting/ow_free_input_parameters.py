@@ -32,6 +32,12 @@ class OWFreeInputParameters(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
 
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+
+        gui.button(button_box,  self, "Send Free Input Parameters", height=50, callback=self.send_free_input_parameters)
 
         tabs = gui.tabWidget(main_box)
         tab_free_in = gui.createTabPage(tabs, "Free Input Parameters")
@@ -48,13 +54,6 @@ class OWFreeInputParameters(OWGenericWidget):
 
         tab_free_in.layout().addWidget(self.scrollarea_free_in, alignment=Qt.AlignHCenter)
 
-
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-
-        gui.button(button_box,  self, "Send Free Input Parameters", height=50, callback=self.send_free_input_parameters)
 
 
     def send_free_input_parameters(self):

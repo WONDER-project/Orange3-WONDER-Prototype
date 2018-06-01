@@ -43,6 +43,12 @@ class OWDebyeWaller(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 10, height=300)
 
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box, self, "Send Debye-Waller Parameters", height=50, callback=self.send_debye_waller)
+
         box = gui.widgetBox(main_box,
                             "Debye-Waller Factor", orientation="vertical",
                             width=self.CONTROL_AREA_WIDTH - 30)
@@ -56,11 +62,6 @@ class OWDebyeWaller(OWGenericWidget):
 
         self.set_dw()
 
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box, self, "Send Debye-Waller Parameters", height=50, callback=self.send_debye_waller)
 
     def set_dw(self):
         self.box_dw.setVisible(self.use_debye_waller_factor==1)

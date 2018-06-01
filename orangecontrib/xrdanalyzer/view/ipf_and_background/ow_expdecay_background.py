@@ -89,6 +89,12 @@ class OWExpDecayBackground(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
 
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box,  self, "Send Background", height=50, callback=self.send_background)
+
         chebyshev_box = gui.widgetBox(main_box,
                                  "Chebyshev Parameters", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 30)
@@ -100,11 +106,6 @@ class OWExpDecayBackground(OWGenericWidget):
         self.create_box(chebyshev_box, "a2")
         self.create_box(chebyshev_box, "b2")
 
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box,  self, "Send Background", height=50, callback=self.send_background)
 
 
     def send_background(self):

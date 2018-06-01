@@ -37,6 +37,12 @@ class OWFFTParameters(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 10, height=250)
 
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box,  self, "Send Fit Initialization", height=50, callback=self.send_fit_initialization)
+
         fft_box = gui.widgetBox(main_box,
                                  "FFT", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 30)
@@ -46,11 +52,6 @@ class OWFFTParameters(OWGenericWidget):
 
         orangegui.comboBox(fft_box, self, "fft_type", label="FFT Type", items=FFTTypes.tuple(), orientation="horizontal")
 
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box,  self, "Send Fit Initialization", height=50, callback=self.send_fit_initialization)
 
     def send_fit_initialization(self):
         try:

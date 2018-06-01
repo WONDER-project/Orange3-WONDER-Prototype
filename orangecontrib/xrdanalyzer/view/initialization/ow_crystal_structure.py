@@ -136,6 +136,12 @@ class OWCrystalStructure(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
 
 
+        button_box = gui.widgetBox(crystal_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box,  self, "Send Crystal Structure", height=50, callback=self.send_fit_initialization)
+
         self.crystal_structure_tabs = gui.tabWidget(crystal_box)
         self.crystal_structure_box_array = []
 
@@ -171,11 +177,6 @@ class OWCrystalStructure(OWGenericWidget):
             self.crystal_structure_box_array.append(crystal_structure_box)
 
 
-        button_box = gui.widgetBox(crystal_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box,  self, "Send Crystal Structure", height=50, callback=self.send_fit_initialization)
 
     def send_fit_initialization(self):
         try:

@@ -97,6 +97,12 @@ class OWInstrumentalProfile(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 10, height=300)
 
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box,  self, "Send Instrumental Profile", height=50, callback=self.send_intrumental_profile)
+
         caglioti_box_1 = gui.widgetBox(main_box,
                                  "Caglioti FWHM", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 30)
@@ -111,12 +117,6 @@ class OWInstrumentalProfile(OWGenericWidget):
         self.create_box(caglioti_box_2, "a")
         self.create_box(caglioti_box_2, "b")
         self.create_box(caglioti_box_2, "c")
-
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box,  self, "Send Instrumental Profile", height=50, callback=self.send_intrumental_profile)
 
 
     def send_intrumental_profile(self):

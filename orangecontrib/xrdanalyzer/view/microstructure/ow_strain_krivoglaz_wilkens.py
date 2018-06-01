@@ -126,6 +126,12 @@ class OWStrainKW(OWGenericWidget):
                                  "Strain", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box,  self, "Send Strain", height=50, callback=self.send_strain)
+
         self.create_box(main_box, "rho")
         self.create_box(main_box, "Re")
         self.create_box(main_box, "Ae")
@@ -135,11 +141,6 @@ class OWStrainKW(OWGenericWidget):
         self.create_box(main_box, "mix")
         self.create_box(main_box, "b")
 
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box,  self, "Send Strain", height=50, callback=self.send_strain)
 
     def send_strain(self):
         try:

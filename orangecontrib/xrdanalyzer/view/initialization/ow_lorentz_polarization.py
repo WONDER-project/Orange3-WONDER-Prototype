@@ -33,17 +33,18 @@ class OWLorentzPolarization(OWGenericWidget):
                                  "Polarization Properties Setting", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 10, height=300)
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box, self, "Send Lorentz-Polarization Parameters", height=50, callback=self.send_lorentz_polarization)
+
         box = gui.widgetBox(main_box,
                             "Lorentz-Polarization Factor", orientation="vertical",
                             width=self.CONTROL_AREA_WIDTH - 30)
 
         orangegui.comboBox(box, self, "use_lorentz_polarization_factor", label="Calculate", items=["No", "Yes"], labelWidth=250, orientation="horizontal")
 
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box, self, "Send Lorentz-Polarization Parameters", height=50, callback=self.send_lorentz_polarization)
 
     def send_lorentz_polarization(self):
         try:

@@ -103,6 +103,12 @@ class OWDiffractionPattern(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 5, height=600)
 
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box, self, "Load Data", height=50, callback=self.load_diffraction_patterns)
+
         tabs_button_box = gui.widgetBox(main_box, "", addSpace=False, orientation="horizontal")
 
         btns = [gui.button(tabs_button_box, self, "Insert Pattern Before", callback=self.insert_before),
@@ -136,14 +142,6 @@ class OWDiffractionPattern(OWGenericWidget):
                                                             twotheta_has_max          = self.twotheta_has_max[index])
 
             self.diffraction_pattern_box_array.append(diffraction_pattern_box)
-
-        orangegui.separator(main_box)
-
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box, self, "Load Data", height=50, callback=self.load_diffraction_patterns)
 
         self.tabs = gui.tabWidget(self.mainArea)
         self.tab_diff = []

@@ -366,6 +366,12 @@ class OWChebyshevBackground(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 10, height=600)
 
 
+        button_box = gui.widgetBox(main_box,
+                                   "", orientation="horizontal",
+                                   width=self.CONTROL_AREA_WIDTH-25)
+
+        gui.button(button_box,  self, "Send Background", height=50, callback=self.send_background)
+
         orangegui.comboBox(main_box, self, "use_single_parameter_set", label="Use single set of Parameters", labelWidth=350, orientation="horizontal",
                            items=["No", "Yes"], callback=self.set_use_single_parameter_set, sendSelectedValue=False)
 
@@ -375,11 +381,6 @@ class OWChebyshevBackground(OWGenericWidget):
 
         self.set_use_single_parameter_set(on_init=True)
 
-        button_box = gui.widgetBox(main_box,
-                                   "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-25)
-
-        gui.button(button_box,  self, "Send Background", height=50, callback=self.send_background)
 
     def set_use_single_parameter_set(self, on_init=False):
         if on_init:
