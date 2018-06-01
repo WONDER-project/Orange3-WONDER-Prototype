@@ -9,10 +9,10 @@ from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface
 
 try:
     from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util import *
-    from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import fit_function
+    from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import fit_function_direct
 except:
     from orangecontrib.xrdanalyzer.recovery.controller.fit.fitters.fitter_minpack_util import *
-    from orangecontrib.xrdanalyzer.recovery.controller.fit.wppm_functions import fit_function
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.wppm_functions import fit_function_direct
 
 PRCSN = 2.5E-7
 
@@ -95,18 +95,18 @@ class FitterMinpack(FitterInterface):
 
         self.diffraction_patterns_number = self.fit_global_parameters.fit_initialization.get_diffraction_patterns_number()
 
-        self.twotheta_experimental_list = [None]*self.diffraction_patterns_number
-        self.intensity_experimental_list = [None]*self.diffraction_patterns_number
-        self.error_experimental_list = [None]*self.diffraction_patterns_number
-        self.s_experimental_list = [None]*self.diffraction_patterns_number
+        self.twotheta_experimental_list = numpy.array([None]*self.diffraction_patterns_number)
+        self.intensity_experimental_list = numpy.array([None]*self.diffraction_patterns_number)
+        self.error_experimental_list = numpy.array([None]*self.diffraction_patterns_number)
+        self.s_experimental_list = numpy.array([None]*self.diffraction_patterns_number)
 
         for index in range(self.diffraction_patterns_number):
             twotheta_experimental, intensity_experimental, error_experimental, s_experimental = self.fit_global_parameters.fit_initialization.diffraction_patterns[index].tuples()
 
-            self.twotheta_experimental_list[index] = twotheta_experimental
-            self.intensity_experimental_list[index] = intensity_experimental
-            self.error_experimental_list[index] = error_experimental
-            self.s_experimental_list[index] = s_experimental
+            self.twotheta_experimental_list[index] = numpy.array(twotheta_experimental)
+            self.intensity_experimental_list[index] = numpy.array(intensity_experimental)
+            self.error_experimental_list[index] = numpy.array(error_experimental)
+            self.s_experimental_list[index] = numpy.array(s_experimental)
 
         self.nr_points = self.getNrPoints()
 
@@ -291,7 +291,10 @@ class FitterMinpack(FitterInterface):
                     y_list = [None]*self.diffraction_patterns_number
                     
                     for index in range(self.diffraction_patterns_number):
-                        y_list[index] = fit_function(self.s_experimental_list[index], self.build_fit_global_parameters_out(self.parameters), index)
+                        y_list[index] = fit_function_direct(self.twotheta_experimental_list[index],
+                                                            self.s_experimental_list[index],
+                                                            self.build_fit_global_parameters_out(self.parameters),
+                                                            index)
 
                     self.build_minpack_data(y_list=y_list)
 
@@ -634,7 +637,10 @@ class FitterMinpack(FitterInterface):
 
             fitted_pattern = DiffractionPattern(wavelength=wavelength)
 
-            fitted_intensity = fit_function(self.s_experimental_list[index], fit_global_parameters, diffraction_pattern_index=index)
+            fitted_intensity = fit_function_direct(self.twotheta_experimental_list[index],
+                                                   self.s_experimental_list[index],
+                                                   fit_global_parameters,
+                                                   diffraction_pattern_index=index)
             fitted_residual = self.intensity_experimental_list[index] - fitted_intensity
 
             for i in range(0, len(fitted_intensity)):
@@ -683,12 +689,14 @@ class FitterMinpack(FitterInterface):
 
         for index in range(self.diffraction_patterns_number):
             s_experimental = self.s_experimental_list[index]
+            twotheta_experimental = self.twotheta_experimental_list[index]
             intensity_experimental = self.intensity_experimental_list[index]
             error_experimental = self.error_experimental_list[index]
 
-            y = fit_function(s_experimental,
-                             self.build_fit_global_parameters_out(self.parameters),
-                             diffraction_pattern_index=index)
+            y = fit_function_direct(twotheta_experimental,
+                                    s_experimental,
+                                    self.build_fit_global_parameters_out(self.parameters),
+                                    diffraction_pattern_index=index)
 
             fmm_i = [0]*self.getNrPoints(index)
 
@@ -707,11 +715,13 @@ class FitterMinpack(FitterInterface):
 
         for index in range(self.diffraction_patterns_number):
             s_experimental = self.s_experimental_list[index]
+            twotheta_experimental = self.twotheta_experimental_list[index]
             error_experimental = self.error_experimental_list[index]
 
-            y = fit_function(s_experimental,
-                             self.build_fit_global_parameters_out(self.parameters),
-                             diffraction_pattern_index=index)
+            y = fit_function_direct(twotheta_experimental,
+                                    s_experimental,
+                                    self.build_fit_global_parameters_out(self.parameters),
+                                    diffraction_pattern_index=index)
 
             nr_points_i = self.getNrPoints(index)
             deriv_i = CMatrix(self.getNrParamToFit(), nr_points_i)
@@ -730,17 +740,19 @@ class FitterMinpack(FitterInterface):
                         parameter.value = pk * (1.0 + step)
                         parameter.check_value()
 
-                        deriv_i[jj] = fit_function(s_experimental,
-                                                 self.build_fit_global_parameters_out(self.parameters),
-                                                 diffraction_pattern_index=index)
+                        deriv_i[jj] = fit_function_direct(twotheta_experimental,
+                                                          s_experimental,
+                                                          self.build_fit_global_parameters_out(self.parameters),
+                                                          diffraction_pattern_index=index)
                     else:
                         d = step
                         parameter.value = pk + d
                         parameter.check_value()
 
-                        deriv_i[jj] = fit_function(s_experimental,
-                                                 self.build_fit_global_parameters_out(self.parameters),
-                                                 diffraction_pattern_index=index)
+                        deriv_i[jj] = fit_function_direct(twotheta_experimental,
+                                                          s_experimental,
+                                                          self.build_fit_global_parameters_out(self.parameters),
+                                                          diffraction_pattern_index=index)
 
                     parameter.value = pk
                     parameter.check_value()
@@ -761,7 +773,10 @@ class FitterMinpack(FitterInterface):
             y_list = [None]*self.diffraction_patterns_number
             
             for index in range(self.diffraction_patterns_number):
-                y_list[index] = fit_function(self.s_experimental_list[index], self.build_fit_global_parameters_out(self.parameters), index)
+                y_list[index] = fit_function_direct(self.twotheta_experimental_list[index],
+                                                    self.s_experimental_list[index],
+                                                    self.build_fit_global_parameters_out(self.parameters),
+                                                    index)
 
         wssqlow = 0.0
         wssq = 0.0
@@ -773,11 +788,8 @@ class FitterMinpack(FitterInterface):
             
             if self.mighell:
                 for i in range(0, self.getNrPoints(index)):
-                    if intensity_experimental[i] < 1:
-                        yv = y[i] - 2*intensity_experimental[i]
-                    else:
-                        yv = y[i] - (intensity_experimental[i] + 1.0)
-    
+                    yv = y[i] - (intensity_experimental[i] + (intensity_experimental[i] if intensity_experimental[i] < 1 else 1.0))
+
                     wssqtmp = (yv**2)/(error_experimental[i]**2+1.0)
     
                     if (wssqtmp<1E-2):
@@ -791,12 +803,12 @@ class FitterMinpack(FitterInterface):
                     else:
                         yv = (y[i] - intensity_experimental[i])/error_experimental[i]
     
-                        wssqtmp = (yv**2)
-    
-                        if (wssqtmp<1E-2):
-                            wssqlow += wssqtmp
-                        else:
-                            wssq    += wssqtmp
+                    wssqtmp = (yv**2)
+
+                    if (wssqtmp<1E-2):
+                        wssqlow += wssqtmp
+                    else:
+                        wssq    += wssqtmp
 
         return wssq + wssqlow
 
@@ -806,7 +818,10 @@ class FitterMinpack(FitterInterface):
             y_list = [None]*self.diffraction_patterns_number
             
             for index in range(self.diffraction_patterns_number):
-                y_list[index] = fit_function(self.s_experimental_list[index], self.build_fit_global_parameters_out(self.parameters), index)
+                y_list[index] = fit_function_direct(self.twotheta_experimental_list[index],
+                                                    self.s_experimental_list[index],
+                                                    self.build_fit_global_parameters_out(self.parameters),
+                                                    index)
 
         wssq = 0.0
 
@@ -838,7 +853,10 @@ class FitterMinpack(FitterInterface):
             y_list = [None]*self.diffraction_patterns_number
             
             for index in range(self.diffraction_patterns_number):
-                y_list[index] = fit_function(self.s_experimental_list[index], self.build_fit_global_parameters_out(self.parameters), index)
+                y_list[index] = fit_function_direct(self.twotheta_experimental_list[index],
+                                                    self.s_experimental_list[index],
+                                                    self.build_fit_global_parameters_out(self.parameters),
+                                                    index)
 
         ss = 0.0
 
@@ -847,14 +865,11 @@ class FitterMinpack(FitterInterface):
             intensity_experimental = self.intensity_experimental_list[index]
 
             for i in range(0, self.getNrPoints(index)):
-                if not self.mighell:
-                    yv = (y[i] - intensity_experimental[i])
+                if self.mighell:
+                    yv = y[i] - (intensity_experimental[i] + (intensity_experimental[i] if intensity_experimental[i] < 1 else 1.0))
                 else:
-                    if intensity_experimental[i] < 1:
-                        yv = y[i] - 2*intensity_experimental[i]
-                    else:
-                        yv = y[i] - (intensity_experimental[i] + 1.0)
-    
+                    yv = (y[i] - intensity_experimental[i])
+
                 ss += yv**2
 
         return ss

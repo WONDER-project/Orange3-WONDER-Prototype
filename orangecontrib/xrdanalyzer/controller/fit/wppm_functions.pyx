@@ -11,7 +11,45 @@
 
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
 
-def fit_function(s, fit_global_parameters, diffraction_pattern_index = 0):
+def fit_function_direct(twotheta, s, fit_global_parameters, diffraction_pattern_index = 0):
+    I = fit_function_reciprocal(s, fit_global_parameters, diffraction_pattern_index)
+
+    # ADD BACKGROUNDS  ---------------------------------------------------------------------------------------------
+
+    if not fit_global_parameters.background_parameters is None:
+        for key in fit_global_parameters.background_parameters.keys():
+            background_parameters_list = fit_global_parameters.get_background_parameters(key)
+
+            if not background_parameters_list is None:
+                background_parameters = background_parameters_list[0 if len(background_parameters_list) == 1 else diffraction_pattern_index]
+
+                if key == ChebyshevBackground.__name__:
+                    parameters=[background_parameters.c0.value,
+                                background_parameters.c1.value,
+                                background_parameters.c2.value,
+                                background_parameters.c3.value,
+                                background_parameters.c4.value,
+                                background_parameters.c5.value,
+                                background_parameters.c6.value,
+                                background_parameters.c7.value,
+                                background_parameters.c8.value,
+                                background_parameters.c9.value]
+
+                    add_chebyshev_background(twotheta, I, parameters)
+
+                elif key == ExpDecayBackground.__name__:
+                    add_expdecay_background(twotheta,
+                                            I,
+                                            parameters=[background_parameters.a0.value,
+                                                        background_parameters.b0.value,
+                                                        background_parameters.a1.value,
+                                                        background_parameters.b1.value,
+                                                        background_parameters.a2.value,
+                                                        background_parameters.b2.value])
+
+    return I
+
+def fit_function_reciprocal(s, fit_global_parameters, diffraction_pattern_index = 0):
     crystal_structure = fit_global_parameters.fit_initialization.crystal_structures[diffraction_pattern_index]
 
     if CrystalStructure.is_cube(crystal_structure.simmetry):
@@ -28,38 +66,6 @@ def fit_function(s, fit_global_parameters, diffraction_pattern_index = 0):
         # INTERPOLATION ONTO ORIGINAL S VALUES -------------------------------------------------------------------------
 
         I = Utilities.merge_functions(separated_peaks_functions, s)
-
-        # ADD BACKGROUNDS  ---------------------------------------------------------------------------------------------
-
-        if not fit_global_parameters.background_parameters is None:
-            for key in fit_global_parameters.background_parameters.keys():
-                background_parameters_list = fit_global_parameters.get_background_parameters(key)
-
-                if not background_parameters_list is None:
-                    background_parameters = background_parameters_list[0 if len(background_parameters_list) == 1 else diffraction_pattern_index]
-
-                    if key == ChebyshevBackground.__name__:
-                        add_chebyshev_background(s,
-                                                 I,
-                                                 parameters=[background_parameters.c0.value,
-                                                             background_parameters.c1.value,
-                                                             background_parameters.c2.value,
-                                                             background_parameters.c3.value,
-                                                             background_parameters.c4.value,
-                                                             background_parameters.c5.value,
-                                                             background_parameters.c6.value,
-                                                             background_parameters.c7.value,
-                                                             background_parameters.c8.value,
-                                                             background_parameters.c9.value])
-                    elif key == ExpDecayBackground.__name__:
-                        add_expdecay_background(s,
-                                                I,
-                                                parameters=[background_parameters.a0.value,
-                                                            background_parameters.b0.value,
-                                                            background_parameters.a1.value,
-                                                            background_parameters.b1.value,
-                                                            background_parameters.a2.value,
-                                                            background_parameters.b2.value])
 
         # ADD DEBYE-WALLER FACTOR --------------------------------------------------------------------------------------
 
@@ -654,38 +660,47 @@ def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a
     theta_deg = numpy.degrees(theta)
 
     eta = a + b * theta_deg + c * theta_deg**2
-    fwhm = numpy.radians(numpy.sqrt(U * (numpy.tan(theta)**2) + V * numpy.tan(theta) + W))
+    if eta > 1.0: eta = 1.0
+    elif eta < 0.0: eta = 0.0
 
-    k = (1 + (1 - eta)/(eta * numpy.sqrt(numpy.pi*numpy.log(2))))**(-1)
-    sigma = (fwhm/2)*numpy.cos(theta)/wavelength
+    k = eta * numpy.sqrt(numpy.pi*numpy.log(2))
+    k /= k + (1-eta)
 
-    return (1-k)*numpy.exp(-((numpy.pi*sigma*L)**2)/numpy.log(2)) + k*numpy.exp(-2*numpy.pi*sigma*L)
+    sigma = numpy.radians(numpy.sqrt(W +  V * numpy.tan(theta) + U * (numpy.tan(theta)**2)))*0.5*(numpy.cos(theta)/wavelength)
+    exp1 = numpy.pi * sigma * L
+
+    return k*numpy.exp(-2.0*exp1) + (1-k)*numpy.exp(-(exp1**2)/numpy.log(2))
 
 def lab6_tan_correction(s, wavelength, ax, bx, cx, dx, ex):
-    tan_theta = numpy.tan(Utilities.theta(s, wavelength))
+    theta = Utilities.theta(s, wavelength)
+    tan_theta = numpy.tan(theta)
 
     delta_twotheta = numpy.radians(ax*(1/tan_theta) + bx + cx*tan_theta + dx*tan_theta**2 + ex*tan_theta**3)
     delta_twotheta[numpy.where(numpy.isnan(delta_twotheta))] = 0.0
 
-    return Utilities.s(0.5*delta_twotheta, wavelength)
+    return delta_twotheta*numpy.cos(theta)/wavelength
 
 
 ######################################################################
 # BACKGROUND
 ######################################################################
 
-def add_chebyshev_background(s, I, parameters=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):
-    T = numpy.zeros((len(s), len(parameters)))
+def add_chebyshev_background(x, I, parameters=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):
+    degree = len(parameters)
+    bkg = numpy.zeros(len(x))
+    T = numpy.zeros((len(x), degree))
 
-    for j in range(0, len(parameters)):
+    for j in range(degree):
         if j==0:
             T[:, j] = 1
         elif j==1:
-            T[:, j] = s
+            T[:, j] = x
         else:
-            T[:, j] = 2*s*T[:, j-1] - T[:, j-2]
+            T[:, j] = 2*x*T[:, j-1] - T[:, j-2]
 
-        I += parameters[j]*T[:, j]
+        bkg += parameters[j]*T[:, j]
+
+    I += bkg
 
 def add_polynomial_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
     for j in range(0, len(parameters)):
