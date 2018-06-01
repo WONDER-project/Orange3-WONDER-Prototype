@@ -12,7 +12,7 @@ NAME = 'Orange3-WONDER'
 
 MAJOR = 0
 MINOR = 1
-MICRO = 11
+MICRO = 12
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 AUTHOR = 'Luca Rebuffi, Paolo Scardi, Alberto Flor'
@@ -89,26 +89,26 @@ from distutils.core import setup
 from distutils.extension import Extension
 
 ext_modules=[
-    Extension("orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack",                     ["orangecontrib/xrdanalyzer/controller/fit/fitters/fitter_minpack.pyx"]),
-    Extension("orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util",                ["orangecontrib/xrdanalyzer/controller/fit/fitters/fitter_minpack_util.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.util.congruence",                                           ["orangecontrib/xrdanalyzer/util/congruence.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.util.general_functions",                                    ["orangecontrib/xrdanalyzer/util/general_functions.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.util.test_recovery",                                        ["orangecontrib/xrdanalyzer/util/test_recovery.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.controller.fit.fit_parameter",                              ["orangecontrib/xrdanalyzer/controller/fit/fit_parameter.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.model.atom",                                                ["orangecontrib/xrdanalyzer/model/atom.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.model.diffraction_pattern",                                 ["orangecontrib/xrdanalyzer/model/diffraction_pattern.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure",                     ["orangecontrib/xrdanalyzer/controller/fit/init/crystal_structure.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry",            ["orangecontrib/xrdanalyzer/controller/fit/init/crystal_structure_simmetry.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters",                        ["orangecontrib/xrdanalyzer/controller/fit/init/fft_parameters.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization",                    ["orangecontrib/xrdanalyzer/controller/fit/init/fit_initialization.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters",       ["orangecontrib/xrdanalyzer/controller/fit/init/thermal_polarization_parameters.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters",           ["orangecontrib/xrdanalyzer/controller/fit/instrument/background_parameters.pyx"]),
-    Extension("orangecontrib.xrdanalyzer.controller.fit.instrument.thermal_polarization_parameters", ["orangecontrib/xrdanalyzer/controller/fit/instrument/thermal_polarization_parameters.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters",         ["orangecontrib/xrdanalyzer/controller/fit/instrument/instrumental_parameters.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.microstructure.size",                        ["orangecontrib/xrdanalyzer/controller/fit/microstructure/size.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.microstructure.strain",                      ["orangecontrib/xrdanalyzer/controller/fit/microstructure/strain.pyx"]),
-    Extension("orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities",                         ["orangecontrib/xrdanalyzer/controller/fit/util/fit_utilities.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters",                      ["orangecontrib/xrdanalyzer/controller/fit/fit_global_parameters.pyx"]),
-    Extension("orangecontrib.xrdanalyzer.controller.fit.fit_parameter",                              ["orangecontrib/xrdanalyzer/controller/fit/fit_parameter.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities",                         ["orangecontrib/xrdanalyzer/controller/fit/util/fit_utilities.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack",                     ["orangecontrib/xrdanalyzer/controller/fit/fitters/fitter_minpack.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util",                ["orangecontrib/xrdanalyzer/controller/fit/fitters/fitter_minpack_util.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.wppm_functions",                             ["orangecontrib/xrdanalyzer/controller/fit/wppm_functions.pyx"]),
-    Extension("orangecontrib.xrdanalyzer.model.atom",                                                ["orangecontrib/xrdanalyzer/model/atom.pyx"]),
-    Extension("orangecontrib.xrdanalyzer.model.diffraction_pattern",                                 ["orangecontrib/xrdanalyzer/model/diffraction_pattern.pyx"]),
-    Extension("orangecontrib.xrdanalyzer.util.congruence",                                           ["orangecontrib/xrdanalyzer/util/congruence.pyx"]),
-    Extension("orangecontrib.xrdanalyzer.util.general_functions",                                    ["orangecontrib/xrdanalyzer/util/general_functions.pyx"]),
-    Extension("orangecontrib.xrdanalyzer.util.test_recovery",                                        ["orangecontrib/xrdanalyzer/util/test_recovery.pyx"]),
 ]
 
 from Orange.canvas.application.addons import PipInstaller

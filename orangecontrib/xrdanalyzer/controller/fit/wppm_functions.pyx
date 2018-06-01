@@ -736,7 +736,7 @@ def add_polynomial_N_background(x, I, parameters=[0, 0, 0, 0, 0, 0]):
         a_i = parameters[2*j]
         b_i = parameters[2*j+1]
 
-        bkg += a_i*numpy.pow(s, b_i)
+        bkg += a_i*numpy.pow(x, b_i)
 
     I += bkg
 
