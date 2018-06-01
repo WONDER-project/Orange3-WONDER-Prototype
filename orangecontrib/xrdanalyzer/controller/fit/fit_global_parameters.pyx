@@ -1,6 +1,15 @@
 import numpy
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+    is_recovery = False
+except:
+    is_recovery = True
+
+if not is_recovery:
+    from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList
+else:
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import FitParametersList
 
 class FitGlobalParameters(FitParametersList):
 
@@ -326,14 +335,24 @@ class FitSpaceParameters:
 ######################################################################################################
 ######################################################################################################
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, FreeInputParameters, FreeOutputParameters, Boundary
-from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection
-from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
-from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground
-from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Caglioti, Lab6TanCorrection
-from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import SizeParameters, Distribution, Shape
-from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAHLaueGroup14, InvariantPAH
+try:
+    from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, FreeInputParameters, FreeOutputParameters, Boundary
+    from orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization import FitInitialization
+    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection
+    from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTInitParameters
+    from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground
+    from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Caglioti, Lab6TanCorrection
+    from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import SizeParameters, Distribution, Shape
+    from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAHLaueGroup14, InvariantPAH
+except:
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import FitParameter, FreeInputParameters, FreeOutputParameters, Boundary
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.fit_initialization import FitInitialization
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure import CrystalStructure, Reflection
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.fft_parameters import FFTInitParameters
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.background_parameters import ChebyshevBackground
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Caglioti, Lab6TanCorrection
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.size import SizeParameters, Distribution, Shape
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.strain import InvariantPAHLaueGroup14, InvariantPAH
 
 if __name__ == "__main__":
 

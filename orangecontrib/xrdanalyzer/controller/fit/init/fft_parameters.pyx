@@ -1,5 +1,15 @@
-from orangecontrib.xrdanalyzer.util import congruence
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+    is_recovery = False
+except:
+    is_recovery = True
+
+if not is_recovery:
+    from orangecontrib.xrdanalyzer.util import congruence
+    from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList
+else:
+    from orangecontrib.xrdanalyzer.recovery.util import congruence
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import FitParametersList
 
 class FFTTypes:
     REAL_ONLY = 0

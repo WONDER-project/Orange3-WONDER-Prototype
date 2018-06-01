@@ -8,8 +8,16 @@ from Orange.widgets.settings import Setting
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+    is_recovery = False
+except:
+    is_recovery = True
 
+if not is_recovery:
+    from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
+else:
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_global_parameters import FitGlobalParameters
 
 class OWFreeInputParameters(OWGenericWidget):
     name = "Free Input Parameters"

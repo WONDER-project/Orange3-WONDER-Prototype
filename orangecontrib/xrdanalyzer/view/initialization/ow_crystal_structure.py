@@ -9,14 +9,27 @@ from Orange.widgets import gui as orangegui
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ConfirmDialog, ConfirmTextDialog, ShowTextDialog
-from orangecontrib.xrdanalyzer.util import congruence
 
-from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities, list_of_s_bragg
-from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+    is_recovery = False
+except:
+    is_recovery = True
 
+if not is_recovery:
+    from orangecontrib.xrdanalyzer.util import congruence
+    from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities, list_of_s_bragg
+    from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
+    from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
+    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure, Reflection
+    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
+else:
+    from orangecontrib.xrdanalyzer.recovery.util import congruence
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.util.fit_utilities import Utilities, list_of_s_bragg
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_global_parameters import FitGlobalParameters
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import FitParameter, Boundary
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure import CrystalStructure, Reflection
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_simmetry import Simmetry
 
 class OWCrystalStructure(OWGenericWidget):
 

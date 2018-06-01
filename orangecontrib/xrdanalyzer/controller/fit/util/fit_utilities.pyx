@@ -1,4 +1,17 @@
+import operator
+import itertools
 import numpy
+
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+    is_recovery = False
+except:
+    is_recovery = True
+
+if not is_recovery:
+    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
+else:
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_simmetry import Simmetry
 
 class Utilities:
 
@@ -48,9 +61,7 @@ class Utilities:
 
 
 
-import operator
-import itertools
-import numpy
+
 
 def is_even(a):
     return a % 2 == 0
@@ -71,8 +82,6 @@ def is_bcc(h, k, l):
         return True
     else:
         return False
-
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
 
 def list_of_s_bragg(lattice_param, simmetry=Simmetry.FCC, n_peaks=numpy.inf, s_max=numpy.inf):
 

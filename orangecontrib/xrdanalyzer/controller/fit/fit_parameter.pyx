@@ -1,5 +1,14 @@
 import numpy
-import orangecontrib.xrdanalyzer.util.congruence as congruence
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+    is_recovery = False
+except:
+    is_recovery = True
+
+if not is_recovery:
+    from orangecontrib.xrdanalyzer.util import congruence
+else:
+    from orangecontrib.xrdanalyzer.recovery.util import congruence
 
 
 PARAM_FIX		= 1 << 0

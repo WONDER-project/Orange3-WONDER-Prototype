@@ -1,3 +1,27 @@
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+    is_recovery = False
+except:
+    is_recovery = True
+
+if not is_recovery:
+    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
+    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
+    from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
+    from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
+    from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
+    from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
+    from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
+    from orangecontrib.xrdanalyzer.util.general_functions import ChemicalFormulaParser
+else:
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure import CrystalStructure
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_simmetry import Simmetry
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.fft_parameters import FFTTypes
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.util.fit_utilities import Utilities
+    from orangecontrib.xrdanalyzer.recovery.util.general_functions import ChemicalFormulaParser
 
 
 #########################################################################
@@ -9,7 +33,7 @@
 #
 #################################################
 
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
+
 
 def fit_function_direct(twotheta, fit_global_parameters, diffraction_pattern_index = 0):
     wavelength = fit_global_parameters.fit_initialization.diffraction_patterns[diffraction_pattern_index].wavelength.value
@@ -88,7 +112,6 @@ def fit_function_reciprocal(s, fit_global_parameters, diffraction_pattern_index 
 # FOURIER FUNCTIONS
 #################################################
 
-from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
 
 class FourierTranformFactory:
     @classmethod
@@ -173,10 +196,6 @@ class FourierTransformFull(FourierTransform):
 #################################################
 # CALCOLO DI UN SINGOLO PICCO
 #################################################
-
-from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
-from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
-from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
 
 def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern_index=0):
     fft_type = fit_global_parameters.fit_initialization.fft_parameters.fft_type
@@ -377,7 +396,6 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
 
 import numpy
 from scipy.special import erfc
-from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
 import os
 from Orange.canvas import resources
 
@@ -615,9 +633,6 @@ def atomic_scattering_factor(s, element):
     # TODO: AGGIUNGERE DFi e DFii
 
     return f_s + c
-
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
-from orangecontrib.xrdanalyzer.util.general_functions import ChemicalFormulaParser
 
 def structure_factor(s, formula, h, k, l, simmetry=Simmetry.FCC):
     hkl = [h, k ,l]

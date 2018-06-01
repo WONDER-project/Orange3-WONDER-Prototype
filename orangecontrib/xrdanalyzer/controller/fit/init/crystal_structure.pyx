@@ -1,8 +1,22 @@
+
 import numpy
-import orangecontrib.xrdanalyzer.util.congruence as congruence
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PARAM_HWMAX, PARAM_HWMIN
-from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
-from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
+
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+    is_recovery = False
+except:
+    is_recovery = True
+
+if not is_recovery:
+    import orangecontrib.xrdanalyzer.util.congruence as congruence
+    from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PARAM_HWMAX, PARAM_HWMIN
+    from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
+    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
+else:
+    import orangecontrib.xrdanalyzer.recovery.util.congruence as congruence
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PARAM_HWMAX, PARAM_HWMIN
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.util.fit_utilities import Utilities
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_simmetry import Simmetry
 
 class Reflection():
 

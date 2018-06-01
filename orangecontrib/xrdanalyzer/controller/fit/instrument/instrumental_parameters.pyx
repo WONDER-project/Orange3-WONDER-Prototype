@@ -1,5 +1,13 @@
-import numpy
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+    is_recovery = False
+except:
+    is_recovery = True
+
+if not is_recovery:
+    from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import Boundary, FitParameter, FitParametersList
+else:
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import Boundary, FitParameter, FitParametersList
 
 class Caglioti(FitParametersList):
     U = None

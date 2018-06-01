@@ -1,7 +1,6 @@
 import numpy
 import inspect
 
-
 def distance(X, Y):
     return numpy.linalg.norm(X-Y)
 

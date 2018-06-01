@@ -8,10 +8,22 @@ from Orange.widgets import gui as orangegui
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ShowTextDialog
-from orangecontrib.xrdanalyzer.util import congruence
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ExpDecayBackground
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+    is_recovery = False
+except:
+    is_recovery = True
+
+if not is_recovery:
+    from orangecontrib.xrdanalyzer.util import congruence
+    from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
+    from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ExpDecayBackground
+else:
+    from orangecontrib.xrdanalyzer.recovery.util import congruence
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_global_parameters import FitGlobalParameters
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.background_parameters import ExpDecayBackground
+
 
 class OWExpDecayBackground(OWGenericWidget):
 

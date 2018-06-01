@@ -12,8 +12,18 @@ from PyQt5.QtGui import QDoubleValidator
 
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import ConfirmDialog, gui, ShowTextDialog
 
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
-from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_HWMAX, PARAM_HWMIN
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+    is_recovery = False
+except:
+    is_recovery = True
+
+if not is_recovery:
+    from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary
+    from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_HWMAX, PARAM_HWMIN
+else:
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import FitParameter, Boundary
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import PARAM_HWMAX, PARAM_HWMIN
 
 class OWGenericWidget(widget.OWWidget):
 
