@@ -706,36 +706,59 @@ def add_chebyshev_background(x, I, parameters=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]):
 
     I += bkg
 
-def add_polynomial_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    for j in range(0, len(parameters)):
-        I += parameters[j]*numpy.pow(s, j)
+def add_polynomial_background(x, I, parameters=[0, 0, 0, 0, 0, 0]):
+    degree = len(parameters)
+    bkg = numpy.zeros(len(x))
 
-def add_polynomial_N_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    for j in range(0, int(len(parameters)/2 - 1)):
+    for j in range(0, degree):
+        I += parameters[j]*numpy.pow(x, j)
+
+def add_polynomial_N_background(x, I, parameters=[0, 0, 0, 0, 0, 0]):
+    degree = len(parameters)
+    bkg = numpy.zeros(len(x))
+
+    for j in range(0, int(degree/2 - 1)):
         a_i = parameters[2*j]
         b_i = parameters[2*j+1]
 
-        I += a_i*numpy.pow(s, b_i)
+        bkg += a_i*numpy.pow(s, b_i)
 
-def add_polynomial_0N_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    s0 = parameters[0]
-    for j in range(0, int(len(parameters)/2 - 1)):
+    I += bkg
+
+def add_polynomial_0N_background(x, I, parameters=[0, 0, 0, 0, 0, 0]):
+    degree = len(parameters)
+    bkg = numpy.zeros(len(x))
+    x0 = parameters[0]
+
+    for j in range(0, int(degree/2 - 1)):
         a_i = parameters[1 + 2*j]
         b_i = parameters[1 + 2*j+1]
 
-        I += a_i*numpy.pow((s-s0), b_i)
+        bkg += a_i*numpy.pow((x-x0), b_i)
 
-def add_expdecay_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    for j in range(0, int(len(parameters)/2 - 1)):
+    I += bkg
+
+def add_expdecay_background(x, I, parameters=[0, 0, 0, 0, 0, 0]):
+    degree = len(parameters)
+    bkg = numpy.zeros(len(x))
+
+    for j in range(0, int(degree/2 - 1)):
         a_i = parameters[2*j]
         b_i = parameters[2*j+1]
 
-        I += a_i*numpy.exp(-numpy.abs(s)*b_i)
+        bkg += a_i*numpy.exp(-numpy.abs(x)*b_i)
 
-def add_expdecay_0_background(s, I, parameters=[0, 0, 0, 0, 0, 0]):
-    s0 = parameters[0]
-    for j in range(0, int(len(parameters)/2 - 1)):
+    I += bkg
+
+def add_expdecay_0_background(x, I, parameters=[0, 0, 0, 0, 0, 0]):
+    degree = len(parameters)
+    bkg = numpy.zeros(len(x))
+    x0 = parameters[0]
+
+    for j in range(0, int(degree/2 - 1)):
         a_i = parameters[1 + 2*j]
         b_i = parameters[1 + 2*j+1]
 
-        I += a_i*numpy.exp(-numpy.abs(s-s0)*b_i)
+        bkg += a_i*numpy.exp(-numpy.abs(x-x0)*b_i)
+
+    I += bkg
