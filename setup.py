@@ -152,6 +152,7 @@ def create_recovery():
                         shutil.copyfile(os.path.join(path, file), os.path.join(recovery_path,  file[:-1]))
                     elif file.endswith(".c") or file.endswith(".so"):
                         os.remove(os.path.join(path, file))
+
 if __name__ == '__main__':
 
     is_sdist = False
