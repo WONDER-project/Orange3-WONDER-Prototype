@@ -11,8 +11,12 @@
 
 from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
 
-def fit_function_direct(twotheta, s, fit_global_parameters, diffraction_pattern_index = 0):
-    I = fit_function_reciprocal(s, fit_global_parameters, diffraction_pattern_index)
+def fit_function_direct(twotheta, fit_global_parameters, diffraction_pattern_index = 0):
+    wavelength = fit_global_parameters.fit_initialization.diffraction_patterns[diffraction_pattern_index].wavelength.value
+
+    I = fit_function_reciprocal(Utilities.s(0.5*numpy.radians(twotheta), wavelength),
+                                fit_global_parameters,
+                                diffraction_pattern_index)
 
     # ADD BACKGROUNDS  ---------------------------------------------------------------------------------------------
 
