@@ -150,7 +150,8 @@ def create_recovery():
                 for file in files:
                     if file.endswith(".pyx") and not file.endswith("test_recovery.pyx"):
                         shutil.copyfile(os.path.join(path, file), os.path.join(recovery_path,  file[:-1]))
-
+                    elif file.endswith(".c") or file.endswith(".so"):
+                        os.remove(os.path.join(path, file))
 if __name__ == '__main__':
 
     is_sdist = False
