@@ -102,6 +102,7 @@ ext_modules=[
     Extension("orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters",       ["orangecontrib/xrdanalyzer/controller/fit/init/thermal_polarization_parameters.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters",           ["orangecontrib/xrdanalyzer/controller/fit/instrument/background_parameters.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters",         ["orangecontrib/xrdanalyzer/controller/fit/instrument/instrumental_parameters.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.controller.fit.microstructure.constrast_factor",            ["orangecontrib/xrdanalyzer/controller/fit/microstructure/constrast_factor.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.microstructure.size",                        ["orangecontrib/xrdanalyzer/controller/fit/microstructure/size.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.microstructure.strain",                      ["orangecontrib/xrdanalyzer/controller/fit/microstructure/strain.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters",                      ["orangecontrib/xrdanalyzer/controller/fit/fit_global_parameters.pyx"]),

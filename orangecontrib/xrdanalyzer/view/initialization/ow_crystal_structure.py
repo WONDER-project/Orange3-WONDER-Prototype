@@ -87,6 +87,11 @@ class OWCrystalStructure(OWGenericWidget):
         if not isinstance(self.limit                                , list): self.limit                                 = [self.limit                                ]
         if not isinstance(self.limit_type                           , list): self.limit_type                            = [self.limit_type                           ]
 
+        if len(self.symmetry) < len(self.a):
+            self.symmetry.extend([2]*(len(self.a)-len(self.symmetry)))
+        elif len(self.symmetry) > len(self.a):
+            self.symmetry = self.symmetry[:len(self.a)]
+
         if emergency:
             self.a                                     = [0.0]
             self.a_fixed                               = [0]

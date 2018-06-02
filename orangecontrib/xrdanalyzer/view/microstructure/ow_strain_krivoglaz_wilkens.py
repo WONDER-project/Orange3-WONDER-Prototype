@@ -175,14 +175,26 @@ class OWStrainKW(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.strain_parameters is None:
-                self.populate_fields("rho", self.fit_global_parameters.strain_parameters[0].rho)
-                self.populate_fields("Re",  self.fit_global_parameters.strain_parameters[0].Re)
-                self.populate_fields("Ae",  self.fit_global_parameters.strain_parameters[0].Ae)
-                self.populate_fields("Be",  self.fit_global_parameters.strain_parameters[0].Be)
-                self.populate_fields("As",  self.fit_global_parameters.strain_parameters[0].rho)
-                self.populate_fields("Bs",  self.fit_global_parameters.strain_parameters[0].Re)
-                self.populate_fields("mix", self.fit_global_parameters.strain_parameters[0].Ae)
-                self.populate_fields("b",   self.fit_global_parameters.strain_parameters[0].Be)
+                if not isinstance(self.fit_global_parameters.strain_parameters[0], KrivoglazWilkensModel):
+                    raise Exception("Only 1 Strain Model is allowed in a line of fit: it should be branched before")
+
+                if self.fit_global_parameters.strain_parameters[0].rho is None and \
+                   self.fit_global_parameters.strain_parameters[0].Re is None and \
+                   self.fit_global_parameters.strain_parameters[0].mix is None and \
+                   self.fit_global_parameters.strain_parameters[0].mix is None:
+                    self.populate_fields("Ae",  self.fit_global_parameters.strain_parameters[0].Ae, value_only=False)
+                    self.populate_fields("Be",  self.fit_global_parameters.strain_parameters[0].Be, value_only=False)
+                    self.populate_fields("As",  self.fit_global_parameters.strain_parameters[0].As, value_only=False)
+                    self.populate_fields("Bs",  self.fit_global_parameters.strain_parameters[0].Bs, value_only=False)
+                else:
+                    self.populate_fields("rho", self.fit_global_parameters.strain_parameters[0].rho)
+                    self.populate_fields("Re",  self.fit_global_parameters.strain_parameters[0].Re)
+                    self.populate_fields("Ae",  self.fit_global_parameters.strain_parameters[0].Ae)
+                    self.populate_fields("Be",  self.fit_global_parameters.strain_parameters[0].Be)
+                    self.populate_fields("As",  self.fit_global_parameters.strain_parameters[0].As)
+                    self.populate_fields("Bs",  self.fit_global_parameters.strain_parameters[0].Bs)
+                    self.populate_fields("mix", self.fit_global_parameters.strain_parameters[0].mix)
+                    self.populate_fields("b",   self.fit_global_parameters.strain_parameters[0].b)
 
             if self.is_automatic_run:
                 self.send_strain()

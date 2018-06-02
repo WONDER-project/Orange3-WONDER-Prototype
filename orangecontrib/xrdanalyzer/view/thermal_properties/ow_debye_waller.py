@@ -92,9 +92,9 @@ class OWDebyeWaller(OWGenericWidget):
                     if not debye_waller_factor is None: debye_waller_factor.value /= 100
 
                     if self.fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
-                        self.fit_global_parameters.fit_initialization.thermal_polarization_parameters = ThermalPolarizationParameters(debye_waller_factor=debye_waller_factor)
+                        self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0] = ThermalPolarizationParameters(debye_waller_factor=debye_waller_factor)
                     else:
-                        self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor = debye_waller_factor
+                        self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].debye_waller_factor = debye_waller_factor
 
                     self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -110,11 +110,11 @@ class OWDebyeWaller(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
-                self.use_debye_waller_factor = 1 if not self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor is None else 0
+                self.use_debye_waller_factor = 1 if not self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].debye_waller_factor is None else 0
 
                 if self.use_debye_waller_factor == 1:
                     # CONVERSIONE from nm-2 to A-2
-                    debye_waller_factor = self.fit_global_parameters.fit_initialization.thermal_polarization_parameters.debye_waller_factor*100
+                    debye_waller_factor = self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].debye_waller_factor*100
 
                     self.populate_fields("debye_waller_factor", debye_waller_factor)
 
