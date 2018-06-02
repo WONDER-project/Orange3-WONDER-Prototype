@@ -1,12 +1,8 @@
-try:
-    import orangecontrib.xrdanalyzer.util.test_recovery
-    is_recovery = False
-except:
-    is_recovery = True
+from orangecontrib.xrdanalyzer import is_recovery
 
 if not is_recovery:
     from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
-    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
+    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_symmetry import Symmetry
     from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
     from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
     from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
@@ -15,7 +11,7 @@ if not is_recovery:
     from orangecontrib.xrdanalyzer.util.general_functions import ChemicalFormulaParser
 else:
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure import CrystalStructure
-    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_simmetry import Simmetry
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_symmetry import Symmetry
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.fft_parameters import FFTTypes
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
@@ -80,7 +76,7 @@ def fit_function_direct(twotheta, fit_global_parameters, diffraction_pattern_ind
 def fit_function_reciprocal(s, fit_global_parameters, diffraction_pattern_index = 0):
     crystal_structure = fit_global_parameters.fit_initialization.crystal_structures[diffraction_pattern_index]
 
-    if CrystalStructure.is_cube(crystal_structure.simmetry):
+    if CrystalStructure.is_cube(crystal_structure.symmetry):
 
         # CONSTRUCTION OF EACH SEPARATE PEAK ---------------------------------------------------------------------------
 
@@ -355,7 +351,7 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
                                               reflection.h,
                                               reflection.k,
                                               reflection.l,
-                                              crystal_structure.simmetry)
+                                              crystal_structure.symmetry)
     else:
         I *= reflection.intensity.value
 
@@ -634,9 +630,9 @@ def atomic_scattering_factor(s, element):
 
     return f_s + c
 
-def structure_factor(s, formula, h, k, l, simmetry=Simmetry.FCC):
+def structure_factor(s, formula, h, k, l, symmetry=Symmetry.FCC):
     hkl = [h, k ,l]
-    cell = get_cell(simmetry)
+    cell = get_cell(symmetry)
 
     elements = ChemicalFormulaParser.parse_formula(formula)
     total_weight = 0.0
@@ -658,16 +654,16 @@ def structure_factor(s, formula, h, k, l, simmetry=Simmetry.FCC):
 
     return total_structure_factor
 
-def get_cell(simmetry=Simmetry.FCC):
-    if simmetry == Simmetry.SIMPLE_CUBIC:
+def get_cell(symmetry=Symmetry.FCC):
+    if symmetry == Symmetry.SIMPLE_CUBIC:
         return [[0, 0, 0]]
-    elif simmetry == Simmetry.BCC:
+    elif symmetry == Symmetry.BCC:
         return [[0, 0, 0], [0.5, 0.5, 0.5]]
-    elif simmetry == Simmetry.FCC:
+    elif symmetry == Symmetry.FCC:
         return [[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]]
 
-def squared_modulus_structure_factor(s, formula, h, k, l, simmetry=Simmetry.FCC):
-    return numpy.absolute(structure_factor(s, formula, h, k, l, simmetry))**2
+def squared_modulus_structure_factor(s, formula, h, k, l, symmetry=Symmetry.FCC):
+    return numpy.absolute(structure_factor(s, formula, h, k, l, symmetry))**2
 
 
 ######################################################################

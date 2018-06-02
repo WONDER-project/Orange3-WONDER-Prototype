@@ -2,16 +2,12 @@ import operator
 import itertools
 import numpy
 
-try:
-    import orangecontrib.xrdanalyzer.util.test_recovery
-    is_recovery = False
-except:
-    is_recovery = True
+from orangecontrib.xrdanalyzer import is_recovery
 
 if not is_recovery:
-    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
+    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_symmetry import Symmetry
 else:
-    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_simmetry import Simmetry
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_symmetry import Symmetry
 
 class Utilities:
 
@@ -83,15 +79,15 @@ def is_bcc(h, k, l):
     else:
         return False
 
-def list_of_s_bragg(lattice_param, simmetry=Simmetry.FCC, n_peaks=numpy.inf, s_max=numpy.inf):
+def list_of_s_bragg(lattice_param, symmetry=Symmetry.FCC, n_peaks=numpy.inf, s_max=numpy.inf):
 
     s_list = []
     s_hkl_max = 0.0
     possible_indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     for h, k, l in itertools.combinations_with_replacement(possible_indexes, 3):
-        if (simmetry == Simmetry.FCC and is_fcc(h, k, l)) or \
-           (simmetry == Simmetry.BCC and is_bcc(h, k, l)) or \
-            simmetry == Simmetry.SIMPLE_CUBIC:
+        if (symmetry == Symmetry.FCC and is_fcc(h, k, l)) or \
+           (symmetry == Symmetry.BCC and is_bcc(h, k, l)) or \
+            symmetry == Symmetry.SIMPLE_CUBIC:
             s_hkl = Utilities.s_hkl(lattice_param, h, k, l)
 
             s_hkl_max = s_hkl if s_hkl > s_hkl_max else s_hkl_max
@@ -123,7 +119,7 @@ def list_of_s_bragg(lattice_param, simmetry=Simmetry.FCC, n_peaks=numpy.inf, s_m
     return s_list
 
 if __name__=="__main__":
-    list = list_of_s_bragg(0.2873, Simmetry.FCC)
+    list = list_of_s_bragg(0.2873, Symmetry.FCC)
 
     for item in list:
         print(item)

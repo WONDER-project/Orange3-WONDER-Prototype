@@ -12,7 +12,7 @@ NAME = 'Orange3-WONDER'
 
 MAJOR = 0
 MINOR = 1
-MICRO = 12
+MICRO = 13
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 AUTHOR = 'Luca Rebuffi, Paolo Scardi, Alberto Flor'
@@ -96,7 +96,7 @@ ext_modules=[
     Extension("orangecontrib.xrdanalyzer.model.atom",                                                ["orangecontrib/xrdanalyzer/model/atom.pyx"]),
     Extension("orangecontrib.xrdanalyzer.model.diffraction_pattern",                                 ["orangecontrib/xrdanalyzer/model/diffraction_pattern.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure",                     ["orangecontrib/xrdanalyzer/controller/fit/init/crystal_structure.pyx"]),
-    Extension("orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry",            ["orangecontrib/xrdanalyzer/controller/fit/init/crystal_structure_simmetry.pyx"]),
+    Extension("orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_symmetry",            ["orangecontrib/xrdanalyzer/controller/fit/init/crystal_structure_symmetry.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters",                        ["orangecontrib/xrdanalyzer/controller/fit/init/fft_parameters.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.init.fit_initialization",                    ["orangecontrib/xrdanalyzer/controller/fit/init/fit_initialization.pyx"]),
     Extension("orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters",       ["orangecontrib/xrdanalyzer/controller/fit/init/thermal_polarization_parameters.pyx"]),

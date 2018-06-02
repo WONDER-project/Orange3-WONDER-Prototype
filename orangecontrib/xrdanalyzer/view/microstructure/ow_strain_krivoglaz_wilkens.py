@@ -7,11 +7,7 @@ from Orange.widgets.settings import Setting
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ShowTextDialog
 
-try:
-    import orangecontrib.xrdanalyzer.util.test_recovery
-    is_recovery = False
-except:
-    is_recovery = True
+from orangecontrib.xrdanalyzer import is_recovery
 
 if not is_recovery:
     from orangecontrib.xrdanalyzer.util import congruence

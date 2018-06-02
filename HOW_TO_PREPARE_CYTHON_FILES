@@ -1,5 +1,3 @@
 
-TO CREATE "C" FILES ONLY : sudo python3 setup.py sdist (develop)
-
-IN DEVELOP MODE, TO CREATE COMPILED FILES IN THE LOCAL SOURCES ENVIRONMENT: sudo python3 setup.py build_ext --inplace
+IN DEVELOP MODE, TO CREATE COMPILED FILES IN THE LOCAL SOURCES ENVIRONMENT: python3 setup.py build_ext --inplace
 

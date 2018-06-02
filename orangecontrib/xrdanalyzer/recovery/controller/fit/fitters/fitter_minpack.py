@@ -1,10 +1,5 @@
 from orangecontrib.xrdanalyzer.controller.fit.fitter import FitterInterface
-
-try:
-    import orangecontrib.xrdanalyzer.util.test_recovery
-    is_recovery = False
-except:
-    is_recovery = True
+from orangecontrib.xrdanalyzer import is_recovery
 
 if not is_recovery:
     from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint

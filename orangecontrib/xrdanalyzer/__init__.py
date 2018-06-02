@@ -43,3 +43,10 @@ class Singleton:
 ###################################################################
 # DO NOT TOUCH THIS CODE -- END
 ###################################################################
+
+is_recovery = False
+
+try:
+    import orangecontrib.xrdanalyzer.util.test_recovery
+except:
+    is_recovery = True

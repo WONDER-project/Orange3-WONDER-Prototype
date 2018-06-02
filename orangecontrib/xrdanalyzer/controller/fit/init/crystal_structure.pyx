@@ -1,22 +1,18 @@
 
 import numpy
 
-try:
-    import orangecontrib.xrdanalyzer.util.test_recovery
-    is_recovery = False
-except:
-    is_recovery = True
+from orangecontrib.xrdanalyzer import is_recovery
 
 if not is_recovery:
     import orangecontrib.xrdanalyzer.util.congruence as congruence
     from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PARAM_HWMAX, PARAM_HWMIN
     from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
-    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_simmetry import Simmetry
+    from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_symmetry import Symmetry
 else:
     import orangecontrib.xrdanalyzer.recovery.util.congruence as congruence
     from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import FitParametersList, FitParameter, Boundary, PARAM_HWMAX, PARAM_HWMIN
     from orangecontrib.xrdanalyzer.recovery.controller.fit.util.fit_utilities import Utilities
-    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_simmetry import Simmetry
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_symmetry import Symmetry
 
 class Reflection():
 
@@ -76,7 +72,7 @@ class CrystalStructure(FitParametersList):
     beta = None
     gamma = None
 
-    simmetry = Simmetry.SIMPLE_CUBIC
+    symmetry = Symmetry.SIMPLE_CUBIC
 
     use_structure = False
     formula = None
@@ -89,7 +85,7 @@ class CrystalStructure(FitParametersList):
         return "crystal_structure_"
 
 
-    def __init__(self, a, b, c, alpha, beta, gamma, simmetry=Simmetry.SIMPLE_CUBIC, use_structure=False, formula=None, intensity_scale_factor=None):
+    def __init__(self, a, b, c, alpha, beta, gamma, symmetry=Symmetry.SIMPLE_CUBIC, use_structure=False, formula=None, intensity_scale_factor=None):
         super(CrystalStructure, self).__init__()
 
         self.a = a
@@ -98,7 +94,7 @@ class CrystalStructure(FitParametersList):
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
-        self.simmetry = simmetry
+        self.symmetry = symmetry
         self.use_structure = use_structure
         self.formula = None if formula is None else formula.strip()
         self.intensity_scale_factor = intensity_scale_factor
@@ -106,12 +102,12 @@ class CrystalStructure(FitParametersList):
         self.reflections = []
 
     @classmethod
-    def is_cube(cls, simmetry):
-        return simmetry in (Simmetry.BCC, Simmetry.FCC, Simmetry.SIMPLE_CUBIC)
+    def is_cube(cls, symmetry):
+        return symmetry in (Symmetry.BCC, Symmetry.FCC, Symmetry.SIMPLE_CUBIC)
 
     @classmethod
-    def init_cube(cls, a0, simmetry=Simmetry.FCC, use_structure=False, formula=None, intensity_scale_factor=None, progressive = ""):
-        if not cls.is_cube(simmetry): raise ValueError("Simmetry doesn't belong to a cubic crystal cell")
+    def init_cube(cls, a0, symmetry=Symmetry.FCC, use_structure=False, formula=None, intensity_scale_factor=None, progressive = ""):
+        if not cls.is_cube(symmetry): raise ValueError("Symmetry doesn't belong to a cubic crystal cell")
 
         if a0.fixed:
             a = FitParameter(parameter_name=CrystalStructure.get_parameters_prefix() + progressive + "a", value=a0.value, fixed=a0.fixed, boundary=a0.boundary)
@@ -132,7 +128,7 @@ class CrystalStructure(FitParametersList):
                                 alpha,
                                 beta,
                                 gamma,
-                                simmetry,
+                                symmetry,
                                 use_structure,
                                 formula,
                                 intensity_scale_factor)
@@ -171,12 +167,12 @@ class CrystalStructure(FitParametersList):
         return None
 
     def get_d_spacing(self, h, k, l):
-        if self.is_cube(self.simmetry):
+        if self.is_cube(self.symmetry):
             if self.a.value is None:
                 return 0
             else:
                 return 1/Utilities.s_hkl(self.a.value, h, k, l)
-        #elif self.simmetry == Simmetry.HCP:
+        #elif self.symmetry == Symmetry.HCP:
         #    return 1/numpy.sqrt((4/3)*((h**2 + h*k + k**2)/ self.a.value**2  + (l/self.c.value)**2))
         else:
             NotImplementedError("Only Cubic supported: TODO!!!!!!")
@@ -292,7 +288,7 @@ class CrystalStructure(FitParametersList):
                                              alpha=None if self.alpha is None else self.alpha.duplicate(),
                                              beta=None if self.beta is None else self.beta.duplicate(),
                                              gamma=None if self.gamma is None else self.gamma.duplicate(),
-                                             simmetry=self.simmetry,
+                                             symmetry=self.symmetry,
                                              use_structure=self.use_structure,
                                              formula=self.formula,
                                              intensity_scale_factor=None if self.intensity_scale_factor is None else self.intensity_scale_factor.duplicate())
@@ -315,7 +311,7 @@ class CrystalStructure(FitParametersList):
         text += self.alpha.to_text() + "\n"
         text += self.beta.to_text() + "\n"
         text += self.gamma.to_text() + "\n"
-        text += "Simmetry: " + self.simmetry + "\n"
+        text += "Symmetry: " + self.symmetry + "\n"
         text += "Use Strucuture: " + str(self.use_structure) + "\n"
         text += "Chemical Formula: " + str(self.formula) + "\n"
         text += ("" if self.intensity_scale_factor is None else self.intensity_scale_factor.to_text()) + "\n"
@@ -339,11 +335,11 @@ class CrystalStructure(FitParametersList):
         return parameters
 
 if __name__=="__main__":
-    test = CrystalStructure.init_cube(a0=FitParameter(value=0.55, fixed=True), simmetry=Simmetry.BCC)
+    test = CrystalStructure.init_cube(a0=FitParameter(value=0.55, fixed=True), symmetry=Symmetry.BCC)
 
     test = CrystalStructure(a=FitParameter(parameter_name="a", value=0.55), b=FitParameter(parameter_name="b", value=0.66), c=FitParameter(parameter_name="c", value=0.77),
                             alpha=FitParameter(value=10), beta=FitParameter(value=20), gamma=FitParameter(value=30),
-                            simmetry=Simmetry.NONE)
+                            symmetry=Symmetry.NONE)
 
     test.add_reflection(Reflection(1, 0, 3, intensity=FitParameter(value=200, boundary=Boundary(min_value=10, max_value=100000))))
     test.add_reflection(Reflection(2, 0, 0, intensity=FitParameter(value=300, boundary=Boundary(min_value=10, max_value=100000))))

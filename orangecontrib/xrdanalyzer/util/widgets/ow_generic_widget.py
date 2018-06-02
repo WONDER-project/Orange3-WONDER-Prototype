@@ -12,11 +12,7 @@ from PyQt5.QtGui import QDoubleValidator
 
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import ConfirmDialog, gui, ShowTextDialog
 
-try:
-    import orangecontrib.xrdanalyzer.util.test_recovery
-    is_recovery = False
-except:
-    is_recovery = True
+from orangecontrib.xrdanalyzer import is_recovery
 
 if not is_recovery:
     from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import FitParameter, Boundary

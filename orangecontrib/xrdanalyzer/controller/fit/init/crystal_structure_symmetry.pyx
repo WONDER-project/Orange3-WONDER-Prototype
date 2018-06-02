@@ -1,4 +1,4 @@
-class Simmetry:
+class Symmetry:
     FCC = "fcc"
     BCC = "bcc"
     SIMPLE_CUBIC = "sc"
