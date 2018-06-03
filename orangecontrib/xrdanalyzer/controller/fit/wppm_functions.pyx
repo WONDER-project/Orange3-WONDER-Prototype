@@ -99,6 +99,19 @@ def fit_function_reciprocal(s, fit_global_parameters, diffraction_pattern_index 
             if not thermal_polarization_parameters.debye_waller_factor is None:
                 I *= debye_waller(s, thermal_polarization_parameters.debye_waller_factor.value)
 
+        diffraction_pattern = fit_global_parameters.fit_initialization.diffraction_patterns[diffraction_pattern_index]
+
+        if not diffraction_pattern.is_single_wavelength:
+            principal_wavelength = diffraction_pattern.wavelength
+
+            I *= diffraction_pattern.get_principal_wavelenght_weight()
+
+            for secondary_wavelength, secondary_wavelength_weigth in zip(diffraction_pattern.secondary_wavelengths,
+                                                                         diffraction_pattern.secondary_wavelengths_weights):
+                s_secondary = s * secondary_wavelength.value/principal_wavelength.value
+
+                I += Utilities.merge_functions([s_secondary, I*secondary_wavelength_weigth], s)
+
         return I
     else:
         raise NotImplementedError("Only Cubic structures are supported by fit")

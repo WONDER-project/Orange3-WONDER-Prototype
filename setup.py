@@ -12,7 +12,7 @@ NAME = 'Orange3-WONDER'
 
 MAJOR = 0
 MINOR = 1
-MICRO = 15
+MICRO = 16
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 AUTHOR = 'Luca Rebuffi, Paolo Scardi, Alberto Flor'
@@ -40,7 +40,7 @@ PACKAGES = find_packages()
 
 PACKAGE_DATA = {
     'orangecontrib.xrdanalyzer.view.widgets'           : ['icons/*.*'], # to be removed
-    'orangecontrib.xrdanalyzer.view.initialization'    : ['icons/*.*'],
+    'orangecontrib.xrdanalyzer.view.initialization'    : ['icons/*.*', 'data/*.*'],
     'orangecontrib.xrdanalyzer.view.ipf_and_background': ['icons/*.*'],
     'orangecontrib.xrdanalyzer.view.thermal_properties': ['icons/*.*'],
     'orangecontrib.xrdanalyzer.view.microstructure'    : ['icons/*.*'],

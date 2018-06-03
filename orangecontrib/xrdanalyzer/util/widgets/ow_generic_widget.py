@@ -110,11 +110,13 @@ class OWGenericWidget(widget.OWWidget):
         self.create_box_in_widget(self, parent_box, var, label, disable_function, add_callback)
     
     @classmethod
-    def create_box_in_widget(cls, widget, parent_box, var, label=None, disable_function=False, add_callback=False):
+    def create_box_in_widget(cls, widget, parent_box, var, label=None, disable_function=False, add_callback=False, label_width=40):
         box = gui.widgetBox(parent_box, "", orientation="horizontal", width=widget.CONTROL_AREA_WIDTH - 50, height=25)
 
-        box_label = gui.widgetBox(box, "", orientation="horizontal", width=40, height=25)
-        box_value =  gui.widgetBox(box, "", orientation="horizontal", width=100, height=25)
+        box_value_width = 100 - (label_width-40)
+
+        box_label = gui.widgetBox(box, "", orientation="horizontal", width=label_width, height=25)
+        box_value =  gui.widgetBox(box, "", orientation="horizontal", width=box_value_width, height=25)
         box_fixed = gui.widgetBox(box, "", orientation="horizontal", height=25)
         box_min_max = gui.widgetBox(box, "", orientation="horizontal", height=30)
         box_function = gui.widgetBox(box, "", orientation="horizontal", height=25)
@@ -146,14 +148,14 @@ class OWGenericWidget(widget.OWWidget):
                 box_min_max.setVisible(False)
                 box_fixed.setVisible(True)
                 le_var.setVisible(True)
-                box_value.setFixedWidth(100)
+                box_value.setFixedWidth(box_value_width)
                 box_function.setVisible(False)
                 box_function_value.setVisible(False)
             else:
                 box_min_max.setVisible(True)
                 box_fixed.setVisible(True)
                 le_var.setVisible(True)
-                box_value.setFixedWidth(100)
+                box_value.setFixedWidth(box_value_width)
                 box_function.setVisible(True)
                 box_function_value.setVisible(False)
 

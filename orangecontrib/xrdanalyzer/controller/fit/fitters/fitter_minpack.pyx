@@ -377,11 +377,20 @@ class FitterMinpack(FitterInterface):
     def build_fit_global_parameters_out(self, fitted_parameters):
         fit_global_parameters = self.fit_global_parameters
 
+        last_index = -1
+
         for index in range(len(fit_global_parameters.fit_initialization.diffraction_patterns)):
             diffraction_pattern = fit_global_parameters.fit_initialization.diffraction_patterns[index]
             diffraction_pattern.wavelength.set_value(fitted_parameters[index].value)
 
-        last_index = fit_global_parameters.fit_initialization.get_diffraction_patterns_number() - 1
+            last_index += 1
+
+            if not diffraction_pattern.is_single_wavelength:
+                for secondary_wavelength, secondary_wavelength_weigth in zip(diffraction_pattern.secondary_wavelengths,
+                                                                             diffraction_pattern.secondary_wavelengths_weights):
+                    secondary_wavelength.set_value(fitted_parameters[last_index + 1])
+                    secondary_wavelength_weigth.set_value(fitted_parameters[last_index + 2])
+                    last_index += 2
 
         for index in range(len(fit_global_parameters.fit_initialization.crystal_structures)):
             crystal_structure = fit_global_parameters.fit_initialization.crystal_structures[index]
@@ -505,11 +514,20 @@ class FitterMinpack(FitterInterface):
     def build_fit_global_parameters_out_errors(self, errors):
         fit_global_parameters = self.fit_global_parameters
 
-        for index in range(fit_global_parameters.fit_initialization.get_diffraction_patterns_number()):
+        last_index = -1
+
+        for index in range(len(fit_global_parameters.fit_initialization.diffraction_patterns)):
             diffraction_pattern = fit_global_parameters.fit_initialization.diffraction_patterns[index]
             diffraction_pattern.wavelength.error = errors[index]
 
-        last_index = fit_global_parameters.fit_initialization.get_diffraction_patterns_number() - 1
+            last_index += 1
+
+            if not diffraction_pattern.is_single_wavelength:
+                for secondary_wavelength, secondary_wavelength_weigth in zip(diffraction_pattern.secondary_wavelengths,
+                                                                             diffraction_pattern.secondary_wavelengths_weights):
+                    secondary_wavelength.error = errors[last_index + 1]
+                    secondary_wavelength_weigth.error = errors[last_index + 2]
+                    last_index += 2
 
         for index in range(len(fit_global_parameters.fit_initialization.crystal_structures)):
             crystal_structure = fit_global_parameters.fit_initialization.crystal_structures[index]
