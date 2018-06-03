@@ -388,8 +388,8 @@ class FitterMinpack(FitterInterface):
             if not diffraction_pattern.is_single_wavelength:
                 for secondary_wavelength, secondary_wavelength_weigth in zip(diffraction_pattern.secondary_wavelengths,
                                                                              diffraction_pattern.secondary_wavelengths_weights):
-                    secondary_wavelength.set_value(fitted_parameters[last_index + 1])
-                    secondary_wavelength_weigth.set_value(fitted_parameters[last_index + 2])
+                    secondary_wavelength.set_value(fitted_parameters[last_index + 1].value)
+                    secondary_wavelength_weigth.set_value(fitted_parameters[last_index + 2].value)
                     last_index += 2
 
         for index in range(len(fit_global_parameters.fit_initialization.crystal_structures)):

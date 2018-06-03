@@ -151,6 +151,12 @@ class gui:
         if not width is None: area.setFixedWidth(width)
 
         return area
+
+    @classmethod
+    def clearLayout(cls, layout):
+        for i in reversed(range(layout.count())):
+            layout.itemAt(i).widget().setParent(None)
+
 # ------------------------------------
 # UTILITY CLASS
 # ------------------------------------

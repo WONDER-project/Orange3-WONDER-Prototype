@@ -93,7 +93,7 @@ class OWDiffractionPattern(OWGenericWidget):
 
     filename = Setting(["<input file>"])
 
-    is_single_wavelength = Setting(1)
+    is_multiple_wavelength = Setting(1)
     
     wavelength = Setting([0.0826])
     wavelength_fixed = Setting([0])
@@ -192,7 +192,7 @@ class OWDiffractionPattern(OWGenericWidget):
     # TO PRESERVE RETRO-COMPATIBILITY
     def fix_input(self, emergency=False):
         if not isinstance(self.filename                   , list): self.filename                    = [self.filename                   ]
-        if not isinstance(self.is_single_wavelength       , list): self.is_single_wavelength        = [self.is_single_wavelength       ]
+        if not isinstance(self.is_multiple_wavelength       , list): self.is_multiple_wavelength        = [self.is_multiple_wavelength       ]
         if not isinstance(self.wavelength                 , list): self.wavelength                  = [self.wavelength                 ]
         if not isinstance(self.wavelength_fixed           , list): self.wavelength_fixed            = [self.wavelength_fixed           ]
         if not isinstance(self.wavelength_has_min         , list): self.wavelength_has_min          = [self.wavelength_has_min         ]
@@ -273,7 +273,7 @@ class OWDiffractionPattern(OWGenericWidget):
 
         if emergency:
             self.filename                    = ["<input file>"]
-            self.is_single_wavelength        = [0]
+            self.is_multiple_wavelength        = [0]
             self.wavelength                  = [0.0826]
             self.wavelength_fixed            = [0]
             self.wavelength_has_min          = [0]
@@ -353,7 +353,7 @@ class OWDiffractionPattern(OWGenericWidget):
             self.twotheta_has_max            = [0]
         else:
             if len(self.filename                   ) == 0: self.filename                    = ["<input file>"]
-            if len(self.is_single_wavelength       ) == 0: self.is_single_wavelength        = [0]
+            if len(self.is_multiple_wavelength       ) == 0: self.is_multiple_wavelength        = [0]
             if len(self.wavelength                 ) == 0: self.wavelength                  = [0.0826]
             if len(self.wavelength_fixed           ) == 0: self.wavelength_fixed            = [0]
             if len(self.wavelength_has_min         ) == 0: self.wavelength_has_min          = [0]
@@ -467,7 +467,7 @@ class OWDiffractionPattern(OWGenericWidget):
                                                             parent=diffraction_pattern_tab,
                                                             index = index,
                                                             filename                    = self.filename[index],
-                                                            is_single_wavelength        = self.is_single_wavelength[index],
+                                                            is_multiple_wavelength        = self.is_multiple_wavelength[index],
                                                             wavelength                  = self.wavelength[index],
                                                             wavelength_fixed            = self.wavelength_fixed[index],
                                                             wavelength_has_min          = self.wavelength_has_min[index],
@@ -832,17 +832,17 @@ class OWDiffractionPattern(OWGenericWidget):
 
     def dumpSettings(self):
         self.dump_filename()
-        self.dump_is_single_wavelength()
+        self.dump_is_multiple_wavelength()
         self.dump_wavelength()
         self.dump_xray_tube_key()
         self.dump_wavelength_2()
         self.dump_wavelength_3()
         self.dump_wavelength_4()
         self.dump_wavelength_5()
-        self.dump_weigth_2()
-        self.dump_weigth_3()
-        self.dump_weigth_4()
-        self.dump_weigth_5()
+        self.dump_weight_2()
+        self.dump_weight_3()
+        self.dump_weight_4()
+        self.dump_weight_5()
         self.dump_twotheta_has_min()
         self.dump_twotheta_min()
         self.dump_twotheta_has_max()
@@ -859,16 +859,16 @@ class OWDiffractionPattern(OWGenericWidget):
         except:
             self.filename = copy.deepcopy(bkp_filename)
 
-    def dump_is_single_wavelength(self):
-        bkp_is_single_wavelength = copy.deepcopy(self.is_single_wavelength)
+    def dump_is_multiple_wavelength(self):
+        bkp_is_multiple_wavelength = copy.deepcopy(self.is_multiple_wavelength)
 
         try:
-            self.is_single_wavelength = []
+            self.is_multiple_wavelength = []
 
             for index in range(len(self.diffraction_pattern_box_array)):
-                self.is_single_wavelength.append(self.diffraction_pattern_box_array[index].is_single_wavelength)
+                self.is_multiple_wavelength.append(self.diffraction_pattern_box_array[index].is_multiple_wavelength)
         except:
-            self.is_single_wavelength = copy.deepcopy(bkp_is_single_wavelength)
+            self.is_multiple_wavelength = copy.deepcopy(bkp_is_multiple_wavelength)
 
     def dump_xray_tube_key(self):
         bkp_xray_tube_key = copy.deepcopy(self.xray_tube_key)
@@ -1283,7 +1283,7 @@ from PyQt5 import QtWidgets
 class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
 
     filename = "<input file>"
-    is_single_wavelength = 1
+    is_multiple_wavelength = 1
     wavelength = 0.0826
     wavelength_fixed = 0
     wavelength_has_min = 0
@@ -1378,7 +1378,7 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
                  parent=None,
                  index = 0,
                  filename = "<input file>",
-                 is_single_wavelength = 0,
+                 is_multiple_wavelength = 0,
                  wavelength = 0.0826,
                  wavelength_fixed = 0,
                  wavelength_has_min = 0,
@@ -1468,7 +1468,7 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
         self.index = index
         
         self.filename                    = filename
-        self.is_single_wavelength        = is_single_wavelength
+        self.is_multiple_wavelength        = is_multiple_wavelength
         self.wavelength                  = wavelength
         self.wavelength_fixed            = wavelength_fixed
         self.wavelength_has_min          = wavelength_has_min
@@ -1570,22 +1570,39 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
 
         orangegui.separator(container)
 
-        orangegui.comboBox(container, self, "is_single_wavelength", label="Incident Radiation", items=["Single Wavelenght", "X-ray Tube"], orientation="horizontal", callback=self.set_is_single_wavelength)
+        orangegui.comboBox(container, self, "is_multiple_wavelength", label="Incident Radiation", items=["Single Wavelenght", "X-ray Tube"], orientation="horizontal", callback=self.set_is_multiple_wavelength)
+
+        self.secondary_box = gui.widgetBox(container, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 35, spacing=0)
+
+        orangegui.comboBox(self.secondary_box, self, "xray_tube_key", label="X-ray Tube Dataset", items=self.get_xray_tube_keys(),
+                           sendSelectedValue=True, orientation="horizontal", callback=self.set_xray_tube_key)
+
+        self.secondary_box_empty = gui.widgetBox(container, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 35, spacing=0)
 
         widget.create_box_in_widget(self, container,  "wavelength", label="\u03BB  [nm]", disable_function=True, add_callback=True)
 
-        self.create_wavelength_boxes(widget, container)
+        self.secondary_box_2 = gui.widgetBox(container, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 35, spacing=0)
+        self.secondary_box_2_empty = gui.widgetBox(container, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 35, spacing=0)
 
-        self.set_is_single_wavelength()
+        self.create_wavelength_boxes()
+
+        self.set_is_multiple_wavelength()
 
         self.is_on_init = False
 
-    def create_wavelength_boxes(self, widget, container):
+    def get_xray_tube_keys(self):
+        items = []
+
+        for key in wavelengths_data.keys():
+            items.append(key)
+
+        return items
+
+    def create_wavelength_boxes(self):
         keys = wavelengths_data.keys()
 
         for key in keys:
-            print("KEY", key)
-            secondary_wavelengths_box = gui.widgetBox(container, "Secondary Wavelengths", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 45, spacing=0)
+            secondary_wavelengths_box = gui.widgetBox(self.secondary_box_2, "Secondary Wavelengths", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 45, spacing=0)
 
             self.secondary_wavelengths_boxes[key] = secondary_wavelengths_box
 
@@ -1594,38 +1611,71 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
                 if not wavelenght.is_principal:
                     var_wl = "wavelength_" + str(index)
                     var_we = "weight_" + str(index)
-                    label = "\u03BB" + "_" + str(index) + "  [nm]"
+                    label_wl = "\u03BB" + " " + str(index) + "  [nm]"
+                    label_we = "weight " + str(index)
 
-                    widget.create_box_in_widget(self, secondary_wavelengths_box,  var_wl, label=label, disable_function=True, label_width=55)
-                    widget.create_box_in_widget(self, secondary_wavelengths_box,  var_we, disable_function=False, label_width=55)
+                    self.widget.create_box_in_widget(self, secondary_wavelengths_box,  var_wl, label=label_wl, disable_function=True, label_width=55)
+                    self.widget.create_box_in_widget(self, secondary_wavelengths_box,  var_we, label=label_we, label_width=55)
 
                     index += 1
 
 
+    def set_xray_tube_key(self):
+        gui.clearLayout(self.secondary_box_2.layout())
 
-    def set_is_single_wavelength(self):
-        if self.is_single_wavelength == 0:
-            for key in self.secondary_wavelengths_boxes.keys():
-                self.secondary_wavelengths_boxes[key].setVisible(False)
-        else:
-            for key in self.secondary_wavelengths_boxes.keys():
-                self.secondary_wavelengths_boxes[key].setVisible(key==self.xray_tube_key)
+        for key in self.secondary_wavelengths_boxes.keys():
+            if key==self.xray_tube_key:
+                self.secondary_box_2.layout().addWidget(self.secondary_wavelengths_boxes[key])
 
+        if self.xray_tube_key in wavelengths_data.keys():
             index = 2
             for wavelenght in wavelengths_data[self.xray_tube_key]:
                 if not wavelenght.is_principal:
                     var_wl = "wavelength_" + str(index)
                     var_we = "weight_" + str(index)
 
-                    self.widget.populate_fields_in_widget(self, var_wl, FitParameter(value=wavelenght.wavelength, fixed=True))
-                    self.widget.populate_fields_in_widget(self, var_we, FitParameter(value=wavelenght.weight, fixed=True))
+                    self.widget.populate_fields_in_widget(self, var_wl, FitParameter(value=wavelenght.wavelength, fixed=True), value_only=False)
+                    self.widget.populate_fields_in_widget(self, var_we, FitParameter(value=wavelenght.weight, fixed=True), value_only=False)
 
                     index += 1
                 else:
-                    self.widget.populate_fields_in_widget(self, "wavelength", FitParameter(value=wavelenght.wavelength, fixed=True))
+                    self.widget.populate_fields_in_widget(self, "wavelength", FitParameter(value=wavelenght.wavelength, fixed=True), value_only=False)
 
         if not self.is_on_init:
-            self.widget.dump_is_single_wavelength()
+            self.widget.dump_xray_tube_key()
+            self.widget.dump_wavelength_2()
+            self.widget.dump_wavelength_3()
+            self.widget.dump_wavelength_4()
+            self.widget.dump_wavelength_5()
+            self.widget.dump_weight_2()
+            self.widget.dump_weight_3()
+            self.widget.dump_weight_4()
+            self.widget.dump_weight_5()
+        
+    def set_is_multiple_wavelength(self):
+        if self.is_multiple_wavelength == 0:
+            self.secondary_box.setVisible(False)
+            self.secondary_box_2.setVisible(False)
+            self.secondary_box_empty.setVisible(True)
+            self.secondary_box_2_empty.setVisible(True)
+            self.widget.populate_fields_in_widget(self, "wavelength_2", FitParameter(value=0.0, fixed=True), value_only=False)
+            self.widget.populate_fields_in_widget(self, "weight_2", FitParameter(value=0.0, fixed=True), value_only=False)
+            self.widget.populate_fields_in_widget(self, "wavelength_3", FitParameter(value=0.0, fixed=True), value_only=False)
+            self.widget.populate_fields_in_widget(self, "weight_3", FitParameter(value=0.0, fixed=True), value_only=False)
+            self.widget.populate_fields_in_widget(self, "wavelength_4", FitParameter(value=0.0, fixed=True), value_only=False)
+            self.widget.populate_fields_in_widget(self, "weight_4", FitParameter(value=0.0, fixed=True), value_only=False)
+            self.widget.populate_fields_in_widget(self, "wavelength_5", FitParameter(value=0.0, fixed=True), value_only=False)
+            self.widget.populate_fields_in_widget(self, "weight_5", FitParameter(value=0.0, fixed=True), value_only=False)
+        else:
+            self.secondary_box.setVisible(True)
+            self.secondary_box_empty.setVisible(False)
+            self.secondary_box_2.setVisible(True)
+            self.secondary_box_2_empty.setVisible(False)
+
+            self.set_xray_tube_key()
+        
+        if not self.is_on_init:
+            self.widget.dump_is_multiple_wavelength()
 
     def set_twotheta_min(self):
         self.twotheta_has_min = 1
@@ -1670,8 +1720,27 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
                                                                                                                                                "wavelength",
                                                                                                                                                DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"),
                                                                                                       limits)
+            #self.wavelength = self.diffraction_pattern.wavelength.value
 
-            self.wavelength = self.diffraction_pattern.wavelength.value
+            if self.is_multiple_wavelength == 1:
+                secondary_wavelengths = []
+                secondary_wavelengths_weights = []
+
+                index = 2
+                for wavelenght in wavelengths_data[self.xray_tube_key]:
+                    if not wavelenght.is_principal:
+                        var_wl = "wavelength_" + str(index)
+                        var_we = "weight_" + str(index)
+
+                        secondary_wavelengths.append(self.widget.populate_parameter_in_widget(self,
+                                                                                              var_wl,
+                                                                                              DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"))
+                        secondary_wavelengths_weights.append(self.widget.populate_parameter_in_widget(self,
+                                                                                                      var_we,
+                                                                                                      DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"))
+                        index += 1
+
+                self.diffraction_pattern.set_multiple_wavelengths(secondary_wavelengths, secondary_wavelengths_weights)
         except Exception as e:
             QMessageBox.critical(self, "Error during load pattern " + str(self.index+1),
                                  str(e),

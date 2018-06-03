@@ -178,7 +178,7 @@ class DiffractionPattern(FitParametersList):
             for secondary_wavelength, secondary_wavelength_weigth in zip(self.secondary_wavelengths,
                                                                          self.secondary_wavelengths_weights):
                 secondary_wavelengths.append(secondary_wavelength.duplicate())
-                secondary_wavelengths_weights.append(secondary_wavelengths_weights.duplicate())
+                secondary_wavelengths_weights.append(secondary_wavelength_weigth.duplicate())
 
             diffraction_pattern.set_multiple_wavelengths(secondary_wavelengths=secondary_wavelengths,
                                                          secondary_wavelengths_weights=secondary_wavelengths_weights)
