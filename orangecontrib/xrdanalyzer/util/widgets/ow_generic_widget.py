@@ -138,20 +138,22 @@ class OWGenericWidget(widget.OWWidget):
                 box_fixed.setVisible(False)
                 le_var.setVisible(False)
                 box_value.setFixedWidth(5)
+                box_function.setVisible(True)
                 box_function_value.setVisible(True)
             elif fixed:
                 setattr(widget, var + "_function", 0)
 
                 box_min_max.setVisible(False)
+                box_fixed.setVisible(True)
                 le_var.setVisible(True)
                 box_value.setFixedWidth(100)
                 box_function.setVisible(False)
                 box_function_value.setVisible(False)
             else:
                 box_min_max.setVisible(True)
+                box_fixed.setVisible(True)
                 le_var.setVisible(True)
                 box_value.setFixedWidth(100)
-                box_fixed.setVisible(True)
                 box_function.setVisible(True)
                 box_function_value.setVisible(False)
 
@@ -216,7 +218,7 @@ class OWGenericWidget(widget.OWWidget):
             return FitParameter(parameter_name=parameter_prefix + parameter_name, value=getattr(widget, parameter_name), boundary=boundary)
 
     def populate_fields(self, var, parameter, value_only=True):
-        self.populate_fields_in_widget(self, var, parameter, value_only=True)
+        self.populate_fields_in_widget(self, var, parameter, value_only)
         
     @classmethod
     def populate_fields_in_widget(cls, widget, var, parameter, value_only=True):
@@ -228,20 +230,21 @@ class OWGenericWidget(widget.OWWidget):
             setattr(widget, var + "_function_value", parameter.function_value if parameter.function else "")
             setattr(widget, var + "_fixed", 1 if parameter.fixed else 0)
 
-            if not parameter.boundary is None:
-                if parameter.boundary.min_value != PARAM_HWMIN:
-                    setattr(widget, var + "_has_min", 1)
-                    setattr(widget, var + "_min", round(parameter.boundary.min_value, 6))
-                else:
-                    setattr(widget, var + "_has_min", 0)
-                    setattr(widget, var + "_min", 0.0)
+            if parameter.is_variable():
+                if not parameter.boundary is None:
+                    if parameter.boundary.min_value != PARAM_HWMIN:
+                        setattr(widget, var + "_has_min", 1)
+                        setattr(widget, var + "_min", round(parameter.boundary.min_value, 6))
+                    else:
+                        setattr(widget, var + "_has_min", 0)
+                        setattr(widget, var + "_min", 0.0)
 
-                if parameter.boundary.max_value != PARAM_HWMAX:
-                    setattr(widget, var + "_has_max", 1)
-                    setattr(widget, var + "_max", round(parameter.boundary.max_value, 6))
-                else:
-                    setattr(widget, var + "_has_max", 0)
-                    setattr(widget, var + "_max", 0.0)
+                    if parameter.boundary.max_value != PARAM_HWMAX:
+                        setattr(widget, var + "_has_max", 1)
+                        setattr(widget, var + "_max", round(parameter.boundary.max_value, 6))
+                    else:
+                        setattr(widget, var + "_has_max", 0)
+                        setattr(widget, var + "_max", 0.0)
 
             widget.parameter_functions[var]()
 

@@ -28,7 +28,7 @@ class OWContrastFactor(OWGenericWidget):
 
     name = "Contrast Factor Calculator"
     description = "Contrast Factor Calculator"
-    icon = "icons/aaaaaaaaaa.png"
+    icon = "icons/contrast_factor.png"
     priority = 10
 
     want_main_area = False
