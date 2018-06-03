@@ -368,17 +368,10 @@ class OWFitter(OWGenericWidget):
                 if self.fit_running: raise RuntimeError("Fit is Running: Input data are not accepted!")
 
                 if self.is_incremental == 1 and not self.fit_global_parameters is None:
-                    if not self.fit_global_parameters.is_compatibile(data):
-                        QMessageBox.warning(self, "Incompatible Parameters",
-                                             "Incremental Fit is not possibile!\n\nReceived parameters are incompatibile with the previous ones.\n" +
-                                             "Only a new fit can be calculated (and previous results will be lost)",
-                                             QMessageBox.Ok)
+                    if not ConfirmDialog.confirmed(self, message="Warning: Fitter is in set in incremental mode, but received fit parameters will replace the already fitted ones. Do you accept them?"):
+                        return
 
-                        self.is_incremental = 0
-                        self.current_iteration = 0
-
-                if self.is_incremental == 0:
-                    self.current_iteration = 0
+                self.current_iteration = 0
 
                 self.fit_global_parameters = data.duplicate()
 
