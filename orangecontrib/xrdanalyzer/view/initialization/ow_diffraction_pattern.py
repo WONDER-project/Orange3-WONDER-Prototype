@@ -8,7 +8,7 @@ from silx.gui.plot.PlotWindow import PlotWindow
 
 from Orange.widgets.settings import Setting
 from Orange.widgets import gui as orangegui
-import orangecanvas.resources as resources
+from Orange.canvas import resources
 
 from orangecontrib.xrdanalyzer.util.widgets.ow_generic_widget import OWGenericWidget
 from orangecontrib.xrdanalyzer.util.gui.gui_utility import gui, ConfirmDialog
