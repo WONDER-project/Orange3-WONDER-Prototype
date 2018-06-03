@@ -644,28 +644,35 @@ def atomic_scattering_factor(s, element):
     return f_s + c
 
 def structure_factor(s, formula, h, k, l, symmetry=Symmetry.FCC):
-    hkl = [h, k ,l]
-    cell = get_cell(symmetry)
-
     elements = ChemicalFormulaParser.parse_formula(formula)
-    total_weight = 0.0
-    total_structure_factor = 0.0
 
-    for element in elements:
-        weight = element._n_atoms
+    if len(elements) == 1: #TODO: this is valid for Cubic materials only
+        if symmetry == Symmetry.FCC:
+            return 4*atomic_scattering_factor(s, elements[0]._element)
+        elif symmetry == Symmetry.BCC:
+            return 2*atomic_scattering_factor(s, elements[0]._element)
+        elif symmetry == Symmetry.SIMPLE_CUBIC:
+            return atomic_scattering_factor(s, elements[0]._element)
+    else:
+        total_weight = 0.0
+        total_structure_factor = 0.0
+        cell = get_cell(symmetry)
 
-        element_structure_factor = 0.0
+        for element in elements:
+            weight = element._n_atoms
 
-        for atom in cell:
-            element_structure_factor += atomic_scattering_factor(s, element._element) * numpy.exp(2 * numpy.pi * 1j * (numpy.dot(atom, hkl)))
-        element_structure_factor *= weight
+            element_structure_factor = 0.0
 
-        total_weight += weight
-        total_structure_factor += element_structure_factor
+            for atom in cell:
+                element_structure_factor += atomic_scattering_factor(s, element._element) * numpy.exp(2 * numpy.pi * 1j * (numpy.dot(atom, [h, k ,l])))
+            element_structure_factor *= weight
 
-    total_structure_factor /= total_weight
+            total_weight += weight
+            total_structure_factor += element_structure_factor
 
-    return total_structure_factor
+        total_structure_factor /= total_weight
+
+        return total_structure_factor
 
 def get_cell(symmetry=Symmetry.FCC):
     if symmetry == Symmetry.SIMPLE_CUBIC:

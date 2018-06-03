@@ -113,9 +113,9 @@ class OWDebyeWaller(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
-                self.use_debye_waller_factor = 1 if not self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].debye_waller_factor is None else 0
+                if not self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].debye_waller_factor is None:
 
-                if self.use_debye_waller_factor == 1:
+                    self.use_debye_waller_factor = 1
                     # CONVERSIONE from nm-2 to A-2
                     debye_waller_factor = self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].debye_waller_factor*100
 
