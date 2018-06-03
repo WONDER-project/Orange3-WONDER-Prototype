@@ -103,14 +103,14 @@ def fit_function_reciprocal(s, fit_global_parameters, diffraction_pattern_index 
 
         if not diffraction_pattern.is_single_wavelength:
             principal_wavelength = diffraction_pattern.wavelength
-
-            I *= diffraction_pattern.get_principal_wavelenght_weight()
+            I_scaled = I*diffraction_pattern.get_principal_wavelenght_weight()
 
             for secondary_wavelength, secondary_wavelength_weigth in zip(diffraction_pattern.secondary_wavelengths,
                                                                          diffraction_pattern.secondary_wavelengths_weights):
                 s_secondary = s * secondary_wavelength.value/principal_wavelength.value
+                I_scaled += Utilities.merge_functions([[s_secondary, I*secondary_wavelength_weigth.value]], s)
 
-                I += Utilities.merge_functions([s_secondary, I*secondary_wavelength_weigth], s)
+            I = I_scaled
 
         return I
     else:

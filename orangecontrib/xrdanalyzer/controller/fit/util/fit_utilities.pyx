@@ -48,13 +48,10 @@ class Utilities:
         # x step must be the same for all functions
         I = numpy.zeros(len(s))
 
-        #from scipy.interpolate import spline
-        for function in list_of_pairs:
-            #I += spline(function[0], function[1], s, order=3)
-            I += numpy.interp(s, function[0], function[1])
+        for pairs in list_of_pairs:
+            I += numpy.interp(s, pairs[0], pairs[1])
 
         return I
-
 
 
 
