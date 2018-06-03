@@ -93,7 +93,7 @@ class OWDiffractionPattern(OWGenericWidget):
 
     filename = Setting(["<input file>"])
 
-    is_multiple_wavelength = Setting(1)
+    is_multiple_wavelength = Setting([0])
     
     wavelength = Setting([0.0826])
     wavelength_fixed = Setting([0])
@@ -192,7 +192,7 @@ class OWDiffractionPattern(OWGenericWidget):
     # TO PRESERVE RETRO-COMPATIBILITY
     def fix_input(self, emergency=False):
         if not isinstance(self.filename                   , list): self.filename                    = [self.filename                   ]
-        if not isinstance(self.is_multiple_wavelength       , list): self.is_multiple_wavelength        = [self.is_multiple_wavelength       ]
+        if not isinstance(self.is_multiple_wavelength     , list): self.is_multiple_wavelength      = [self.is_multiple_wavelength     ]
         if not isinstance(self.wavelength                 , list): self.wavelength                  = [self.wavelength                 ]
         if not isinstance(self.wavelength_fixed           , list): self.wavelength_fixed            = [self.wavelength_fixed           ]
         if not isinstance(self.wavelength_has_min         , list): self.wavelength_has_min          = [self.wavelength_has_min         ]
@@ -273,7 +273,7 @@ class OWDiffractionPattern(OWGenericWidget):
 
         if emergency:
             self.filename                    = ["<input file>"]
-            self.is_multiple_wavelength        = [0]
+            self.is_multiple_wavelength      = [0]
             self.wavelength                  = [0.0826]
             self.wavelength_fixed            = [0]
             self.wavelength_has_min          = [0]
@@ -353,7 +353,7 @@ class OWDiffractionPattern(OWGenericWidget):
             self.twotheta_has_max            = [0]
         else:
             if len(self.filename                   ) == 0: self.filename                    = ["<input file>"]
-            if len(self.is_multiple_wavelength       ) == 0: self.is_multiple_wavelength        = [0]
+            if len(self.is_multiple_wavelength     ) == 0: self.is_multiple_wavelength      = [0]
             if len(self.wavelength                 ) == 0: self.wavelength                  = [0.0826]
             if len(self.wavelength_fixed           ) == 0: self.wavelength_fixed            = [0]
             if len(self.wavelength_has_min         ) == 0: self.wavelength_has_min          = [0]
@@ -1283,7 +1283,7 @@ from PyQt5 import QtWidgets
 class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
 
     filename = "<input file>"
-    is_multiple_wavelength = 1
+    is_multiple_wavelength = 0
     wavelength = 0.0826
     wavelength_fixed = 0
     wavelength_has_min = 0
