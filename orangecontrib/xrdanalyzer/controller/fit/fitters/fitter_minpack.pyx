@@ -381,7 +381,7 @@ class FitterMinpack(FitterInterface):
 
         for index in range(len(fit_global_parameters.fit_initialization.diffraction_patterns)):
             diffraction_pattern = fit_global_parameters.fit_initialization.diffraction_patterns[index]
-            diffraction_pattern.wavelength.set_value(fitted_parameters[index].value)
+            diffraction_pattern.wavelength.set_value(fitted_parameters[(0 if last_index < 0 else last_index) + index].value)
 
             last_index += 1
 
@@ -518,7 +518,7 @@ class FitterMinpack(FitterInterface):
 
         for index in range(len(fit_global_parameters.fit_initialization.diffraction_patterns)):
             diffraction_pattern = fit_global_parameters.fit_initialization.diffraction_patterns[index]
-            diffraction_pattern.wavelength.error = errors[index]
+            diffraction_pattern.wavelength.error = errors[(0 if last_index < 0 else last_index) + index]
 
             last_index += 1
 

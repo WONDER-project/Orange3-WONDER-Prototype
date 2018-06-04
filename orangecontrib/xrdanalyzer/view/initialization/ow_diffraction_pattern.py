@@ -1614,7 +1614,7 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
                     label_wl = "\u03BB" + " " + str(index) + "  [nm]"
                     label_we = "weight " + str(index)
 
-                    self.widget.create_box_in_widget(self, secondary_wavelengths_box,  var_wl, label=label_wl, disable_function=True, label_width=55)
+                    self.widget.create_box_in_widget(self, secondary_wavelengths_box,  var_wl, label=label_wl, label_width=55)
                     self.widget.create_box_in_widget(self, secondary_wavelengths_box,  var_we, label=label_we, label_width=55)
 
                     index += 1
@@ -1628,16 +1628,16 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
                 self.secondary_box_2.layout().addWidget(self.secondary_wavelengths_boxes[key])
 
         if self.xray_tube_key in wavelengths_data.keys():
-            index = 2
+            secondary_index = 2
             for wavelenght in wavelengths_data[self.xray_tube_key]:
                 if not wavelenght.is_principal:
-                    var_wl = "wavelength_" + str(index)
-                    var_we = "weight_" + str(index)
+                    var_wl = "wavelength_" + str(secondary_index)
+                    var_we = "weight_" + str(secondary_index)
 
                     self.widget.populate_fields_in_widget(self, var_wl, FitParameter(value=wavelenght.wavelength, fixed=True), value_only=False)
                     self.widget.populate_fields_in_widget(self, var_we, FitParameter(value=wavelenght.weight, fixed=True), value_only=False)
 
-                    index += 1
+                    secondary_index += 1
                 else:
                     self.widget.populate_fields_in_widget(self, "wavelength", FitParameter(value=wavelenght.wavelength, fixed=True), value_only=False)
 
@@ -1726,11 +1726,11 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
                 secondary_wavelengths = []
                 secondary_wavelengths_weights = []
 
-                index = 2
+                secondary_index = 2
                 for wavelenght in wavelengths_data[self.xray_tube_key]:
                     if not wavelenght.is_principal:
-                        var_wl = "wavelength_" + str(index)
-                        var_we = "weight_" + str(index)
+                        var_wl = "wavelength_" + str(secondary_index)
+                        var_we = "weight_" + str(secondary_index)
 
                         secondary_wavelengths.append(self.widget.populate_parameter_in_widget(self,
                                                                                               var_wl,
@@ -1738,7 +1738,7 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
                         secondary_wavelengths_weights.append(self.widget.populate_parameter_in_widget(self,
                                                                                                       var_we,
                                                                                                       DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"))
-                        index += 1
+                        secondary_index += 1
 
                 self.diffraction_pattern.set_multiple_wavelengths(secondary_wavelengths, secondary_wavelengths_weights)
         except Exception as e:
