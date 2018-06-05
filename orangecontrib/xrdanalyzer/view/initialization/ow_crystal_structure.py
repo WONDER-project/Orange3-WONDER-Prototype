@@ -190,15 +190,15 @@ class OWCrystalStructure(OWGenericWidget):
 
             self.crystal_structure_box_array.append(crystal_structure_box)
 
-
-
     def send_fit_initialization(self):
         try:
             if not self.fit_global_parameters is None:
                 self.dumpSettings()
-    
+
+                self.check_congruence()
+
                 self.fit_global_parameters.fit_initialization.crystal_structures = []
-                for index in range(len(self.a)):
+                for index in range(len(self.crystal_structure_box_array)):
                     self.crystal_structure_box_array[index].append_fit_initialization()
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
@@ -209,6 +209,14 @@ class OWCrystalStructure(OWGenericWidget):
                                  QMessageBox.Ok)
 
             if self.IS_DEVELOP: raise e
+
+    def check_congruence(self):
+        use_structure_first = self.crystal_structure_box_array[0].use_structure
+
+        for index in range(1, len(self.crystal_structure_box_array)):
+            if use_structure_first != self.crystal_structure_box_array[index].use_structure:
+                raise Exception("Incongruity: all the Crystal Structures must have the same setup of the structural model")
+
 
     def set_data(self, data):
         if not data is None:

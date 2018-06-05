@@ -157,12 +157,14 @@ class DiffractionPattern(FitParametersList):
         return twotheta, intensity, error, s
 
     def get_parameters(self):
-        parameters = super(DiffractionPattern, self).get_parameters()
+        parameters = [self.wavelength]
 
         if not self.is_single_wavelength:
             for secondary_wavelength, secondary_wavelength_weigth in zip(self.secondary_wavelengths,
                                                                          self.secondary_wavelengths_weights):
                 parameters.extend([secondary_wavelength, secondary_wavelength_weigth])
+
+
 
         return parameters
 
@@ -182,6 +184,7 @@ class DiffractionPattern(FitParametersList):
 
             diffraction_pattern.set_multiple_wavelengths(secondary_wavelengths=secondary_wavelengths,
                                                          secondary_wavelengths_weights=secondary_wavelengths_weights)
+
         return diffraction_pattern
 
     def to_text(self):
