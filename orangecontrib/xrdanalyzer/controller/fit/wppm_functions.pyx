@@ -38,6 +38,17 @@ def fit_function_direct(twotheta, fit_global_parameters, diffraction_pattern_ind
                                 fit_global_parameters,
                                 diffraction_pattern_index)
 
+
+    # POLARIZATION FACTOR --------------------------------------------------------------------------------------
+
+    if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
+        thermal_polarization_parameters = fit_global_parameters.fit_initialization.thermal_polarization_parameters[0 if len(fit_global_parameters.fit_initialization.thermal_polarization_parameters) == 1 else diffraction_pattern_index]
+
+        if thermal_polarization_parameters.use_polarization_factor:
+            twotheta_mono = thermal_polarization_parameters.twotheta_mono
+
+            I *= polarization_factor(numpy.radians(twotheta), None if twotheta_mono is None else numpy.radians(twotheta_mono))
+
     # ADD BACKGROUNDS  ---------------------------------------------------------------------------------------------
 
     if not fit_global_parameters.background_parameters is None:
@@ -388,13 +399,13 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
                 elif key == ZeroError.__name__:
                     s += Utilities.s(shift_parameters.shift.value/2, wavelength)
 
-    # LORENTZ/POLARIZATION FACTOR --------------------------------------------------------------------------------------
+    # LORENTZ FACTOR --------------------------------------------------------------------------------------
 
     if not fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
         thermal_polarization_parameters = fit_global_parameters.fit_initialization.thermal_polarization_parameters[0 if len(fit_global_parameters.fit_initialization.thermal_polarization_parameters) == 1 else diffraction_pattern_index]
 
-        if thermal_polarization_parameters.use_lorentz_polarization_factor:
-            I *= lorentz_polarization_factor(s, s_hkl)
+        if thermal_polarization_parameters.use_lorentz_factor:
+            I *= lorentz_factor(s, s_hkl)
 
     return s, I
 
@@ -415,8 +426,14 @@ from Orange.canvas import resources
 def debye_waller(s, B):
     return numpy.exp(-0.5*B*(s**2)) # it's the exp(-2M) = exp(-Bs^2/2)
 
-def lorentz_polarization_factor(s, s_hkl):
+def lorentz_factor(s, s_hkl):
     return 1/(s*s_hkl)
+
+def polarization_factor(twotheta, twotheta_mono):
+    if twotheta_mono is None or twotheta_mono == 0.0:
+        return 0.5*(1 + (numpy.cos(twotheta)**2))
+    else:
+        return 0.5*(1 - (numpy.cos(twotheta_mono)**2)*(numpy.cos(twotheta)**2))
 
 ######################################################################
 # SIZE
