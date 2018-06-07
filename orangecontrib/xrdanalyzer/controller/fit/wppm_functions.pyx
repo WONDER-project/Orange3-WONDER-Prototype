@@ -405,7 +405,8 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
         thermal_polarization_parameters = fit_global_parameters.fit_initialization.thermal_polarization_parameters[0 if len(fit_global_parameters.fit_initialization.thermal_polarization_parameters) == 1 else diffraction_pattern_index]
 
         if thermal_polarization_parameters.use_lorentz_factor:
-            I *= lorentz_factor(s, s_hkl)
+            #I *= lorentz_factor(s, s_hkl)
+            I *= lorentz_factor_simplified(s_hkl)
 
     return s, I
 
@@ -428,6 +429,9 @@ def debye_waller(s, B):
 
 def lorentz_factor(s, s_hkl):
     return 1/(s*s_hkl)
+
+def lorentz_factor_simplified(s_hkl):
+    return 1/(s_hkl**2)
 
 def polarization_factor(twotheta, twotheta_mono):
     if twotheta_mono is None or twotheta_mono == 0.0:

@@ -468,11 +468,12 @@ class OWFitter(OWGenericWidget):
             if change_color: table_item.setBackground(color)
             table_widget.setItem(row_index, column_index, table_item)
 
-    def get_conversion_factor(self, parameter_name):
-        if parameter_name == ThermalPolarizationParameters.get_parameters_prefix() + "debye_waller_factor":
-            return 100.0 # to A-2
-        else:
-            return 1.0
+    def analyze_parameter(self, parameter):
+        if parameter.parameter_name == ThermalPolarizationParameters.get_parameters_prefix() + "debye_waller_factor":
+            parameter = parameter.duplicate()
+            parameter.rescale(100) # from nm-2 to A-2
+
+        return parameter
 
     def populate_table(self, table_widget, parameters):
         table_widget.clear()
@@ -486,6 +487,7 @@ class OWFitter(OWGenericWidget):
 
         for index in range(0, len(parameters)):
             parameter = parameters[index]
+            parameter = self.analyze_parameter(parameter)
             change_color = not parameter.is_variable()
 
             if change_color:
@@ -500,10 +502,8 @@ class OWFitter(OWGenericWidget):
                                 parameter.parameter_name,
                                 Qt.AlignLeft, change_color, color)
 
-            factor = self.get_conversion_factor(parameter.parameter_name)
-
             self.add_table_item(table_widget, index, 1,
-                                str(round(0.0 if parameter.value is None else parameter.value*factor, 6)),
+                                str(round(0.0 if parameter.value is None else parameter.value, 6)),
                                 Qt.AlignRight, change_color, color)
 
             if (not parameter.is_variable()) or parameter.boundary is None: text_2 = text_3 = ""
@@ -643,11 +643,11 @@ class OWFitter(OWGenericWidget):
             self.plot_size.addCurve(x, y, legend="distribution", color="blue")
 
         if not self.fitted_fit_global_parameters.strain_parameters is None:
-            x, y = self.fitted_fit_global_parameters.strain_parameters[0].get_warren_plot(1, 0, 0)
+            x, y = self.fitted_fit_global_parameters.strain_parameters[0].get_warren_plot(1, 0, 0, L_max=self.D_max)
             self.plot_strain.addCurve(x, y, legend="h00", color='blue')
-            x, y = self.fitted_fit_global_parameters.strain_parameters[0].get_warren_plot(1, 1, 1)
+            x, y = self.fitted_fit_global_parameters.strain_parameters[0].get_warren_plot(1, 1, 1, L_max=self.D_max)
             self.plot_strain.addCurve(x, y, legend="hhh", color='red')
-            x, y = self.fitted_fit_global_parameters.strain_parameters[0].get_warren_plot(1, 1, 0)
+            x, y = self.fitted_fit_global_parameters.strain_parameters[0].get_warren_plot(1, 1, 0, L_max=self.D_max)
             self.plot_strain.addCurve(x, y, legend="hh0", color='green')
 
 ##########################################

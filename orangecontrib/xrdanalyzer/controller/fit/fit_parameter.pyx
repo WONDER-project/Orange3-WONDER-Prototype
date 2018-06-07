@@ -66,6 +66,12 @@ class FitParameter:
         self.value = value
         self.check_value()
 
+    def rescale(self, scaling_factor = 100):
+        if not self.value is None: self.value *= scaling_factor
+        if not self.boundary is None:
+            if self.boundary.min_value != PARAM_HWMIN: self.boundary.min_value *= scaling_factor
+            if self.boundary.max_value != PARAM_HWMAX: self.boundary.max_value *= scaling_factor
+
     def check_value(self):
         if self.value is None: raise ValueError("Parameter Value cannot be None")
         if self.function:

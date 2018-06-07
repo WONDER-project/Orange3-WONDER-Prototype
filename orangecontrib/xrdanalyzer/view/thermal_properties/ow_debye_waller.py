@@ -90,9 +90,7 @@ class OWDebyeWaller(OWGenericWidget):
 
                 if send_data:
                     debye_waller_factor  = None if self.use_debye_waller_factor==0 else self.populate_parameter("debye_waller_factor", ThermalPolarizationParameters.get_parameters_prefix())
-
-                    # CONVERSIONE from A-2 to nm-2
-                    if not debye_waller_factor is None: debye_waller_factor.value /= 100
+                    if not debye_waller_factor is None: debye_waller_factor.rescale(0.01) # CONVERSIONE from A-2 to nm-2
 
                     if self.fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
                         self.fit_global_parameters.fit_initialization.thermal_polarization_parameters = [ThermalPolarizationParameters(debye_waller_factor=debye_waller_factor)]
@@ -116,8 +114,9 @@ class OWDebyeWaller(OWGenericWidget):
                 if not self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].debye_waller_factor is None:
 
                     self.use_debye_waller_factor = 1
-                    # CONVERSIONE from nm-2 to A-2
-                    debye_waller_factor = self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].debye_waller_factor*100
+
+                    debye_waller_factor = self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].debye_waller_factor.duplicate()
+                    debye_waller_factor.rescale(100) # CONVERSIONE from nm-2 to A-2
 
                     self.populate_fields("debye_waller_factor", debye_waller_factor)
 
