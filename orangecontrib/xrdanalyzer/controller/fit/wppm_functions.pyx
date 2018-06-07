@@ -437,7 +437,7 @@ def polarization_factor(twotheta, twotheta_mono):
     if twotheta_mono is None or twotheta_mono == 0.0:
         return 0.5*(1 + (numpy.cos(twotheta)**2))
     else:
-        return 0.5*(1 - (numpy.cos(twotheta_mono)**2)*(numpy.cos(twotheta)**2))
+        return 0.5*(1 + (numpy.cos(twotheta_mono)**2)*(numpy.cos(twotheta)**2))
 
 ######################################################################
 # SIZE
@@ -658,7 +658,7 @@ def atomic_scattering_factor(s, element):
         a = ab[index][0]
         b = ab[index][1]
 
-        f_s += a*numpy.exp(-b*(s_angstrom**2))
+        f_s += a*numpy.exp(-b*((0.5*s_angstrom)**2))
 
     # TODO: AGGIUNGERE DFi e DFii
 

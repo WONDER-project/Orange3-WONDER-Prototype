@@ -638,7 +638,7 @@ class OWFitter(OWGenericWidget):
             if self.current_iteration <= 1: #TO BE SURE...
                 x, y, self.D_max = self.fitted_fit_global_parameters.size_parameters[0].get_distribution()
             else:
-                x, y, self.D_max = self.fitted_fit_global_parameters.size_parameters[0].get_distribution(auto=False, D_max=self.D_max)
+                x, y, self.D_max = self.fitted_fit_global_parameters.size_parameters[0].get_distribution(D_max=self.D_max)
 
             self.plot_size.addCurve(x, y, legend="distribution", color="blue")
 
