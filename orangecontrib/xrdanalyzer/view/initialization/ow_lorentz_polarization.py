@@ -14,11 +14,11 @@ from orangecontrib.xrdanalyzer import is_recovery
 if not is_recovery:
     from orangecontrib.xrdanalyzer.util import congruence
     from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-    from orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters import ThermalPolarizationParameters
+    from orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters import ThermalPolarizationParameters, Beampath
 else:
     from orangecontrib.xrdanalyzer.recovery.util import congruence
     from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_global_parameters import FitGlobalParameters
-    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.thermal_polarization_parameters import ThermalPolarizationParameters
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.thermal_polarization_parameters import ThermalPolarizationParameters, Beampath
 
 class OWLorentzPolarization(OWGenericWidget):
 
@@ -31,6 +31,8 @@ class OWLorentzPolarization(OWGenericWidget):
 
     use_lorentz_factor = Setting(1)
     use_polarization_factor = Setting(0)
+    degree_of_polarization = Setting(0.0)
+    beampath = Setting(Beampath.PRIMARY)
     use_twotheta_mono = Setting(1)
     twotheta_mono = Setting(28.443)
 
@@ -42,7 +44,7 @@ class OWLorentzPolarization(OWGenericWidget):
 
         main_box = gui.widgetBox(self.controlArea,
                                  "Lorentz-Polarization Factors Setting", orientation="vertical",
-                                 width=self.CONTROL_AREA_WIDTH - 10, height=300)
+                                 width=self.CONTROL_AREA_WIDTH - 10, height=400)
 
         button_box = gui.widgetBox(main_box,
                                    "", orientation="horizontal",
@@ -54,23 +56,28 @@ class OWLorentzPolarization(OWGenericWidget):
                             "Lorentz-Polarization Factors", orientation="vertical",
                             width=self.CONTROL_AREA_WIDTH - 30)
 
-        orangegui.comboBox(box, self, "use_lorentz_factor", label="Add Lorentz Factor", items=["No", "Yes"], labelWidth=250, orientation="horizontal")
+        orangegui.comboBox(box, self, "use_lorentz_factor", label="Add Lorentz Factor", items=["No", "Yes"], labelWidth=300, orientation="horizontal")
 
         orangegui.separator(box)
 
-        orangegui.comboBox(box, self, "use_polarization_factor", label="Add Polarization Factor", items=["No", "Yes"], labelWidth=250,
+        orangegui.comboBox(box, self, "use_polarization_factor", label="Add Polarization Factor", items=["No", "Yes"], labelWidth=300,
                            orientation="horizontal", callback=self.set_Polarization)
 
-        self.polarization_box = gui.widgetBox(box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 30, height=70)
-        self.polarization_box_empty = gui.widgetBox(box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 30, height=70)
+        self.polarization_box = gui.widgetBox(box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 50, height=200)
+        self.polarization_box_empty = gui.widgetBox(box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 50, height=200)
 
-        orangegui.comboBox(self.polarization_box, self, "use_twotheta_mono", label="Use Monochromator", items=["No", "Yes"], labelWidth=250,
+        gui.lineEdit(self.polarization_box, self, "degree_of_polarization", "Deg. Pol. (0\u2264Q\u22641)", labelWidth=300, valueType=float, validator=QDoubleValidator())
+
+        orangegui.comboBox(self.polarization_box, self, "use_twotheta_mono", label="Use Monochromator", items=["No", "Yes"], labelWidth=300,
                            orientation="horizontal", callback=self.set_Monochromator)
 
-        self.monochromator_box = gui.widgetBox(self.polarization_box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 50, height=35)
-        self.monochromator_box_empty = gui.widgetBox(self.polarization_box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 50, height=35)
+        self.monochromator_box = gui.widgetBox(self.polarization_box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 50, height=95)
+        self.monochromator_box_empty = gui.widgetBox(self.polarization_box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 50, height=95)
 
-        gui.lineEdit(self.monochromator_box, self, "twotheta_mono", "2\u03B8 Monochromator [deg]", labelWidth=260, valueType=float, validator=QDoubleValidator())
+        orangegui.comboBox(self.monochromator_box, self, "beampath", label="Beampath", items=Beampath.tuple(), labelWidth=300,
+                           orientation="horizontal")
+
+        gui.lineEdit(self.monochromator_box, self, "twotheta_mono", "2\u03B8 Monochromator [deg]", labelWidth=300, valueType=float, validator=QDoubleValidator())
 
         self.set_Polarization()
 
@@ -85,6 +92,10 @@ class OWLorentzPolarization(OWGenericWidget):
 
     def send_lorentz_polarization(self):
         try:
+            if self.use_polarization_factor == 1:
+                congruence.checkPositiveNumber(self.degree_of_polarization, "Deg. Pol.")
+                congruence.checkLessOrEqualThan(self.degree_of_polarization, 1.0, "Deg. Pol.", "1.0")
+
             if not self.fit_global_parameters is None:
                 if self.use_polarization_factor == 1 and self.use_twotheta_mono==1:
                     congruence.checkStrictlyPositiveAngle(self.twotheta_mono, "2\u03B8 Monochromator")
@@ -94,11 +105,15 @@ class OWLorentzPolarization(OWGenericWidget):
                         [ThermalPolarizationParameters(debye_waller_factor=None,
                                                        use_lorentz_factor=self.use_lorentz_factor==1,
                                                        use_polarization_factor=self.use_polarization_factor,
-                                                       twotheta_mono=None if (self.use_polarization_factor==0 or self.use_twotheta_mono==0) else self.twotheta_mono)]
+                                                       twotheta_mono=None if (self.use_polarization_factor==0 or self.use_twotheta_mono==0) else self.twotheta_mono,
+                                                       beampath=self.beampath,
+                                                       degree_of_polarization=self.degree_of_polarization)]
                 else:
                     self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].use_lorentz_factor = self.use_lorentz_factor==1
                     self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].use_polarization_factor = self.use_polarization_factor==1
                     self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].twotheta_mono = None if (self.use_polarization_factor==0 or self.use_twotheta_mono==0) else self.twotheta_mono
+                    self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].degree_of_polarization = self.degree_of_polarization
+                    self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].beampath = self.beampath
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
@@ -122,9 +137,17 @@ class OWLorentzPolarization(OWGenericWidget):
             if not self.fit_global_parameters.fit_initialization.thermal_polarization_parameters is None:
                 self.use_lorentz_factor = 1 if self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].use_lorentz_factor else self.use_lorentz_factor
                 self.use_polarization_factor = 1 if self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].use_polarization_factor else self.use_polarization_factor
-                if self.use_polarization_factor:
-                    tth = self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].twotheta_mono
-                    self.twotheta_mono = self.twotheta_mono if tth is None else tth
+                if self.use_polarization_factor == 1:
+                    self.degree_of_polarization = self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].degree_of_polarization
+                    twotheta_mono = self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].twotheta_mono
+                    if not twotheta_mono is None:
+                        self.use_twotheta_mono = 1
+                        self.twotheta_mono = twotheta_mono
+                        self.beampath = self.fit_global_parameters.fit_initialization.thermal_polarization_parameters[0].beampath
+                    else:
+                        self.use_twotheta_mono = 0
+
+                self.set_Polarization()
 
             if self.is_automatic_run:
                 self.send_lorentz_polarization()

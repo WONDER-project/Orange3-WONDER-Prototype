@@ -4,6 +4,7 @@ if not is_recovery:
     from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
     from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_symmetry import Symmetry
     from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
+    from orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters import Beampath
     from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
     from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
     from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
@@ -13,6 +14,7 @@ else:
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure import CrystalStructure
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_symmetry import Symmetry
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.fft_parameters import FFTTypes
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.thermal_polarization_parameters import Beampath
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
     from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
@@ -47,7 +49,10 @@ def fit_function_direct(twotheta, fit_global_parameters, diffraction_pattern_ind
         if thermal_polarization_parameters.use_polarization_factor:
             twotheta_mono = thermal_polarization_parameters.twotheta_mono
 
-            I *= polarization_factor(numpy.radians(twotheta), None if twotheta_mono is None else numpy.radians(twotheta_mono))
+            I *= polarization_factor(numpy.radians(twotheta),
+                                     None if twotheta_mono is None else numpy.radians(twotheta_mono),
+                                     thermal_polarization_parameters.degree_of_polarization,
+                                     thermal_polarization_parameters.beampath)
 
     # ADD BACKGROUNDS  ---------------------------------------------------------------------------------------------
 
@@ -433,11 +438,16 @@ def lorentz_factor(s, s_hkl):
 def lorentz_factor_simplified(s_hkl):
     return 1/(s_hkl**2)
 
-def polarization_factor(twotheta, twotheta_mono):
+def polarization_factor(twotheta, twotheta_mono, degree_of_polarization, beampath):
+    Q = degree_of_polarization
+
     if twotheta_mono is None or twotheta_mono == 0.0:
-        return 0.5*(1 + (numpy.cos(twotheta)**2))
+        return ((1+Q) + (1-Q)*(numpy.cos(twotheta)**2))/2
     else:
-        return 0.5*(1 + (numpy.cos(twotheta_mono)**2)*(numpy.cos(twotheta)**2))
+        if beampath == Beampath.PRIMARY:
+            return ((1+Q) + (1-Q)*(numpy.cos(twotheta_mono)**2)*(numpy.cos(twotheta)**2))/(1 + (numpy.cos(twotheta_mono)**2))
+        elif beampath == Beampath.SECONDARY:
+            return ((1+Q) + (1-Q)*(numpy.cos(twotheta_mono)**2)*(numpy.cos(twotheta)**2))/2
 
 ######################################################################
 # SIZE
