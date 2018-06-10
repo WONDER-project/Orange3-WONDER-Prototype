@@ -721,28 +721,46 @@ def squared_modulus_structure_factor(s, formula, h, k, l, symmetry=Symmetry.FCC)
 # INSTRUMENTAL
 ######################################################################
 
+def caglioti_eta(a, b, c, theta): # input: radians
+    eta = a + b * theta + c * theta**2
+
+    if isinstance(eta, numpy.float64):
+        eta = 0 if eta < 0 else 1 if eta > 1 else eta
+    else:
+        eta[numpy.where(eta < 0)] = 0
+        eta[numpy.where(eta > 1)] = 1
+
+    return eta
+
+def caglioti_fwhm(U, V, W, theta): # input: radians, output: degrees
+    return numpy.sqrt(W +  V * numpy.tan(theta) + U * (numpy.tan(theta)**2))
+
+def delta_two_theta_lab6(ax, bx, cx, dx, ex, theta): # input: radians
+    tan_theta = numpy.tan(theta)
+
+    delta_twotheta = numpy.radians(ax*(1/tan_theta) + bx + cx*tan_theta + dx*tan_theta**2 + ex*tan_theta**3)
+    delta_twotheta[numpy.where(numpy.isnan(delta_twotheta))] = 0.0
+
+    return delta_twotheta
+
 def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a, b, c):
     theta = Utilities.theta_hkl(lattice_parameter, h, k, l, wavelength)
     theta_deg = numpy.degrees(theta)
 
-    eta = a + b * theta_deg + c * theta_deg**2
-    if eta > 1.0: eta = 1.0
-    elif eta < 0.0: eta = 0.0
+    eta = caglioti_eta(a, b, c, theta_deg)
 
     k = eta * numpy.sqrt(numpy.pi*numpy.log(2))
     k /= k + (1-eta)
 
-    sigma = numpy.radians(numpy.sqrt(W +  V * numpy.tan(theta) + U * (numpy.tan(theta)**2)))*0.5*(numpy.cos(theta)/wavelength)
+    sigma = numpy.radians(caglioti_fwhm(U, V, W, theta))*0.5*(numpy.cos(theta)/wavelength)
     exp1 = numpy.pi * sigma * L
 
     return k*numpy.exp(-2.0*exp1) + (1-k)*numpy.exp(-(exp1**2)/numpy.log(2))
 
 def lab6_tan_correction(s, wavelength, ax, bx, cx, dx, ex):
     theta = Utilities.theta(s, wavelength)
-    tan_theta = numpy.tan(theta)
 
-    delta_twotheta = numpy.radians(ax*(1/tan_theta) + bx + cx*tan_theta + dx*tan_theta**2 + ex*tan_theta**3)
-    delta_twotheta[numpy.where(numpy.isnan(delta_twotheta))] = 0.0
+    delta_twotheta = delta_two_theta_lab6(ax, bx, cx, dx, ex, theta)
 
     return delta_twotheta*numpy.cos(theta)/wavelength
 

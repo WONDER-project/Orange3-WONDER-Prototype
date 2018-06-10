@@ -111,11 +111,11 @@ class OWInstrumentalProfile(OWGenericWidget):
         gui.button(button_box,  self, "Send Instrumental Profile", height=50, callback=self.send_intrumental_profile)
 
         caglioti_box_1 = gui.widgetBox(main_box,
-                                 "Caglioti FWHM", orientation="vertical",
+                                 "Caglioti's FWHM", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 30)
         
         caglioti_box_2 = gui.widgetBox(main_box,
-                                 "Caglioti ETA", orientation="vertical",
+                                 "Caglioti's \u03b7", orientation="vertical",
                                  width=self.CONTROL_AREA_WIDTH - 30)
 
         self.create_box(caglioti_box_1, "U")
@@ -131,11 +131,11 @@ class OWInstrumentalProfile(OWGenericWidget):
             if not self.fit_global_parameters is None:
 
                 self.fit_global_parameters.instrumental_parameters = [Caglioti(U=self.populate_parameter("U", Caglioti.get_parameters_prefix()),
-                                                                              V=self.populate_parameter("V", Caglioti.get_parameters_prefix()),
-                                                                              W=self.populate_parameter("W", Caglioti.get_parameters_prefix()),
-                                                                              a=self.populate_parameter("a", Caglioti.get_parameters_prefix()),
-                                                                              b=self.populate_parameter("b", Caglioti.get_parameters_prefix()),
-                                                                              c=self.populate_parameter("c", Caglioti.get_parameters_prefix()))]
+                                                                               V=self.populate_parameter("V", Caglioti.get_parameters_prefix()),
+                                                                               W=self.populate_parameter("W", Caglioti.get_parameters_prefix()),
+                                                                               a=self.populate_parameter("a", Caglioti.get_parameters_prefix()),
+                                                                               b=self.populate_parameter("b", Caglioti.get_parameters_prefix()),
+                                                                               c=self.populate_parameter("c", Caglioti.get_parameters_prefix()))]
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 
