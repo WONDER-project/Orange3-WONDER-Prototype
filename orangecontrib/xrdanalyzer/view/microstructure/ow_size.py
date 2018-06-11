@@ -119,7 +119,6 @@ class OWSize(OWGenericWidget):
                 if self.cb_distribution.currentText() == Distribution.DELTA and not self.fit_global_parameters.fit_initialization.crystal_structures[0].use_structure:
                         raise Exception("Delta Distribution cannot be used when the structural model is not activated")
 
-
                 self.fit_global_parameters.size_parameters = [SizeParameters(shape=self.cb_shape.currentText(),
                                                                              distribution=self.cb_distribution.currentText(),
                                                                              mu=self.populate_parameter("mu", SizeParameters.get_parameters_prefix()),
@@ -134,8 +133,6 @@ class OWSize(OWGenericWidget):
                                  QMessageBox.Ok)
 
             if self.IS_DEVELOP: raise e
-
-
 
     def set_data(self, data):
         if not data is None:

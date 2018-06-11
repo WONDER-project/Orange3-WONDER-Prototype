@@ -423,8 +423,6 @@ class OWFitter(OWGenericWidget):
                                  str(e),
                                  QMessageBox.Ok)
 
-            sys.stdout = self.standard_ouput
-
             self.set_plot_options_enabled(True)
 
             if self.IS_DEVELOP: raise e

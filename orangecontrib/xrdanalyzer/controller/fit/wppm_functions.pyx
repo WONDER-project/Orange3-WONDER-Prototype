@@ -117,7 +117,7 @@ def fit_function_reciprocal(s, fit_global_parameters, diffraction_pattern_index 
             if size_parameters.distribution == Distribution.DELTA and size_parameters.add_saxs:
                 if not crystal_structure.use_structure: NotImplementedError("SAXS is available when the structural model is active")
 
-                I += saxs(s, size_parameters.mu.value, crystal_structure.a.value, crystal_structure.symmetry, crystal_structure.formula)
+                I += saxs(s, size_parameters.mu.value, crystal_structure.a.value, crystal_structure.formula, crystal_structure.symmetry)
 
 
         # ADD DEBYE-WALLER FACTOR --------------------------------------------------------------------------------------
@@ -481,6 +481,7 @@ def polarization_factor(twotheta, twotheta_mono, degree_of_polarization, beampat
 
 def size_function_delta(L, D):
     LfracD = L/D
+
     return 1 - 1.5*LfracD + 0.5*LfracD**3
 
 def size_function_lognormal(L, sigma, mu):
@@ -743,13 +744,13 @@ def squared_modulus_structure_factor(s, formula, h, k, l, symmetry=Symmetry.FCC)
     return numpy.absolute(structure_factor(s, formula, h, k, l, symmetry))**2
 
 def saxs(s, D, a0, formula, simmetry):
-    if s==0.0:
-        return 1.0
-    else:
-        Nf2 = squared_modulus_structure_factor(s, formula, 0, 0, 0, simmetry)*(pi*(D**3)/(6*(a0**3)))**2
-        x = pi*D*s
+    Nf2 = squared_modulus_structure_factor(s, formula, 0, 0, 0, simmetry)*(pi*(D**3)/(6*(a0**3)))**2
+    x = pi*D*s
 
-        return Nf2*(3*(sin(x)-x*cos(x))/(x**3))**2
+    saxs = Nf2*(3*(sin(x)-x*cos(x))/(x**3))**2
+    saxs[numpy.where(numpy.isnan(saxs))] = 1.0
+
+    return saxs
 
 ######################################################################
 # INSTRUMENTAL
