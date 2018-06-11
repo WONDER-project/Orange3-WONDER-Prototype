@@ -410,8 +410,7 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
         thermal_polarization_parameters = fit_global_parameters.fit_initialization.thermal_polarization_parameters[0 if len(fit_global_parameters.fit_initialization.thermal_polarization_parameters) == 1 else diffraction_pattern_index]
 
         if thermal_polarization_parameters.use_lorentz_factor:
-            #I *= lorentz_factor(s, s_hkl)
-            I *= lorentz_factor_simplified(s_hkl)
+            I *= lorentz_factor_simplified_normalized(s_hkl, wavelength)
 
     return s, I
 
@@ -435,8 +434,14 @@ def debye_waller(s, B):
 def lorentz_factor(s, s_hkl):
     return 1/(s*s_hkl)
 
+def lorentz_factor_normalized(s, s_hkl, wavelength):
+    return lorentz_factor(s, s_hkl)/numpy.sqrt(1 - (s*wavelength/2)**2)
+
 def lorentz_factor_simplified(s_hkl):
     return 1/(s_hkl**2)
+
+def lorentz_factor_simplified_normalized(s_hkl, wavelength):
+    return lorentz_factor_simplified(s_hkl)/numpy.sqrt(1 - (s_hkl*wavelength/2)**2)
 
 def polarization_factor(twotheta, twotheta_mono, degree_of_polarization, beampath):
     Q = degree_of_polarization
@@ -453,7 +458,7 @@ def polarization_factor(twotheta, twotheta_mono, degree_of_polarization, beampat
 # SIZE
 ######################################################################
 
-def size_function_common_volume (L, D):
+def size_function_delta(L, D):
     LfracD = L/D
     return 1 - 1.5*LfracD + 0.5*LfracD**3
 
@@ -491,7 +496,7 @@ def displacement_invariant_pah(L, h, k, l, a, b, C_hkl):
 # Krivoglaz-Wilkens  --------------------------------
 
 from scipy import integrate
-from numpy import pi, log, sqrt, arcsin, sin # TO SHORTEN FORMULAS
+from numpy import pi, log, sqrt, arcsin, sin, cos # TO SHORTEN FORMULAS
 
 def clausen_integral_inner_function(t):
     return log(2*sin(t/2))
