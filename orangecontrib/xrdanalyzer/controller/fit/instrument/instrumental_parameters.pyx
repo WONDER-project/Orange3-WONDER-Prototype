@@ -118,6 +118,35 @@ class ZeroError(FitParametersList):
         return ZeroError(shift=None if self.shift is None else self.shift.duplicate())
 
 
+class SpecimenDisplacement(FitParametersList):
+    goniometer_radius = 1.0
+    displacement = None
+
+    @classmethod
+    def get_parameters_prefix(cls):
+        return "specimen_displacement_"
+
+    def __init__(self, goniometer_radius=1.0, displacement=None):
+        super(SpecimenDisplacement, self).__init__()
+
+        self.goniometer_radius = goniometer_radius
+        self.displacement = displacement
+
+    def to_text(self):
+        text = "SPECIMEN DISPLACEMENT\n"
+        text += "-----------------------------------\n"
+
+        text += "Goniometer Radius: " + str(self.goniometer_radius) + "\n"
+        text += self.displacement.to_text() + "\n"
+
+        text += "-----------------------------------\n"
+
+        return text
+
+    def duplicate(self):
+        return SpecimenDisplacement(goniometer_radius=self.goniometer_radius,
+                                    displacement=None if self.displacement is None else self.displacement.duplicate())
+
 
 if __name__=="__main__":
     test = Caglioti(U=FitParameter(parameter_name="U", value=1.0, fixed=True),

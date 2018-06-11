@@ -5,7 +5,7 @@ if not is_recovery:
     from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_symmetry import Symmetry
     from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
     from orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters import Beampath
-    from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
+    from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError, SpecimenDisplacement
     from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
     from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import Distribution
     from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
@@ -16,7 +16,7 @@ else:
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_symmetry import Symmetry
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.fft_parameters import FFTTypes
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.thermal_polarization_parameters import Beampath
-    from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError, SpecimenDisplacement
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
     from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.size import Distribution
     from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
@@ -415,8 +415,7 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
 
             if not shift_parameters is None:
                 if key == Lab6TanCorrection.__name__:
-                    s += lab6_tan_correction(s,
-                                             wavelength,
+                    s += lab6_tan_correction(s, wavelength,
                                              shift_parameters.ax.value,
                                              shift_parameters.bx.value,
                                              shift_parameters.cx.value,
@@ -424,6 +423,8 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
                                              shift_parameters.ex.value)
                 elif key == ZeroError.__name__:
                     s += Utilities.s(shift_parameters.shift.value/2, wavelength)
+                elif key == SpecimenDisplacement.__name__:
+                    s += specimen_displacement(s, wavelength, shift_parameters.goniometer_radius, shift_parameters.displacement.value)
 
     # LORENTZ FACTOR --------------------------------------------------------------------------------------
 
@@ -778,6 +779,9 @@ def delta_two_theta_lab6(ax, bx, cx, dx, ex, theta): # input: radians
 
     return delta_twotheta
 
+def delta_two_theta_specimen_displacement(goniometer_radius, displacement, theta):
+    return -(2*displacement/goniometer_radius)*cos(theta)
+
 def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a, b, c):
     theta = Utilities.theta_hkl(lattice_parameter, h, k, l, wavelength)
     theta_deg = numpy.degrees(theta)
@@ -799,6 +803,12 @@ def lab6_tan_correction(s, wavelength, ax, bx, cx, dx, ex):
 
     return delta_twotheta*numpy.cos(theta)/wavelength
 
+def specimen_displacement(s, wavelength, goniometer_radius, displacement): # input radians
+    theta = Utilities.theta(s, wavelength)
+
+    delta_twotheta = delta_two_theta_specimen_displacement(goniometer_radius, displacement, theta)
+
+    return delta_twotheta*numpy.cos(theta)/wavelength
 
 ######################################################################
 # BACKGROUND

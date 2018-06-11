@@ -4,7 +4,7 @@ from orangecontrib.xrdanalyzer import is_recovery
 if not is_recovery:
     from orangecontrib.xrdanalyzer.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
     from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_ERR
-    from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
+    from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError, SpecimenDisplacement
     from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
     from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import Distribution
     from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
@@ -13,7 +13,7 @@ if not is_recovery:
 else:
     from orangecontrib.xrdanalyzer.recovery.model.diffraction_pattern import DiffractionPattern, DiffractionPoint
     from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import PARAM_ERR
-    from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError, SpecimenDisplacement
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
     from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.size import Distribution
     from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
@@ -476,6 +476,8 @@ class FitterMinpack(FitterInterface):
                             shift_parameters.ex.set_value(fitted_parameters[last_index + 5].value)
                         elif key == ZeroError.__name__:
                             shift_parameters.shift.set_value(fitted_parameters[last_index + 1].value)
+                        elif key == SpecimenDisplacement.__name__:
+                            shift_parameters.displacement.set_value(fitted_parameters[last_index + 1].value)
 
                     last_index += shift_parameters.get_parameters_count()
 
@@ -616,6 +618,8 @@ class FitterMinpack(FitterInterface):
                             shift_parameters.ex.error = errors[last_index + 5]
                         elif key == ZeroError.__name__:
                             shift_parameters.shift.error = errors[last_index + 1]
+                        elif key == SpecimenDisplacement.__name__:
+                            shift_parameters.displacement.error = errors[last_index + 1]
 
                         last_index += shift_parameters.get_parameters_count()
 

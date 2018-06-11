@@ -59,7 +59,7 @@ class OWZeroErrorPeakShift(OWGenericWidget):
                                     "Zero Error", orientation="vertical",
                                     width=self.CONTROL_AREA_WIDTH - 30)
 
-        self.create_box(zero_error_box, "shift", label="D(2th)")
+        self.create_box(zero_error_box, "shift", label="\u0394(2\u03b8) [deg]")
 
     def send_peak_shift(self):
         try:

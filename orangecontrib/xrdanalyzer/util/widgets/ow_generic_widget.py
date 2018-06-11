@@ -106,8 +106,8 @@ class OWGenericWidget(widget.OWWidget):
         gui.button(self.general_options_box, self, "Reset Fields", callback=self.callResetSettings)
         gui.button(self.general_options_box, self, "Show Available Parameters", callback=self.show_available_parameters)
 
-    def create_box(self, parent_box, var, label=None, disable_function=False, add_callback=False):
-        self.create_box_in_widget(self, parent_box, var, label, disable_function, add_callback)
+    def create_box(self, parent_box, var, label=None, disable_function=False, add_callback=False, label_width=40):
+        self.create_box_in_widget(self, parent_box, var, label, disable_function, add_callback, label_width)
     
     @classmethod
     def create_box_in_widget(cls, widget, parent_box, var, label=None, disable_function=False, add_callback=False, label_width=40):
