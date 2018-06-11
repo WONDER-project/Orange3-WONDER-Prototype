@@ -31,6 +31,13 @@ class Distribution:
     def tuple(cls):
         return [cls.DELTA, cls.LOGNORMAL, cls.GAMMA, cls.YORK]
 
+class Normalization:
+    NORMALIZE_TO_N = 0
+    NORMALIZE_TO_N2 = 1
+
+    @classmethod
+    def tuple(cls):
+        return ["to N", "to N\u00b2"]
 
 class SizeParameters(FitParametersList):
 
@@ -39,12 +46,13 @@ class SizeParameters(FitParametersList):
     mu = None
     sigma = None
     add_saxs = False
+    normalize_to = Normalization.NORMALIZE_TO_N
 
     @classmethod
     def get_parameters_prefix(cls):
         return "size_"
 
-    def __init__(self, shape, distribution, mu, sigma, add_saxs=False):
+    def __init__(self, shape, distribution, mu, sigma, add_saxs=False, normalize_to=Normalization.NORMALIZE_TO_N):
         super(SizeParameters, self).__init__()
 
         self.shape = shape
@@ -52,6 +60,7 @@ class SizeParameters(FitParametersList):
         self.mu = mu
         self.sigma = sigma
         self.add_saxs = add_saxs
+        self.normalize_to = normalize_to
 
     def to_text(self):
         text = "SIZE\n"
@@ -63,6 +72,7 @@ class SizeParameters(FitParametersList):
         text += self.mu.to_text() + "\n"
         if not self.sigma is None: text += self.sigma.to_text() + "\n"
         text += "Add SAXS: " + str(self.add_saxs)
+        text += "Normalize to: " + Normalization.tuple()[self.normalize_to]
 
         text += "-----------------------------------\n"
 
@@ -74,7 +84,8 @@ class SizeParameters(FitParametersList):
                               distribution=self.distribution,
                               mu=None if self.mu is None else self.mu.duplicate(),
                               sigma=None if self.sigma is None else self.sigma.duplicate(),
-                              add_saxs=self.add_saxs)
+                              add_saxs=self.add_saxs,
+                              normalize_to=self.normalize_to)
 
 
     def get_distribution(self, auto=True, D_max=None):

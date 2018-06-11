@@ -13,11 +13,11 @@ from orangecontrib.xrdanalyzer import is_recovery
 if not is_recovery:
     from orangecontrib.xrdanalyzer.util import congruence
     from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters
-    from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import SizeParameters, Shape, Distribution
+    from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import SizeParameters, Shape, Distribution, Normalization
 else:
     from orangecontrib.xrdanalyzer.recovery.util import congruence
     from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_global_parameters import FitGlobalParameters
-    from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.size import SizeParameters, Shape, Distribution
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.size import SizeParameters, Shape, Distribution, Normalization
 
 class OWSize(OWGenericWidget):
 
@@ -56,6 +56,7 @@ class OWSize(OWGenericWidget):
     sigma_function_value = Setting("")
 
     add_saxs = Setting(False)
+    normalize_to = Setting(0)
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
@@ -87,7 +88,12 @@ class OWSize(OWGenericWidget):
 
         self.saxs_box = gui.widgetBox(size_box, "", orientation="vertical")
 
-        orangegui.comboBox(self.saxs_box, self, "add_saxs", label="Add SAXS", items=["No", "Yes"], labelWidth=300, orientation="horizontal")
+        orangegui.comboBox(self.saxs_box, self, "add_saxs", label="Add SAXS", items=["No", "Yes"], labelWidth=300, orientation="horizontal",
+                           callback=self.set_add_saxs)
+
+        self.normalize_box = gui.widgetBox(size_box, "", orientation="vertical")
+
+        orangegui.comboBox(self.normalize_box, self, "normalize_to", label="Normalize to", items=Normalization.tuple(), labelWidth=300, orientation="horizontal")
 
         self.set_distribution(is_init=True)
 
@@ -98,6 +104,9 @@ class OWSize(OWGenericWidget):
                                  QMessageBox.Ok)
 
             self.shape = 1
+
+    def set_add_saxs(self):
+        self.normalize_box.setVisible(self.add_saxs==1)
 
     def set_distribution(self, is_init=False):
         if not (self.cb_distribution.currentText() == Distribution.LOGNORMAL or self.cb_distribution.currentText() == Distribution.DELTA):
@@ -110,6 +119,7 @@ class OWSize(OWGenericWidget):
         else:
             self.sigma_box.setVisible(self.cb_distribution.currentText() == Distribution.LOGNORMAL)
             self.saxs_box.setVisible(self.cb_distribution.currentText() == Distribution.DELTA)
+            if self.cb_distribution.currentText() == Distribution.DELTA: self.set_add_saxs()
 
     def send_size(self):
         try:
@@ -141,6 +151,11 @@ class OWSize(OWGenericWidget):
             if not self.fit_global_parameters.size_parameters is None:
                 self.populate_fields("mu",    self.fit_global_parameters.size_parameters[0].mu)
                 self.populate_fields("sigma", self.fit_global_parameters.size_parameters[0].sigma)
+                self.add_saxs = self.fit_global_parameters.size_parameters[0].add_saxs
+                self.normalize_to = self.fit_global_parameters.size_parameters[0].normalize_to
+
+                self.set_shape()
+                self.set_distribution()
 
             if self.is_automatic_run:
                 self.send_size()

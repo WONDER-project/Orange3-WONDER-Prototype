@@ -7,7 +7,7 @@ if not is_recovery:
     from orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters import Beampath
     from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError, SpecimenDisplacement
     from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
-    from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import Distribution
+    from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import Distribution, Normalization
     from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
     from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
     from orangecontrib.xrdanalyzer.util.general_functions import ChemicalFormulaParser
@@ -18,7 +18,7 @@ else:
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.thermal_polarization_parameters import Beampath
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError, SpecimenDisplacement
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
-    from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.size import Distribution
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.size import Distribution, Normalization
     from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
     from orangecontrib.xrdanalyzer.recovery.controller.fit.util.fit_utilities import Utilities
     from orangecontrib.xrdanalyzer.recovery.util.general_functions import ChemicalFormulaParser
@@ -117,8 +117,12 @@ def fit_function_reciprocal(s, fit_global_parameters, diffraction_pattern_index 
             if size_parameters.distribution == Distribution.DELTA and size_parameters.add_saxs:
                 if not crystal_structure.use_structure: NotImplementedError("SAXS is available when the structural model is active")
 
-                I += saxs(s, size_parameters.mu.value, crystal_structure.a.value, crystal_structure.formula, crystal_structure.symmetry)
-
+                I += saxs(s,
+                          size_parameters.mu.value,
+                          crystal_structure.a.value,
+                          crystal_structure.formula,
+                          crystal_structure.symmetry,
+                          size_parameters.normalize_to)
 
         # ADD DEBYE-WALLER FACTOR --------------------------------------------------------------------------------------
 
@@ -410,12 +414,14 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
     # PEAK SHIFTS  -----------------------------------------------------------------------------------------------------
 
     if not fit_global_parameters.shift_parameters is None:
+        theta = Utilities.theta(s, wavelength)
+
         for key in fit_global_parameters.shift_parameters.keys():
             shift_parameters = fit_global_parameters.get_shift_parameters(key)[0 if len(fit_global_parameters.get_shift_parameters(key)) == 1 else diffraction_pattern_index]
 
             if not shift_parameters is None:
                 if key == Lab6TanCorrection.__name__:
-                    s += lab6_tan_correction(s, wavelength,
+                    s += lab6_tan_correction(theta, wavelength,
                                              shift_parameters.ax.value,
                                              shift_parameters.bx.value,
                                              shift_parameters.cx.value,
@@ -424,7 +430,7 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
                 elif key == ZeroError.__name__:
                     s += Utilities.s(shift_parameters.shift.value/2, wavelength)
                 elif key == SpecimenDisplacement.__name__:
-                    s += specimen_displacement(s, wavelength, shift_parameters.goniometer_radius, shift_parameters.displacement.value)
+                    s += specimen_displacement(theta, wavelength, shift_parameters.goniometer_radius, shift_parameters.displacement.value)
 
     # LORENTZ FACTOR --------------------------------------------------------------------------------------
 
@@ -744,11 +750,19 @@ def get_cell(symmetry=Symmetry.FCC):
 def squared_modulus_structure_factor(s, formula, h, k, l, symmetry=Symmetry.FCC):
     return numpy.absolute(structure_factor(s, formula, h, k, l, symmetry))**2
 
-def saxs(s, D, a0, formula, simmetry):
-    Nf2 = squared_modulus_structure_factor(s, formula, 0, 0, 0, simmetry)*(pi*(D**3)/(6*(a0**3)))**2
+def saxs(s, D, a0, formula, symmetry, normalize_to):
+    f = atomic_scattering_factor(s, ChemicalFormulaParser.parse_formula(formula)[0]._element)
+    Z = 4 if symmetry == Symmetry.FCC else 2 if symmetry == Symmetry.BCC else 1
+    N = (Z*pi*(D**3))/(6*(a0**3))
+
+    if normalize_to == Normalization.NORMALIZE_TO_N:
+        normalization = N*(numpy.absolute(f)**2)
+    elif normalize_to == Normalization.NORMALIZE_TO_N2:
+        normalization = (N*numpy.absolute(f))**2
+
     x = pi*D*s
 
-    saxs = Nf2*(3*(sin(x)-x*cos(x))/(x**3))**2
+    saxs = normalization*(3*(sin(x)-x*cos(x))/(x**3))**2
     saxs[numpy.where(numpy.isnan(saxs))] = 1.0
 
     return saxs
@@ -782,6 +796,17 @@ def delta_two_theta_lab6(ax, bx, cx, dx, ex, theta): # input: radians
 def delta_two_theta_specimen_displacement(goniometer_radius, displacement, theta):
     return -(2*displacement/goniometer_radius)*cos(theta)
 
+
+def lab6_tan_correction(theta, wavelength, ax, bx, cx, dx, ex):
+    delta_twotheta = delta_two_theta_lab6(ax, bx, cx, dx, ex, theta)
+
+    return delta_twotheta*numpy.cos(theta)/wavelength
+
+def specimen_displacement(theta, wavelength, goniometer_radius, displacement): # input radians
+    delta_twotheta = delta_two_theta_specimen_displacement(goniometer_radius, displacement, theta)
+
+    return delta_twotheta*numpy.cos(theta)/wavelength
+
 def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a, b, c):
     theta = Utilities.theta_hkl(lattice_parameter, h, k, l, wavelength)
     theta_deg = numpy.degrees(theta)
@@ -795,20 +820,6 @@ def instrumental_function (L, h, k, l, lattice_parameter, wavelength, U, V, W, a
     exp1 = numpy.pi * sigma * L
 
     return k*numpy.exp(-2.0*exp1) + (1-k)*numpy.exp(-(exp1**2)/numpy.log(2))
-
-def lab6_tan_correction(s, wavelength, ax, bx, cx, dx, ex):
-    theta = Utilities.theta(s, wavelength)
-
-    delta_twotheta = delta_two_theta_lab6(ax, bx, cx, dx, ex, theta)
-
-    return delta_twotheta*numpy.cos(theta)/wavelength
-
-def specimen_displacement(s, wavelength, goniometer_radius, displacement): # input radians
-    theta = Utilities.theta(s, wavelength)
-
-    delta_twotheta = delta_two_theta_specimen_displacement(goniometer_radius, displacement, theta)
-
-    return delta_twotheta*numpy.cos(theta)/wavelength
 
 ######################################################################
 # BACKGROUND

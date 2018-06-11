@@ -154,7 +154,7 @@ class OWStrainKW(OWGenericWidget):
             if not self.fit_global_parameters is None:
                 congruence.checkStrictlyPositiveNumber(self.rho, "\u03c1")
                 congruence.checkStrictlyPositiveNumber(self.Re, "Re")
-                congruence.checkStrictlyNumber(self.mix, "mix")
+                congruence.checkPositiveNumber(self.mix, "mix")
                 congruence.checkStrictlyPositiveNumber(self.b, "b")
 
                 self.fit_global_parameters.strain_parameters = [KrivoglazWilkensModel(rho=self.populate_parameter("rho", KrivoglazWilkensModel.get_parameters_prefix()),
