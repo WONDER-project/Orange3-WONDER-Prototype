@@ -1560,12 +1560,12 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
 
         box = gui.widgetBox(container, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 35, spacing=0)
 
-        orangegui.checkBox(box, self, "twotheta_has_min", "2th min [deg]", labelWidth=350, callback=widget.dump_twotheta_has_min)
+        orangegui.checkBox(box, self, "twotheta_has_min", "2\u03b8 min [deg]", labelWidth=350, callback=widget.dump_twotheta_has_min)
         gui.lineEdit(box, self, "twotheta_min", "", labelWidth=5, valueType=float, validator=QDoubleValidator(), callback=self.set_twotheta_min)
 
         box = gui.widgetBox(container, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 35, spacing=0)
 
-        orangegui.checkBox(box, self, "twotheta_has_max", "2th max [deg]", labelWidth=350, callback=widget.dump_twotheta_has_max)
+        orangegui.checkBox(box, self, "twotheta_has_max", "2\u03b8 max [deg]", labelWidth=350, callback=widget.dump_twotheta_has_max)
         gui.lineEdit(box, self, "twotheta_max", "", labelWidth=5, valueType=float, validator=QDoubleValidator(), callback=self.set_twotheta_max)
 
         orangegui.separator(container)

@@ -139,7 +139,7 @@ class OWStrainKW(OWGenericWidget):
 
         gui.button(button_box,  self, "Send Strain", height=50, callback=self.send_strain)
 
-        self.create_box(main_box, "rho")
+        self.create_box(main_box, "rho", label="\u03c1")
         self.create_box(main_box, "Re")
         self.create_box(main_box, "Ae")
         self.create_box(main_box, "Be")
@@ -152,6 +152,11 @@ class OWStrainKW(OWGenericWidget):
     def send_strain(self):
         try:
             if not self.fit_global_parameters is None:
+                congruence.checkStrictlyPositiveNumber(self.rho, "\u03c1")
+                congruence.checkStrictlyPositiveNumber(self.Re, "Re")
+                congruence.checkStrictlyNumber(self.mix, "mix")
+                congruence.checkStrictlyPositiveNumber(self.b, "b")
+
                 self.fit_global_parameters.strain_parameters = [KrivoglazWilkensModel(rho=self.populate_parameter("rho", KrivoglazWilkensModel.get_parameters_prefix()),
                                                                                       Re=self.populate_parameter("Re", KrivoglazWilkensModel.get_parameters_prefix()),
                                                                                       Ae=self.populate_parameter("Ae", KrivoglazWilkensModel.get_parameters_prefix()),

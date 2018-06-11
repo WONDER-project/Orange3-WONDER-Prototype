@@ -55,6 +55,8 @@ class OWSize(OWGenericWidget):
     mu_function_value = Setting("")
     sigma_function_value = Setting("")
 
+    add_saxs = Setting(False)
+
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
 
@@ -75,15 +77,19 @@ class OWSize(OWGenericWidget):
         self.cb_distribution = orangegui.comboBox(main_box, self, "distribution", label="Distribution", items=Distribution.tuple(), callback=self.set_distribution, orientation="horizontal")
 
 
-        size_box = gui.widgetBox(main_box,
-                                 "Size Parameters", orientation="vertical",
-                                 width=self.CONTROL_AREA_WIDTH - 30)
-        
-        
-        
-        self.create_box(size_box, "mu")
-        self.create_box(size_box, "sigma")
+        size_box = gui.widgetBox(main_box, "Size Parameters", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 30)
 
+        self.create_box(size_box, "mu", label="\u03bc or D")
+
+        self.sigma_box = gui.widgetBox(size_box, "", orientation="vertical")
+
+        self.create_box(self.sigma_box, "sigma", label="\u03c3")
+
+        self.saxs_box = gui.widgetBox(size_box, "", orientation="vertical")
+
+        orangegui.comboBox(self.saxs_box, self, "add_saxs", label="Add SAXS", items=["No", "Yes"], labelWidth=300, orientation="horizontal")
+
+        self.set_distribution(is_init=True)
 
     def set_shape(self):
         if not self.cb_shape.currentText() == Shape.SPHERE:
@@ -93,21 +99,32 @@ class OWSize(OWGenericWidget):
 
             self.shape = 1
 
-    def set_distribution(self):
-        if not self.cb_distribution.currentText() == Distribution.LOGNORMAL:
-            QMessageBox.critical(self, "Error",
-                                 "Only Lognormal distribution is supported",
-                                 QMessageBox.Ok)
+    def set_distribution(self, is_init=False):
+        if not (self.cb_distribution.currentText() == Distribution.LOGNORMAL or self.cb_distribution.currentText() == Distribution.DELTA):
+            if not is_init:
+                QMessageBox.critical(self, "Error",
+                                     "Only Lognormal and Delta distributions are supported",
+                                     QMessageBox.Ok)
 
-            self.distribution = 1
+                self.distribution = 1
+        else:
+            self.sigma_box.setVisible(self.cb_distribution.currentText() == Distribution.LOGNORMAL)
+            self.saxs_box.setVisible(self.cb_distribution.currentText() == Distribution.DELTA)
 
     def send_size(self):
         try:
             if not self.fit_global_parameters is None:
+                congruence.checkStrictlyPositiveNumber(self.mu, "\u03bc or D")
+                if self.cb_distribution.currentText() == Distribution.LOGNORMAL: congruence.checkStrictlyPositiveNumber(self.sigma, "\u03c3")
+                if self.cb_distribution.currentText() == Distribution.DELTA and not self.fit_global_parameters.fit_initialization.crystal_structures[0].use_structure:
+                        raise Exception("Delta Distribution cannot be used when the structural model is not activated")
+
+
                 self.fit_global_parameters.size_parameters = [SizeParameters(shape=self.cb_shape.currentText(),
-                                                                            distribution=self.cb_distribution.currentText(),
-                                                                            mu=self.populate_parameter("mu", SizeParameters.get_parameters_prefix()),
-                                                                            sigma=self.populate_parameter("sigma", SizeParameters.get_parameters_prefix()))]
+                                                                             distribution=self.cb_distribution.currentText(),
+                                                                             mu=self.populate_parameter("mu", SizeParameters.get_parameters_prefix()),
+                                                                             sigma=None if self.cb_distribution.currentText() == Distribution.DELTA else self.populate_parameter("sigma", SizeParameters.get_parameters_prefix()),
+                                                                             add_saxs=self.add_saxs if self.cb_distribution.currentText() == Distribution.DELTA else False)]
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
 

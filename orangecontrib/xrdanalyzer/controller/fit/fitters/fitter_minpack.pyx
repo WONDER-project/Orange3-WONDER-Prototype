@@ -6,6 +6,7 @@ if not is_recovery:
     from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_ERR
     from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
     from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
+    from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import Distribution
     from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
     from orangecontrib.xrdanalyzer.controller.fit.fitters.fitter_minpack_util import *
     from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import fit_function_direct
@@ -14,6 +15,7 @@ else:
     from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import PARAM_ERR
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.size import Distribution
     from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
     from orangecontrib.xrdanalyzer.recovery.controller.fit.fitters.fitter_minpack_util import *
     from orangecontrib.xrdanalyzer.recovery.controller.fit.wppm_functions import fit_function_direct
@@ -480,7 +482,7 @@ class FitterMinpack(FitterInterface):
         if not fit_global_parameters.size_parameters is None:
             for size_parameters in fit_global_parameters.size_parameters:
                 size_parameters.mu.set_value(fitted_parameters[last_index + 1].value)
-                size_parameters.sigma.set_value(fitted_parameters[last_index + 2].value)
+                if size_parameters.distribution == Distribution.LOGNORMAL: size_parameters.sigma.set_value(fitted_parameters[last_index + 2].value)
 
                 last_index += size_parameters.get_parameters_count()
 
@@ -620,7 +622,7 @@ class FitterMinpack(FitterInterface):
         if not fit_global_parameters.size_parameters is None:
             for size_parameters in fit_global_parameters.size_parameters:
                 size_parameters.mu.error    = errors[last_index + 1]
-                size_parameters.sigma.error = errors[last_index + 2]
+                if size_parameters.distribution == Distribution.LOGNORMAL: size_parameters.sigma.error = errors[last_index + 2]
 
                 last_index += size_parameters.get_parameters_count()
 

@@ -38,18 +38,20 @@ class SizeParameters(FitParametersList):
     distribution = Distribution.LOGNORMAL
     mu = None
     sigma = None
+    add_saxs = False
 
     @classmethod
     def get_parameters_prefix(cls):
         return "size_"
 
-    def __init__(self, shape, distribution, mu, sigma):
+    def __init__(self, shape, distribution, mu, sigma, add_saxs=False):
         super(SizeParameters, self).__init__()
 
         self.shape = shape
         self.distribution = distribution
         self.mu = mu
         self.sigma = sigma
+        self.add_saxs = add_saxs
 
     def to_text(self):
         text = "SIZE\n"
@@ -59,7 +61,8 @@ class SizeParameters(FitParametersList):
         text += "Distribution: " + self.distribution + "\n"
 
         text += self.mu.to_text() + "\n"
-        text += self.sigma.to_text() + "\n"
+        if not self.sigma is None: text += self.sigma.to_text() + "\n"
+        text += "Add SAXS: " + str(self.add_saxs)
 
         text += "-----------------------------------\n"
 
@@ -70,7 +73,8 @@ class SizeParameters(FitParametersList):
         return SizeParameters(shape=self.shape,
                               distribution=self.distribution,
                               mu=None if self.mu is None else self.mu.duplicate(),
-                              sigma=None if self.sigma is None else self.sigma.duplicate())
+                              sigma=None if self.sigma is None else self.sigma.duplicate(),
+                              add_saxs=self.add_saxs)
 
 
     def get_distribution(self, auto=True, D_max=None):
@@ -98,3 +102,12 @@ class SizeParameters(FitParametersList):
             pass
 
         return x, y, D_max
+
+
+if __name__=="__main__":
+    fpl = SizeParameters(shape=Shape.SPHERE,
+                         distribution=Distribution.DELTA,
+                         mu=FitParameter(value=10, parameter_name="mu"),
+                         sigma=None, add_saxs=True)
+
+    print(fpl.get_parameters())

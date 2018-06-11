@@ -7,6 +7,7 @@ if not is_recovery:
     from orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters import Beampath
     from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
     from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
+    from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import Distribution
     from orangecontrib.xrdanalyzer.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
     from orangecontrib.xrdanalyzer.controller.fit.util.fit_utilities import Utilities
     from orangecontrib.xrdanalyzer.util.general_functions import ChemicalFormulaParser
@@ -17,6 +18,7 @@ else:
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.thermal_polarization_parameters import Beampath
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.size import Distribution
     from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.strain import InvariantPAH, WarrenModel, KrivoglazWilkensModel
     from orangecontrib.xrdanalyzer.recovery.controller.fit.util.fit_utilities import Utilities
     from orangecontrib.xrdanalyzer.recovery.util.general_functions import ChemicalFormulaParser
@@ -106,6 +108,17 @@ def fit_function_reciprocal(s, fit_global_parameters, diffraction_pattern_index 
         # INTERPOLATION ONTO ORIGINAL S VALUES -------------------------------------------------------------------------
 
         I = Utilities.merge_functions(separated_peaks_functions, s)
+
+        # ADD SAXS
+
+        if not fit_global_parameters.size_parameters is None:
+            size_parameters = fit_global_parameters.size_parameters[0 if len(fit_global_parameters.size_parameters) == 1 else diffraction_pattern_index]
+
+            if size_parameters.distribution == Distribution.DELTA and size_parameters.add_saxs:
+                if not crystal_structure.use_structure: NotImplementedError("SAXS is available when the structural model is active")
+
+                I += saxs(s, size_parameters.mu.value, crystal_structure.a.value, crystal_structure.symmetry, crystal_structure.formula)
+
 
         # ADD DEBYE-WALLER FACTOR --------------------------------------------------------------------------------------
 
@@ -270,13 +283,21 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
     if not fit_global_parameters.size_parameters is None:
         size_parameters = fit_global_parameters.size_parameters[0 if len(fit_global_parameters.size_parameters) == 1 else diffraction_pattern_index]
 
-        if fourier_amplitudes is None:
-            fourier_amplitudes = size_function_lognormal(fit_space_parameters.L,
-                                                         size_parameters.sigma.value,
+        if size_parameters.distribution == Distribution.LOGNORMAL:
+            if fourier_amplitudes is None:
+                fourier_amplitudes = size_function_lognormal(fit_space_parameters.L,
+                                                             size_parameters.sigma.value,
+                                                             size_parameters.mu.value)
+            else:
+                fourier_amplitudes *= size_function_lognormal(fit_space_parameters.L,
+                                                              size_parameters.sigma.value,
+                                                              size_parameters.mu.value)
+        elif size_parameters.distribution == Distribution.DELTA:
+            if fourier_amplitudes is None:
+                fourier_amplitudes = size_function_delta(fit_space_parameters.L,
                                                          size_parameters.mu.value)
-        else:
-            fourier_amplitudes *= size_function_lognormal(fit_space_parameters.L,
-                                                          size_parameters.sigma.value,
+            else:
+                fourier_amplitudes *= size_function_delta(fit_space_parameters.L,
                                                           size_parameters.mu.value)
 
     # STRAIN -----------------------------------------------------------------------------------------------------------
@@ -721,6 +742,14 @@ def get_cell(symmetry=Symmetry.FCC):
 def squared_modulus_structure_factor(s, formula, h, k, l, symmetry=Symmetry.FCC):
     return numpy.absolute(structure_factor(s, formula, h, k, l, symmetry))**2
 
+def saxs(s, D, a0, formula, simmetry):
+    if s==0.0:
+        return 1.0
+    else:
+        Nf2 = squared_modulus_structure_factor(s, formula, 0, 0, 0, simmetry)*(pi*(D**3)/(6*(a0**3)))**2
+        x = pi*D*s
+
+        return Nf2*(3*(sin(x)-x*cos(x))/(x**3))**2
 
 ######################################################################
 # INSTRUMENTAL
