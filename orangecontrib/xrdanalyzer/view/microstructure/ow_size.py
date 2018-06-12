@@ -91,7 +91,7 @@ class OWSize(OWGenericWidget):
         orangegui.comboBox(self.saxs_box, self, "add_saxs", label="Add SAXS", items=["No", "Yes"], labelWidth=300, orientation="horizontal",
                            callback=self.set_add_saxs)
 
-        self.normalize_box = gui.widgetBox(size_box, "", orientation="vertical")
+        self.normalize_box = gui.widgetBox(self.saxs_box, "", orientation="vertical")
 
         orangegui.comboBox(self.normalize_box, self, "normalize_to", label="Normalize to", items=Normalization.tuple(), labelWidth=300, orientation="horizontal")
 
