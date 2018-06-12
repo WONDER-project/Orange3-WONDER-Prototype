@@ -79,7 +79,7 @@ class OWDebyeWaller(OWGenericWidget):
             if not self.fit_global_parameters is None:
                 send_data = True
 
-                if self.use_debye_waller_factor == 1:
+                if self.use_debye_waller_factor == 1 and not self.debye_waller_factor_function==1:
                     congruence.checkStrictlyPositiveNumber(self.debye_waller_factor, "B")
 
                     if self.fit_global_parameters.fit_initialization.crystal_structures is None:

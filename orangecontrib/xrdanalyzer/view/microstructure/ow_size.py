@@ -124,8 +124,8 @@ class OWSize(OWGenericWidget):
     def send_size(self):
         try:
             if not self.fit_global_parameters is None:
-                congruence.checkStrictlyPositiveNumber(self.mu, "\u03bc or D")
-                if self.cb_distribution.currentText() == Distribution.LOGNORMAL: congruence.checkStrictlyPositiveNumber(self.sigma, "\u03c3")
+                if not self.mu_function==1: congruence.checkStrictlyPositiveNumber(self.mu, "\u03bc or D")
+                if self.cb_distribution.currentText() == Distribution.LOGNORMAL and not self.sigma_function==1: congruence.checkStrictlyPositiveNumber(self.sigma, "\u03c3")
                 if self.cb_distribution.currentText() == Distribution.DELTA and not self.fit_global_parameters.fit_initialization.crystal_structures[0].use_structure:
                         raise Exception("Delta Distribution cannot be used when the structural model is not activated")
 
