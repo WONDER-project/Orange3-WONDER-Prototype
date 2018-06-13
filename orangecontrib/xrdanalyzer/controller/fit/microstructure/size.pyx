@@ -88,12 +88,14 @@ class SizeParameters(FitParametersList):
                               normalize_to=self.normalize_to)
 
 
-    def get_distribution(self, auto=True, D_max=None):
-        if auto: D_max = 1000
+    def get_distribution(self, auto=True, D_min=None, D_max=None):
+        if auto:
+            D_min = 0
+            D_max = 1000
 
-        step = D_max/1000
+        step = (D_max-D_min)/1000
 
-        x = numpy.arange(start=step, stop=D_max + step, step=step)
+        x = numpy.arange(start=D_min, stop=D_max, step=step)
 
         try:
             try:
@@ -107,12 +109,16 @@ class SizeParameters(FitParametersList):
                 y = numpy.zeros(len(x))
 
             if auto:
-                D_max = x[numpy.where(y > 1e-4)][-1]
-                x, y, D_max = self.get_distribution(auto=False, D_max=D_max)
+                bounds = x[numpy.where(y > 1e-5)]
+                D_min = bounds[0]
+                D_max = bounds[-1]
+                if D_min == D_max: D_min==x[0]
+
+                x, y, D_min, D_max = self.get_distribution(auto=False, D_min=D_min, D_max=D_max)
         except:
             pass
 
-        return x, y, D_max
+        return x, y, D_min, D_max
 
 
 if __name__=="__main__":

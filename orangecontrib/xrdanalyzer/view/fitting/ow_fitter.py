@@ -704,11 +704,14 @@ class OWFitter(OWGenericWidget):
                                      self.theta_ipf_radians)
             self.plot_ipf_lab6.addCurve(self.twotheta_ipf, y, legend="lab6", color="blue")
 
+        if not hasattr(self, "D_max"): self.D_max = None
+        if not hasattr(self, "D_min"): self.D_min = None
+
         if not self.fitted_fit_global_parameters.size_parameters is None and self.show_size==1:
             if self.current_iteration <= 1: #TO BE SURE...
-                x, y, self.D_max = self.fitted_fit_global_parameters.size_parameters[0].get_distribution()
+                x, y, self.D_min, self.D_max = self.fitted_fit_global_parameters.size_parameters[0].get_distribution()
             else:
-                x, y, self.D_max = self.fitted_fit_global_parameters.size_parameters[0].get_distribution(D_max=self.D_max)
+                x, y, self.D_min, self.D_max = self.fitted_fit_global_parameters.size_parameters[0].get_distribution(D_min=self.D_min, D_max=self.D_max)
 
             self.plot_size.addCurve(x, y, legend="distribution", color="blue")
 

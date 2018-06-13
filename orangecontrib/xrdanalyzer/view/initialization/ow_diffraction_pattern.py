@@ -1697,47 +1697,40 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
         self.index = index
 
     def load_diffraction_pattern(self):
-        try:
-            congruence.checkFile(self.filename)
+        congruence.checkFile(self.filename)
 
-            if self.twotheta_has_min == 1 or self.twotheta_has_max == 1:
-                limits = DiffractionPatternLimits(twotheta_min=self.twotheta_min if self.twotheta_has_min==1 else -numpy.inf,
-                                                  twotheta_max=self.twotheta_max if self.twotheta_has_max==1 else numpy.inf)
-            else:
-                limits=None
+        if self.twotheta_has_min == 1 or self.twotheta_has_max == 1:
+            limits = DiffractionPatternLimits(twotheta_min=self.twotheta_min if self.twotheta_has_min==1 else -numpy.inf,
+                                              twotheta_max=self.twotheta_max if self.twotheta_has_max==1 else numpy.inf)
+        else:
+            limits=None
 
-            self.diffraction_pattern = DiffractionPatternFactory.create_diffraction_pattern_from_file(self.filename,
-                                                                                                      self.widget.populate_parameter_in_widget(self,
-                                                                                                                                               "wavelength",
-                                                                                                                                               DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"),
-                                                                                                      limits)
-            #self.wavelength = self.diffraction_pattern.wavelength.value
+        self.diffraction_pattern = DiffractionPatternFactory.create_diffraction_pattern_from_file(self.filename,
+                                                                                                  self.widget.populate_parameter_in_widget(self,
+                                                                                                                                           "wavelength",
+                                                                                                                                           DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"),
+                                                                                                  limits)
+        #self.wavelength = self.diffraction_pattern.wavelength.value
 
-            if self.is_multiple_wavelength == 1:
-                secondary_wavelengths = []
-                secondary_wavelengths_weights = []
+        if self.is_multiple_wavelength == 1:
+            secondary_wavelengths = []
+            secondary_wavelengths_weights = []
 
-                secondary_index = 2
-                for wavelenght in wavelengths_data[self.xray_tube_key]:
-                    if not wavelenght.is_principal:
-                        var_wl = "wavelength_" + str(secondary_index)
-                        var_we = "weight_" + str(secondary_index)
+            secondary_index = 2
+            for wavelenght in wavelengths_data[self.xray_tube_key]:
+                if not wavelenght.is_principal:
+                    var_wl = "wavelength_" + str(secondary_index)
+                    var_we = "weight_" + str(secondary_index)
 
-                        secondary_wavelengths.append(self.widget.populate_parameter_in_widget(self,
-                                                                                              var_wl,
-                                                                                              DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"))
-                        secondary_wavelengths_weights.append(self.widget.populate_parameter_in_widget(self,
-                                                                                                      var_we,
-                                                                                                      DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"))
-                        secondary_index += 1
+                    secondary_wavelengths.append(self.widget.populate_parameter_in_widget(self,
+                                                                                          var_wl,
+                                                                                          DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"))
+                    secondary_wavelengths_weights.append(self.widget.populate_parameter_in_widget(self,
+                                                                                                  var_we,
+                                                                                                  DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"))
+                    secondary_index += 1
 
-                self.diffraction_pattern.set_multiple_wavelengths(secondary_wavelengths, secondary_wavelengths_weights)
-        except Exception as e:
-            QMessageBox.critical(self, "Error during load pattern " + str(self.index+1),
-                                 str(e),
-                                 QMessageBox.Ok)
-
-            if self.widget.IS_DEVELOP: raise e
+            self.diffraction_pattern.set_multiple_wavelengths(secondary_wavelengths, secondary_wavelengths_weights)
 
 
 if __name__ == "__main__":
