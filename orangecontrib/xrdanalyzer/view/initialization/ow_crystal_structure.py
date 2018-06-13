@@ -751,69 +751,61 @@ class CrystalStructureBox(QtWidgets.QWidget, OWComponent):
 
 
     def append_fit_initialization(self):
-        try:
-            if self.use_structure == 0:
-                crystal_structure = CrystalStructure.init_cube(a0=self.widget.populate_parameter_in_widget(self, "a", self.get_parameters_prefix()),
-                                                               symmetry=self.cb_symmetry.currentText(),
-                                                               progressive=self.get_parameter_progressive())
+        if self.use_structure == 0:
+            crystal_structure = CrystalStructure.init_cube(a0=self.widget.populate_parameter_in_widget(self, "a", self.get_parameters_prefix()),
+                                                           symmetry=self.cb_symmetry.currentText(),
+                                                           progressive=self.get_parameter_progressive())
 
-                self.widget.fit_global_parameters.fit_initialization.crystal_structures.append(crystal_structure)
-                self.widget.fit_global_parameters.evaluate_functions() # in case that a is a function of other parameters
+            self.widget.fit_global_parameters.fit_initialization.crystal_structures.append(crystal_structure)
+            self.widget.fit_global_parameters.evaluate_functions() # in case that a is a function of other parameters
 
-                crystal_structure.parse_reflections(self.reflections, progressive=self.get_parameter_progressive())
+            crystal_structure.parse_reflections(self.reflections, progressive=self.get_parameter_progressive())
 
-            elif self.use_structure == 1:
-                crystal_structure = CrystalStructure.init_cube(a0=self.widget.populate_parameter_in_widget(self, "a", self.get_parameters_prefix()),
-                                                               symmetry=self.cb_symmetry.currentText(),
-                                                               use_structure=True,
-                                                               formula=congruence.checkEmptyString(self.formula, "Chemical Formula"),
-                                                               intensity_scale_factor=self.widget.populate_parameter_in_widget(self, "intensity_scale_factor", self.get_parameters_prefix()),
-                                                               progressive=self.get_parameter_progressive())
+        elif self.use_structure == 1:
+            crystal_structure = CrystalStructure.init_cube(a0=self.widget.populate_parameter_in_widget(self, "a", self.get_parameters_prefix()),
+                                                           symmetry=self.cb_symmetry.currentText(),
+                                                           use_structure=True,
+                                                           formula=congruence.checkEmptyString(self.formula, "Chemical Formula"),
+                                                           intensity_scale_factor=self.widget.populate_parameter_in_widget(self, "intensity_scale_factor", self.get_parameters_prefix()),
+                                                           progressive=self.get_parameter_progressive())
 
-                self.widget.fit_global_parameters.fit_initialization.crystal_structures.append(crystal_structure)
-                self.widget.fit_global_parameters.evaluate_functions() # in case that a is a function of other parameters
+            self.widget.fit_global_parameters.fit_initialization.crystal_structures.append(crystal_structure)
+            self.widget.fit_global_parameters.evaluate_functions() # in case that a is a function of other parameters
 
-                crystal_structure.parse_reflections(self.reflections, progressive=self.get_parameter_progressive())
+            crystal_structure.parse_reflections(self.reflections, progressive=self.get_parameter_progressive())
 
-                #intensities will be ignored
-                for reflection in crystal_structure.get_reflections():
-                    reflection.intensity.fixed = True
+            #intensities will be ignored
+            for reflection in crystal_structure.get_reflections():
+                reflection.intensity.fixed = True
 
-            if not self.widget.fit_global_parameters.fit_initialization is None \
-               and not self.widget.fit_global_parameters.fit_initialization.diffraction_patterns is None:
+        if not self.widget.fit_global_parameters.fit_initialization is None \
+           and not self.widget.fit_global_parameters.fit_initialization.diffraction_patterns is None:
 
-                diffraction_pattern = self.widget.fit_global_parameters.fit_initialization.diffraction_patterns[self.index]
+            diffraction_pattern = self.widget.fit_global_parameters.fit_initialization.diffraction_patterns[self.index]
 
-                if not diffraction_pattern.wavelength.function:
-                    wavelength = diffraction_pattern.wavelength.value
-                    s_min = diffraction_pattern.get_diffraction_point(0).s
-                    s_max = diffraction_pattern.get_diffraction_point(-1).s
+            if not diffraction_pattern.wavelength.function:
+                wavelength = diffraction_pattern.wavelength.value
+                s_min = diffraction_pattern.get_diffraction_point(0).s
+                s_max = diffraction_pattern.get_diffraction_point(-1).s
 
-                    excluded_reflections = crystal_structure.get_congruence_check(wavelength=wavelength,
-                                                                                  min_value=s_min,
-                                                                                  max_value=s_max)
+                excluded_reflections = crystal_structure.get_congruence_check(wavelength=wavelength,
+                                                                              min_value=s_min,
+                                                                              max_value=s_max)
 
-                    if not excluded_reflections is None:
-                        text_before = "The following reflections lie outside the diffraction pattern nr " + str(self.index+1) + ":"
+                if not excluded_reflections is None:
+                    text_before = "The following reflections lie outside the diffraction pattern nr " + str(self.index+1) + ":"
 
-                        text = ""
-                        for reflection in excluded_reflections:
-                            text += "[" + str(reflection.h) + ", " + str(reflection.k) + ", " + str(reflection.l) +"]\n"
+                    text = ""
+                    for reflection in excluded_reflections:
+                        text += "[" + str(reflection.h) + ", " + str(reflection.k) + ", " + str(reflection.l) +"]\n"
 
-                        text_after = "Proceed anyway?"
+                    text_after = "Proceed anyway?"
 
-                        if not ConfirmTextDialog.confirm_text("Confirm Structure", text,
-                                                              text_after=text_after, text_before=text_before,
-                                                              width=350, parent=self): return
+                    if not ConfirmTextDialog.confirm_text("Confirm Structure", text,
+                                                          text_after=text_after, text_before=text_before,
+                                                          width=350, parent=self): return
 
-            return crystal_structure
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error",
-                                 str(e),
-                                 QMessageBox.Ok)
-
-            if self.widget.IS_DEVELOP: raise e
+        return crystal_structure
 
 
 if __name__ == "__main__":
