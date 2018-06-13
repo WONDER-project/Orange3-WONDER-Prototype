@@ -65,7 +65,7 @@ class OWFitter(OWGenericWidget):
     show_size = Setting(1)
     show_warren = Setting(1)
 
-    horizontal_headers = ["Name", "Value", "Min", "Max", "Fixed", "Function", "Expression", "Var"]
+    horizontal_headers = ["Name", "Value", "Min", "Max", "Fixed", "Function", "Expression", "e.s.d."]
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
     outputs = [("Fit Global Parameters", FitGlobalParameters)]
@@ -87,41 +87,35 @@ class OWFitter(OWGenericWidget):
     def __init__(self):
         super().__init__(show_automatic_box=True)
 
-        tabs_setting = gui.tabWidget(self.controlArea, width=self.CONTROL_AREA_WIDTH-5)
-        tab_fitter = gui.createTabPage(tabs_setting, "Fitter")
-        tab_plots = gui.createTabPage(tabs_setting, "Plots")
+        main_box = gui.widgetBox(self.controlArea, "Fitter Setting", orientation="vertical", width=self.CONTROL_AREA_WIDTH)
 
-        self.plot_box = gui.widgetBox(tab_plots, "Plotting Options", orientation="vertical", height=575, width=self.CONTROL_AREA_WIDTH-35)
+        button_box = gui.widgetBox(main_box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-15, height=70)
 
-        self.cb_interactive = orangegui.checkBox(self.plot_box, self, "is_interactive", "Refresh Plots while fitting")
-        orangegui.separator(self.plot_box, height=8)
+        button_box_1 = gui.widgetBox(button_box, "", orientation="horizontal")
 
-        self.cb_show_wss_gof = orangegui.checkBox(self.plot_box, self, "show_wss_gof", "Do W.S.S. and G.o.F. plots", callback=self.set_show_wss_gof)
-        orangegui.separator(self.plot_box)
-        self.cb_show_ipf     = orangegui.checkBox(self.plot_box, self, "show_ipf", "Do Instrumental Profile plots", callback=self.set_show_ipf)
-        orangegui.separator(self.plot_box)
-        self.cb_show_shift     = orangegui.checkBox(self.plot_box, self, "show_shift", "Do Calibration Shift plots", callback=self.set_show_shift)
-        orangegui.separator(self.plot_box)
-        self.cb_show_size    = orangegui.checkBox(self.plot_box, self, "show_size", "Do Size Distribution plot", callback=self.set_show_size)
-        orangegui.separator(self.plot_box)
-        self.cb_show_warren  = orangegui.checkBox(self.plot_box, self, "show_warren", "Do Warren's plot", callback=self.set_show_warren)
+        self.fit_button = gui.button(button_box_1,  self, "Fit", height=40, callback=self.do_fit)
+        self.fit_button.setStyleSheet("color: #252468")
+        font = QFont(self.fit_button.font())
+        font.setBold(True)
+        font.setPixelSize(18)
+        self.fit_button.setFont(font)
 
-        main_box = gui.widgetBox(tab_fitter, "Fitter Setting", orientation="vertical", height=575)
+        self.stop_fit_button = gui.button(button_box_1,  self, "STOP", height=40, callback=self.stop_fit)
+        self.stop_fit_button.setStyleSheet("color: red")
+        font = QFont(self.stop_fit_button.font())
+        font.setBold(True)
+        font.setItalic(True)
+        self.stop_fit_button.setFont(font)
 
-        fitter_box = gui.widgetBox(main_box, "", orientation="horizontal",
-                                   width=self.CONTROL_AREA_WIDTH-35)
+        button_box_2 = gui.widgetBox(button_box, "", orientation="horizontal")
 
-        self.cb_fitter = orangegui.comboBox(fitter_box, self, "fitter_name", label="Fit algorithm", items=FitterName.tuple(), callback=self.set_fitter, orientation="horizontal")
+        gui.button(button_box_2,  self, "Send Current Fit", height=40, callback=self.send_current_fit)
+        gui.button(button_box_2,  self, "Save Data", height=40, callback=self.save_data)
 
-        self.fitter_box_1 = gui.widgetBox(main_box, "", orientation="horizontal",
-                                          width=self.CONTROL_AREA_WIDTH-35, height=30)
+        orangegui.separator(main_box)
 
-        self.fitter_box_2 = gui.widgetBox(main_box, "", orientation="horizontal",
-                                          width=self.CONTROL_AREA_WIDTH-35, height=30)
+        self.cb_fitter = orangegui.comboBox(main_box, self, "fitter_name", label="Fit algorithm", items=FitterName.tuple(), orientation="horizontal")
 
-        self.cb_fitting_method = orangegui.comboBox(self.fitter_box_2, self, "fitting_method", label="Method", items=[], orientation="horizontal")
-
-        self.set_fitter()
 
         iteration_box = gui.widgetBox(main_box, "", orientation="horizontal", width=250)
 
@@ -137,36 +131,28 @@ class OWFitter(OWGenericWidget):
         font.setBold(True)
         self.le_current_iteration.setFont(font)
 
-        button_box = gui.widgetBox(main_box, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH-35, height=90)
+        orangegui.separator(main_box)
 
-        button_box_1 = gui.widgetBox(button_box, "", orientation="horizontal")
+        self.plot_box = gui.widgetBox(main_box, "Plotting Options", orientation="vertical", width=self.CONTROL_AREA_WIDTH-20)
 
-        self.fit_button = gui.button(button_box_1,  self, "Fit", height=50, callback=self.do_fit)
-        self.fit_button.setStyleSheet("color: #252468")
-        font = QFont(self.fit_button.font())
-        font.setBold(True)
-        font.setPixelSize(18)
-        self.fit_button.setFont(font)
+        self.cb_interactive = orangegui.checkBox(self.plot_box, self, "is_interactive", "Refresh Plots while fitting")
+        orangegui.separator(self.plot_box, height=8)
 
-        self.stop_fit_button = gui.button(button_box_1,  self, "STOP", height=50, callback=self.stop_fit)
-        self.stop_fit_button.setStyleSheet("color: red")
-        font = QFont(self.stop_fit_button.font())
-        font.setBold(True)
-        font.setItalic(True)
-        self.stop_fit_button.setFont(font)
-
-        button_box_2 = gui.widgetBox(button_box, "", orientation="horizontal")
-
-        gui.button(button_box_2,  self, "Send Current Fit", height=50, callback=self.send_current_fit)
-        gui.button(button_box_2,  self, "Save Data", height=50, callback=self.save_data)
-
-        orangegui.separator(main_box, 5)
+        self.cb_show_wss_gof = orangegui.checkBox(self.plot_box, self, "show_wss_gof", "Do W.S.S. and G.o.F. plots", callback=self.set_show_wss_gof)
+        orangegui.separator(self.plot_box)
+        self.cb_show_ipf     = orangegui.checkBox(self.plot_box, self, "show_ipf", "Do Instrumental Profile plots", callback=self.set_show_ipf)
+        orangegui.separator(self.plot_box)
+        self.cb_show_shift     = orangegui.checkBox(self.plot_box, self, "show_shift", "Do Calibration Shift plots", callback=self.set_show_shift)
+        orangegui.separator(self.plot_box)
+        self.cb_show_size    = orangegui.checkBox(self.plot_box, self, "show_size", "Do Size Distribution plot", callback=self.set_show_size)
+        orangegui.separator(self.plot_box)
+        self.cb_show_warren  = orangegui.checkBox(self.plot_box, self, "show_warren", "Do Warren's plot", callback=self.set_show_warren)
 
         tab_free_out = gui.widgetBox(main_box, "Free Output Parameters", orientation="vertical")
 
         self.scrollarea_free_out = QScrollArea(tab_free_out)
         self.scrollarea_free_out.setMinimumWidth(self.CONTROL_AREA_WIDTH-55)
-        self.scrollarea_free_out.setMaximumHeight(270)
+        self.scrollarea_free_out.setMaximumHeight(170)
 
         def write_text():
             self.free_output_parameters_text = self.text_area_free_out.toPlainText()
@@ -276,29 +262,13 @@ class OWFitter(OWGenericWidget):
 
         # -------------------
 
-        self.scrollarea_fit_in = QScrollArea(self.tab_fit_in)
-        self.scrollarea_fit_in.setMinimumWidth(805)
-        self.scrollarea_fit_in.setMinimumHeight(505)
-
-        self.table_fit_in = self.create_table_widget()
-
-        self.scrollarea_fit_in.setWidget(self.table_fit_in)
-        self.scrollarea_fit_in.setWidgetResizable(1)
-
-        self.tab_fit_in.layout().addWidget(self.scrollarea_fit_in, alignment=Qt.AlignHCenter)
+        self.table_fit_in = self.create_table_widget(is_output=False)
+        self.tab_fit_in.layout().addWidget(self.table_fit_in, alignment=Qt.AlignHCenter)
 
         # -------------------
 
-        self.scrollarea_fit_out = QScrollArea(self.tab_fit_out)
-        self.scrollarea_fit_out.setMinimumWidth(805)
-        self.scrollarea_fit_out.setMinimumHeight(505)
-
         self.table_fit_out = self.create_table_widget()
-
-        self.scrollarea_fit_out.setWidget(self.table_fit_out)
-        self.scrollarea_fit_out.setWidgetResizable(1)
-
-        self.tab_fit_out.layout().addWidget(self.scrollarea_fit_out, alignment=Qt.AlignHCenter)
+        self.tab_fit_out.layout().addWidget(self.table_fit_out, alignment=Qt.AlignHCenter)
 
         self.set_show_plots()
 
@@ -397,8 +367,7 @@ class OWFitter(OWGenericWidget):
                 sys.stdout = EmittingStream(textWritten=self.write_stdout)
 
                 if self.is_incremental == 0 or (self.is_incremental == 1 and self.current_iteration == 0):
-                    self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
-                                                              fitting_method=self.cb_fitting_method.currentText())
+                    self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText())
 
                     self.fitter.init_fitter(initial_fit_global_parameters)
                     self.current_wss = []
@@ -459,7 +428,7 @@ class OWFitter(OWGenericWidget):
                 parameters = self.fit_global_parameters.free_input_parameters.as_parameters()
                 parameters.extend(self.fit_global_parameters.get_parameters())
 
-                self.populate_table(self.table_fit_in, parameters)
+                self.populate_table(self.table_fit_in, parameters, is_output=False)
 
                 self.tabs.setCurrentIndex(0)
 
@@ -495,8 +464,7 @@ class OWFitter(OWGenericWidget):
                     self.fitted_fit_global_parameters = self.fit_global_parameters.duplicate()
                     self.fitted_fit_global_parameters.evaluate_functions()
 
-                    self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText(),
-                                                              fitting_method=self.cb_fitting_method.currentText())
+                    self.fitter = FitterFactory.create_fitter(fitter_name=self.cb_fitter.currentText())
                     self.fitter.init_fitter(self.fitted_fit_global_parameters)
 
                     self.fitted_patterns = self.fitter.build_fitted_diffraction_pattern(self.fitted_fit_global_parameters)
@@ -516,27 +484,19 @@ class OWFitter(OWGenericWidget):
 
             if self.IS_DEVELOP: raise e
 
-    def create_table_widget(self):
-        table_fit = QTableWidget(1, 8)
+    def create_table_widget(self, is_output=True):
+        from PyQt5.QtWidgets import QAbstractItemView
+
+        table_fit = QTableWidget(1, 8 if is_output else 7)
+        table_fit.setMinimumWidth(780)
+        table_fit.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         table_fit.setAlternatingRowColors(True)
-        table_fit.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        table_fit.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         table_fit.verticalHeader().setVisible(False)
-        table_fit.setHorizontalHeaderLabels(self.horizontal_headers)
-
-        table_fit.setColumnWidth(0, 200)
-        table_fit.setColumnWidth(1, 120)
-        table_fit.setColumnWidth(2, 120)
-        table_fit.setColumnWidth(3, 120)
-        table_fit.setColumnWidth(4, 60)
-        table_fit.setColumnWidth(5, 60)
-        table_fit.setColumnWidth(6, 250)
-        table_fit.setColumnWidth(7, 120)
-
-        table_fit.resizeRowsToContents()
+        table_fit.setHorizontalHeaderLabels(self.horizontal_headers if is_output else self.horizontal_headers[:-1])
         table_fit.setSelectionBehavior(QAbstractItemView.SelectRows)
 
         return table_fit
-
 
     def add_table_item(self, 
                        table_widget, 
@@ -559,7 +519,7 @@ class OWFitter(OWGenericWidget):
 
         return parameter
 
-    def populate_table(self, table_widget, parameters):
+    def populate_table(self, table_widget, parameters, is_output=True):
         table_widget.clear()
 
         row_count = table_widget.rowCount()
@@ -606,10 +566,10 @@ class OWFitter(OWGenericWidget):
                                 Qt.AlignRight, change_color, color)
 
             self.add_table_item(table_widget, index, 4,
-                                str(parameter.fixed),
+                                "" if not parameter.fixed else "\u2713",
                                 Qt.AlignCenter, change_color, color)
             self.add_table_item(table_widget, index, 5,
-                                str(parameter.function),
+                                "" if not parameter.function else "\u2713",
                                 Qt.AlignCenter, change_color, color)
 
             if parameter.function: text_6 = str(parameter.function_value)
@@ -619,13 +579,14 @@ class OWFitter(OWGenericWidget):
                                 text_6,
                                 Qt.AlignLeft, change_color, color)
 
-            self.add_table_item(table_widget, index, 7,
-                                str(round(0.0 if parameter.error is None else parameter.error, 6)),
-                                Qt.AlignRight, change_color, color)
+            if is_output: self.add_table_item(table_widget, index, 7,
+                                              str(round(0.0 if parameter.error is None else parameter.error, 6)),
+                                              Qt.AlignRight, change_color, color)
 
         table_widget.setHorizontalHeaderLabels(self.horizontal_headers)
         table_widget.resizeRowsToContents()
         table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        table_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         table_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
     def save_data(self):
@@ -821,7 +782,7 @@ class OWFitter(OWGenericWidget):
             parameters = self.fit_global_parameters.free_input_parameters.as_parameters()
             parameters.extend(self.fit_global_parameters.get_parameters())
 
-            self.populate_table(self.table_fit_in, parameters)
+            self.populate_table(self.table_fit_in, parameters, is_output=False)
 
         if self.is_interactive == 0:
             self.show_data()

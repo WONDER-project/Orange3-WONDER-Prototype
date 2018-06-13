@@ -571,16 +571,11 @@ class OWDiffractionPattern(OWGenericWidget):
 
             self.tab_plot[index].layout().addWidget(self.plot[index])
 
-            scrollarea = QScrollArea(self.tab_data[index])
-            scrollarea.setMinimumWidth(805)
-            scrollarea.setMinimumHeight(605)
+            table_widget = self.create_table_widget()
 
-            self.table_data.append(self.create_table_widget())
+            self.table_data.append(table_widget)
 
-            scrollarea.setWidget(self.table_data[index])
-            scrollarea.setWidgetResizable(1)
-
-            self.tab_data[index].layout().addWidget(scrollarea, alignment=Qt.AlignHCenter)
+            self.tab_data[index].layout().addWidget(table_widget, alignment=Qt.AlignHCenter)
 
 
     def insert_before(self):
@@ -777,17 +772,12 @@ class OWDiffractionPattern(OWGenericWidget):
 
     def create_table_widget(self):
         table = QTableWidget(1, 4)
+        table.setMinimumWidth(750)
         table.setAlternatingRowColors(True)
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
         table.verticalHeader().setVisible(False)
         table.setHorizontalHeaderLabels(self.horizontal_headers)
-
-        table.setColumnWidth(0, 80)
-        table.setColumnWidth(1, 80)
-        table.setColumnWidth(2, 80)
-        table.setColumnWidth(3, 80)
-
-        table.resizeRowsToContents()
+        table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         table.setSelectionBehavior(QAbstractItemView.SelectRows)
 
         return table
@@ -823,6 +813,7 @@ class OWDiffractionPattern(OWGenericWidget):
         table_widget.setHorizontalHeaderLabels(self.horizontal_headers)
         table_widget.resizeRowsToContents()
         table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        table_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         table_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
 

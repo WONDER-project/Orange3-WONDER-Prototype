@@ -30,7 +30,7 @@ class OWFFTParameters(OWGenericWidget):
     want_main_area = False
 
     s_max = Setting(9.0)
-    n_step = Setting(8192)
+    n_step = Setting(3)
     fft_type = Setting(0)
 
     inputs = [("Fit Global Parameters", FitGlobalParameters, 'set_data')]
@@ -55,8 +55,8 @@ class OWFFTParameters(OWGenericWidget):
                                  width=self.CONTROL_AREA_WIDTH - 30)
 
         gui.lineEdit(fft_box, self, "s_max", "S_max [nm-1]", labelWidth=250, valueType=float, validator=QDoubleValidator())
-        gui.lineEdit(fft_box, self, "n_step", "FFT Steps", labelWidth=250, valueType=float, validator=QDoubleValidator())
 
+        self.cb_n_step = orangegui.comboBox(fft_box, self, "n_step", label="FFT Steps", labelWidth=350, items=["1024", "2048", "4096", "8192", "16384", "32768", "65536"], sendSelectedValue=True, orientation="horizontal")
         orangegui.comboBox(fft_box, self, "fft_type", label="FFT Type", items=FFTTypes.tuple(), orientation="horizontal")
 
 
@@ -64,10 +64,9 @@ class OWFFTParameters(OWGenericWidget):
         try:
             if not self.fit_global_parameters is None:
                 congruence.checkStrictlyPositiveNumber(self.s_max, "S Max")
-                congruence.checkStrictlyPositiveNumber(self.n_step, "FFT steps")
 
                 self.fit_global_parameters.fit_initialization.fft_parameters = FFTInitParameters(s_max=self.s_max,
-                                                                                                 n_step=self.n_step,
+                                                                                                 n_step=int(self.cb_n_step.currentText()),
                                                                                                  fft_type=self.fft_type)
 
                 self.send("Fit Global Parameters", self.fit_global_parameters)
@@ -84,7 +83,7 @@ class OWFFTParameters(OWGenericWidget):
             self.fit_global_parameters = data.duplicate()
 
             if not self.fit_global_parameters.fit_initialization.fft_parameters is None:
-                self.n_step = self.fit_global_parameters.fit_initialization.fft_parameters.n_step
+                self.n_step = ((self.fit_global_parameters.fit_initialization.fft_parameters.n_step)/1024)-1
                 self.s_max = self.fit_global_parameters.fit_initialization.fft_parameters.s_max
                 self.fft_type = self.fit_global_parameters.fit_initialization.fft_parameters.fft_type
 

@@ -4,7 +4,7 @@ if not is_recovery:
     from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure import CrystalStructure
     from orangecontrib.xrdanalyzer.controller.fit.init.crystal_structure_symmetry import Symmetry
     from orangecontrib.xrdanalyzer.controller.fit.init.fft_parameters import FFTTypes
-    from orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters import Beampath
+    from orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters import Beampath, LorentzFormula
     from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError, SpecimenDisplacement
     from orangecontrib.xrdanalyzer.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
     from orangecontrib.xrdanalyzer.controller.fit.microstructure.size import Distribution, Normalization
@@ -15,7 +15,7 @@ else:
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure import CrystalStructure
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.crystal_structure_symmetry import Symmetry
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.fft_parameters import FFTTypes
-    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.thermal_polarization_parameters import Beampath
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.init.thermal_polarization_parameters import Beampath, LorentzFormula
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection, ZeroError, SpecimenDisplacement
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.background_parameters import ChebyshevBackground, ExpDecayBackground
     from orangecontrib.xrdanalyzer.recovery.controller.fit.microstructure.size import Distribution, Normalization
@@ -438,7 +438,10 @@ def create_one_peak(reflection_index, fit_global_parameters, diffraction_pattern
         thermal_polarization_parameters = fit_global_parameters.fit_initialization.thermal_polarization_parameters[0 if len(fit_global_parameters.fit_initialization.thermal_polarization_parameters) == 1 else diffraction_pattern_index]
 
         if thermal_polarization_parameters.use_lorentz_factor:
-            I *= lorentz_factor_simplified_normalized(s_hkl, wavelength)
+            if thermal_polarization_parameters.lorentz_formula == LorentzFormula.Shkl_Shkl:
+                I *= lorentz_factor_simplified_normalized(s_hkl, wavelength)
+            elif thermal_polarization_parameters.lorentz_formula == LorentzFormula.S_Shkl:
+                I *= lorentz_factor_normalized(s, s_hkl, wavelength)
 
     return s, I
 

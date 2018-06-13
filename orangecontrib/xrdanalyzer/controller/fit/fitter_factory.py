@@ -22,7 +22,7 @@ class FitterName:
 class FitterFactory():
 
     @classmethod
-    def create_fitter(cls, fitter_name=FitterName.MINPACK, fitting_method=None):
+    def create_fitter(cls, fitter_name=FitterName.MINPACK, additional_data=None):
         congruence.checkEmptyString(fitter_name, "Fitter Name")
 
         if fitter_name == FitterName.MINPACK:
