@@ -124,7 +124,7 @@ class SpecimenDisplacement(FitParametersList):
 
     @classmethod
     def get_parameters_prefix(cls):
-        return "specimen_displacement_"
+        return "sd_"
 
     def __init__(self, goniometer_radius=1.0, displacement=None):
         super(SpecimenDisplacement, self).__init__()

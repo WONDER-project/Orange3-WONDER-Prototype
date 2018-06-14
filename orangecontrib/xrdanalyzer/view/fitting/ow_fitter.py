@@ -27,6 +27,7 @@ if not is_recovery:
     from orangecontrib.xrdanalyzer.util import congruence
     from orangecontrib.xrdanalyzer.controller.fit.fit_parameter import PARAM_HWMAX, PARAM_HWMIN
     from orangecontrib.xrdanalyzer.controller.fit.fit_global_parameters import FitGlobalParameters, FreeOutputParameters
+    from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import SpecimenDisplacement
     from orangecontrib.xrdanalyzer.controller.fit.init.thermal_polarization_parameters import ThermalPolarizationParameters
     from orangecontrib.xrdanalyzer.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection
     from orangecontrib.xrdanalyzer.controller.fit.wppm_functions import caglioti_fwhm, caglioti_eta, delta_two_theta_lab6
@@ -34,9 +35,11 @@ else:
     from orangecontrib.xrdanalyzer.recovery.util import congruence
     from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_parameter import PARAM_HWMAX, PARAM_HWMIN
     from orangecontrib.xrdanalyzer.recovery.controller.fit.fit_global_parameters import FitGlobalParameters, FreeOutputParameters
+    from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import SpecimenDisplacement
     from orangecontrib.xrdanalyzer.recovery.controller.fit.init.thermal_polarization_parameters import ThermalPolarizationParameters
     from orangecontrib.xrdanalyzer.recovery.controller.fit.instrument.instrumental_parameters import Lab6TanCorrection
     from orangecontrib.xrdanalyzer.recovery.controller.fit.wppm_functions import caglioti_fwhm, caglioti_eta, delta_two_theta_lab6
+
 
 
 class OWFitter(OWGenericWidget):
@@ -516,6 +519,9 @@ class OWFitter(OWGenericWidget):
         if parameter.parameter_name == ThermalPolarizationParameters.get_parameters_prefix() + "debye_waller_factor":
             parameter = parameter.duplicate()
             parameter.rescale(100) # from nm-2 to A-2
+        elif parameter.parameter_name == SpecimenDisplacement.get_parameters_prefix() + "displacement":
+            parameter = parameter.duplicate()
+            parameter.rescale(1e6) # from m to um
 
         return parameter
 
