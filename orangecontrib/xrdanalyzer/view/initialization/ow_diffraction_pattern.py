@@ -1362,8 +1362,6 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
 
     index = 0
 
-    secondary_wavelengths_boxes = {}
-
     def __init__(self,
                  widget=None,
                  parent=None,
@@ -1572,8 +1570,8 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
 
         widget.create_box_in_widget(self, container,  "wavelength", label="\u03BB  [nm]", disable_function=True, add_callback=True)
 
-        self.secondary_box_2 = gui.widgetBox(container, "", orientation="horizontal", width=self.CONTROL_AREA_WIDTH - 35, spacing=0)
-        self.secondary_box_2_empty = gui.widgetBox(container, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 35, spacing=0)
+        self.secondary_box_2 = gui.widgetBox(container, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 35, )
+        self.secondary_box_2_empty = gui.widgetBox(container, "", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 35)
 
         self.create_wavelength_boxes()
 
@@ -1590,47 +1588,48 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
         return items
 
     def create_wavelength_boxes(self):
-        keys = wavelengths_data.keys()
+        self.secondary_wavelengths_boxes = {}
 
-        for key in keys:
-            secondary_wavelengths_box = gui.widgetBox(self.secondary_box_2, "Secondary Wavelengths", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 45, spacing=0)
+        for key in wavelengths_data.keys():
+            self.secondary_wavelengths_boxes[key] = gui.widgetBox(self.secondary_box_2, key + " Secondary Wavelengths", orientation="vertical", width=self.CONTROL_AREA_WIDTH - 40, height=230)
 
-            self.secondary_wavelengths_boxes[key] = secondary_wavelengths_box
-
-            index = 2
-            for wavelenght in wavelengths_data[key]:
-                if not wavelenght.is_principal:
-                    var_wl = "wavelength_" + str(index)
-                    var_we = "weight_" + str(index)
-                    label_wl = "\u03BB" + " " + str(index) + "  [nm]"
-                    label_we = "weight " + str(index)
-
-                    self.widget.create_box_in_widget(self, secondary_wavelengths_box,  var_wl, label=label_wl, label_width=55)
-                    self.widget.create_box_in_widget(self, secondary_wavelengths_box,  var_we, label=label_we, label_width=55)
-
-                    index += 1
-
-
-    def set_xray_tube_key(self):
-        gui.clearLayout(self.secondary_box_2.layout())
-
-        for key in self.secondary_wavelengths_boxes.keys():
-            if key==self.xray_tube_key:
-                self.secondary_box_2.layout().addWidget(self.secondary_wavelengths_boxes[key])
-
-        if self.xray_tube_key in wavelengths_data.keys():
             secondary_index = 2
-            for wavelenght in wavelengths_data[self.xray_tube_key]:
+            for wavelenght in wavelengths_data[key]:
                 if not wavelenght.is_principal:
                     var_wl = "wavelength_" + str(secondary_index)
                     var_we = "weight_" + str(secondary_index)
+                    label_wl = "\u03BB" + " " + str(secondary_index) + "  [nm]"
+                    label_we = "weight " + str(secondary_index)
 
-                    self.widget.populate_fields_in_widget(self, var_wl, FitParameter(value=wavelenght.wavelength, fixed=True), value_only=False)
-                    self.widget.populate_fields_in_widget(self, var_we, FitParameter(value=wavelenght.weight, fixed=True), value_only=False)
+                    self.widget.create_box_in_widget(self, self.secondary_wavelengths_boxes[key],  var_wl, label=label_wl, label_width=55)
+                    self.widget.create_box_in_widget(self, self.secondary_wavelengths_boxes[key],  var_we, label=label_we, label_width=55)
+
+                    secondary_index += 1
+
+            self.secondary_wavelengths_boxes[key].setVisible(False)
+
+    def set_xray_tube_key(self):
+        if self.xray_tube_key in wavelengths_data.keys():
+            secondary_index = 2
+            for wavelength in wavelengths_data[self.xray_tube_key]:
+                if not wavelength.is_principal:
+                    var_wl = "wavelength_" + str(secondary_index)
+                    var_we = "weight_" + str(secondary_index)
+
+                    self.widget.populate_fields_in_widget(self, var_wl, FitParameter(value=wavelength.wavelength, fixed=True), value_only=False)
+                    self.widget.populate_fields_in_widget(self, var_we, FitParameter(value=wavelength.weight, fixed=True), value_only=False)
 
                     secondary_index += 1
                 else:
-                    self.widget.populate_fields_in_widget(self, "wavelength", FitParameter(value=wavelenght.wavelength, fixed=True), value_only=False)
+                    self.widget.populate_fields_in_widget(self, "wavelength", FitParameter(value=wavelength.wavelength, fixed=True), value_only=False)
+
+        for key in self.secondary_wavelengths_boxes.keys():
+            if key==self.xray_tube_key:
+                self.secondary_box_2.layout().removeWidget(self.secondary_wavelengths_boxes[key])
+                self.secondary_box_2.layout().insertWidget(0, self.secondary_wavelengths_boxes[key])
+                self.secondary_wavelengths_boxes[key].setVisible(True)
+            else:
+                self.secondary_wavelengths_boxes[key].setVisible(False)
 
         if not self.is_on_init:
             self.widget.dump_xray_tube_key()
@@ -1730,8 +1729,9 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
                                                                                                   DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"))
                     secondary_index += 1
 
-            self.diffraction_pattern.set_multiple_wavelengths(secondary_wavelengths, secondary_wavelengths_weights)
-
+            self.diffraction_pattern.set_multiple_wavelengths(secondary_wavelengths, secondary_wavelengths_weights, recalculate=False)
+        else:
+            self.diffraction_pattern.set_single_wavelength(self.wavelength, recalculate=False)
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)

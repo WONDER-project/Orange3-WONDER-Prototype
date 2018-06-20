@@ -89,18 +89,18 @@ class DiffractionPattern(FitParametersList):
         self.wavelength = wavelength
         self.is_single_wavelength = True
 
-    def set_multiple_wavelengths(self, secondary_wavelengths = [], secondary_wavelengths_weights = []):
+    def set_multiple_wavelengths(self, secondary_wavelengths = [], secondary_wavelengths_weights = [], recalculate=True):
         self.is_single_wavelength = False
         self.secondary_wavelengths = secondary_wavelengths
         self.secondary_wavelengths_weights = secondary_wavelengths_weights
-        self.principal_wavelength_weight = self.get_principal_wavelenght_weight(recalculate=True)
+        self.principal_wavelength_weight = self.get_principal_wavelenght_weight(recalculate=recalculate)
 
-    def set_single_wavelength(self, wavelength=None):
+    def set_single_wavelength(self, wavelength=None, recalculate=True):
         self.is_single_wavelength = True
         self.wavelength = wavelength
         self.secondary_wavelengths = []
         self.secondary_wavelengths_weights = []
-        self.principal_wavelength_weight = self.get_principal_wavelenght_weight(recalculate=True)
+        self.principal_wavelength_weight = self.get_principal_wavelenght_weight(recalculate=recalculate)
 
     def get_principal_wavelenght_weight(self, recalculate=False): # recalculate is to improve efficiency
         if not recalculate:
