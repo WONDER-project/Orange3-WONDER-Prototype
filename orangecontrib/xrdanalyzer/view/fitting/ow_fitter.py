@@ -138,18 +138,20 @@ class OWFitter(OWGenericWidget):
 
         self.plot_box = gui.widgetBox(main_box, "Plotting Options", orientation="vertical", width=self.CONTROL_AREA_WIDTH-20)
 
-        self.cb_interactive = orangegui.checkBox(self.plot_box, self, "is_interactive", "Refresh Plots while fitting")
+        self.cb_interactive = orangegui.checkBox(self.plot_box, self, "is_interactive", "Refresh Plots while fitting", callback=self.set_interactive)
         orangegui.separator(self.plot_box, height=8)
 
-        self.cb_show_wss_gof = orangegui.checkBox(self.plot_box, self, "show_wss_gof", "Do W.S.S. and G.o.F. plots", callback=self.set_show_wss_gof)
+        self.cb_show_wss_gof = orangegui.checkBox(self.plot_box, self, "show_wss_gof", "Refresh W.S.S. and G.o.F. plots" )
         orangegui.separator(self.plot_box)
-        self.cb_show_ipf     = orangegui.checkBox(self.plot_box, self, "show_ipf", "Do Instrumental Profile plots", callback=self.set_show_ipf)
+        self.cb_show_ipf     = orangegui.checkBox(self.plot_box, self, "show_ipf", "Refresh Instrumental Profile plots")
         orangegui.separator(self.plot_box)
-        self.cb_show_shift     = orangegui.checkBox(self.plot_box, self, "show_shift", "Do Calibration Shift plots", callback=self.set_show_shift)
+        self.cb_show_shift     = orangegui.checkBox(self.plot_box, self, "show_shift", "Refresh Calibration Shift plots")
         orangegui.separator(self.plot_box)
-        self.cb_show_size    = orangegui.checkBox(self.plot_box, self, "show_size", "Do Size Distribution plot", callback=self.set_show_size)
+        self.cb_show_size    = orangegui.checkBox(self.plot_box, self, "show_size", "Refresh Size Distribution plot")
         orangegui.separator(self.plot_box)
-        self.cb_show_warren  = orangegui.checkBox(self.plot_box, self, "show_warren", "Do Warren's plot", callback=self.set_show_warren)
+        self.cb_show_warren  = orangegui.checkBox(self.plot_box, self, "show_warren", "Refresh Warren's plot")
+
+        self.set_interactive()
 
         tab_free_out = gui.widgetBox(main_box, "Free Output Parameters", orientation="vertical")
 
@@ -273,31 +275,18 @@ class OWFitter(OWGenericWidget):
         self.table_fit_out = self.create_table_widget()
         self.tab_fit_out.layout().addWidget(self.table_fit_out, alignment=Qt.AlignHCenter)
 
-        self.set_show_plots()
-
-    def set_show_wss_gof(self):
-        self.tab_plot_fit_wss.setEnabled(self.show_wss_gof==1)
-        self.tab_plot_fit_gof.setEnabled(self.show_wss_gof==1)
-
-    def set_show_ipf(self):
-        self.tab_plot_eta.setEnabled(self.show_ipf==1)
-        self.tab_plot_fwhm.setEnabled(self.show_ipf==1)
-
-    def set_show_shift(self):
-        self.tab_plot_lab6.setEnabled(self.show_shift==1)
-
-    def set_show_size(self):
-        self.tab_plot_size.setEnabled(self.show_size==1)
-
-    def set_show_warren(self):
-        self.tab_plot_strain.setEnabled(self.show_warren==1)
-
-    def set_show_plots(self):
-        self.set_show_wss_gof()
-        self.set_show_ipf()
-        self.set_show_shift()
-        self.set_show_size()
-        self.set_show_warren()
+    def set_interactive(self):
+        self.cb_show_wss_gof.setEnabled(self.is_interactive==1)
+        if not self.fit_global_parameters is None:
+            self.cb_show_ipf.setEnabled(not self.fit_global_parameters.instrumental_parameters is None and self.is_interactive==1)
+            self.cb_show_shift.setEnabled(not self.fit_global_parameters.get_shift_parameters(Lab6TanCorrection.__name__) is None and self.is_interactive==1)
+            self.cb_show_size.setEnabled(not self.fit_global_parameters.size_parameters is None and self.is_interactive==1)
+            self.cb_show_warren.setEnabled(not self.fit_global_parameters.strain_parameters is None and self.is_interactive==1)
+        else:
+            self.cb_show_ipf.setEnabled(self.is_interactive==1)
+            self.cb_show_shift.setEnabled(self.is_interactive==1)
+            self.cb_show_size.setEnabled(self.is_interactive==1)
+            self.cb_show_warren.setEnabled(self.is_interactive==1)
 
     def build_plot_fit(self):
         fit_global_parameter = self.fit_global_parameters if self.fitted_fit_global_parameters is None else self.fitted_fit_global_parameters
@@ -438,28 +427,34 @@ class OWFitter(OWGenericWidget):
                 if self.fit_global_parameters.instrumental_parameters is None:
                     self.show_ipf = 0
                     self.cb_show_ipf.setEnabled(False)
+                    self.tab_plot_ipf.setEnabled(False)
                 else:
                     self.cb_show_ipf.setEnabled(True)
+                    self.tab_plot_ipf.setEnabled(True)
 
                 if self.fit_global_parameters.get_shift_parameters(Lab6TanCorrection.__name__) is None:
                     self.show_shift = 0
                     self.cb_show_shift.setEnabled(False)
+                    self.tab_plot_lab6.setEnabled(False)
                 else:
                     self.cb_show_shift.setEnabled(True)
+                    self.tab_plot_lab6.setEnabled(True)
 
                 if self.fit_global_parameters.size_parameters is None:
                     self.show_size = 0
                     self.cb_show_size.setEnabled(False)
+                    self.tab_plot_size.setEnabled(False)
                 else:
                     self.cb_show_size.setEnabled(True)
+                    self.tab_plot_size.setEnabled(True)
 
                 if self.fit_global_parameters.strain_parameters is None:
                     self.show_warren = 0
                     self.cb_show_warren.setEnabled(False)
+                    self.tab_plot_strain.setEnabled(False)
                 else:
                     self.cb_show_warren.setEnabled(True)
-
-                self.set_show_plots()
+                    self.tab_plot_strain.setEnabled(True)
 
                 if self.is_incremental == 0 or (self.is_incremental == 1 and self.current_iteration == 0):
                     sys.stdout = EmittingStream(textWritten=self.write_stdout)
@@ -677,7 +672,7 @@ class OWFitter(OWGenericWidget):
             self.plot_fit[diffraction_pattern_index].addCurve(self.x[diffraction_pattern_index], yf, legend="fit", color="red")
             self.plot_fit[diffraction_pattern_index].addCurve(self.x[diffraction_pattern_index], res, legend="residual", color="#2D811B")
 
-        if not self.fit_data is None and self.is_interactive == 1 and self.show_wss_gof==1:
+        if not self.fit_data is None and self.is_interactive==1 and self.show_wss_gof==1:
             x = numpy.arange(1, self.current_iteration + 1)
             self.current_wss.append(self.fit_data.wss)
             self.current_gof.append(self.fit_data.gof())
@@ -701,7 +696,7 @@ class OWFitter(OWGenericWidget):
 
         shift_parameters = self.fitted_fit_global_parameters.get_shift_parameters(Lab6TanCorrection.__name__)
 
-        if not shift_parameters is None and self.show_ipf==1:
+        if not shift_parameters is None and self.show_shift==1:
             y = delta_two_theta_lab6(shift_parameters[0].ax.value,
                                      shift_parameters[0].bx.value,
                                      shift_parameters[0].cx.value,
