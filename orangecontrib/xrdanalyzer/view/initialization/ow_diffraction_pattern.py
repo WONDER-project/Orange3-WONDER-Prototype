@@ -435,7 +435,7 @@ class OWDiffractionPattern(OWGenericWidget):
     def __init__(self):
         super().__init__(show_automatic_box=False)
 
-        self.fix_input(False)
+        #self.fix_input(False)
 
         main_box = gui.widgetBox(self.controlArea,
                                  "Load Diffraction Pattern", orientation="vertical",
@@ -1601,15 +1601,15 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
                     label_wl = "\u03BB" + " " + str(secondary_index) + "  [nm]"
                     label_we = "weight " + str(secondary_index)
 
-                    self.widget.create_box_in_widget(self, self.secondary_wavelengths_boxes[key],  var_wl, label=label_wl, label_width=55)
-                    self.widget.create_box_in_widget(self, self.secondary_wavelengths_boxes[key],  var_we, label=label_we, label_width=55)
+                    self.widget.create_box_in_widget(self, self.secondary_wavelengths_boxes[key],  var_wl, label=label_wl, label_width=55, add_callback=True)
+                    self.widget.create_box_in_widget(self, self.secondary_wavelengths_boxes[key],  var_we, label=label_we, label_width=55, add_callback=True)
 
                     secondary_index += 1
 
             self.secondary_wavelengths_boxes[key].setVisible(False)
 
     def set_xray_tube_key(self):
-        if self.xray_tube_key in wavelengths_data.keys():
+        if not self.is_on_init and self.xray_tube_key in wavelengths_data.keys():
             secondary_index = 2
             for wavelength in wavelengths_data[self.xray_tube_key]:
                 if not wavelength.is_principal:
@@ -1682,6 +1682,30 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
     def callback_wavelength(self):
         if not self.is_on_init: self.widget.dump_wavelength()
         
+    def callback_wavelength_2(self):
+        if not self.is_on_init: self.widget.dump_wavelength_2()
+        
+    def callback_wavelength_3(self):
+        if not self.is_on_init: self.widget.dump_wavelength_3()
+        
+    def callback_wavelength_4(self):
+        if not self.is_on_init: self.widget.dump_wavelength_4()
+        
+    def callback_wavelength_5(self):
+        if not self.is_on_init: self.widget.dump_wavelength_5()
+        
+    def callback_weight_2(self):
+        if not self.is_on_init: self.widget.dump_weight_2()
+        
+    def callback_weight_3(self):
+        if not self.is_on_init: self.widget.dump_weight_3()
+        
+    def callback_weight_4(self):
+        if not self.is_on_init: self.widget.dump_weight_4()
+        
+    def callback_weight_5(self):
+        if not self.is_on_init: self.widget.dump_weight_5()
+
     def open_folders(self):
         self.filename=gui.selectFileFromDialog(self,
                                                self.filename,
@@ -1709,8 +1733,6 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
                                                                                                                                            "wavelength",
                                                                                                                                            DiffractionPattern.get_parameters_prefix() + str(self.index+1) + "_"),
                                                                                                   limits)
-        #self.wavelength = self.diffraction_pattern.wavelength.value
-
         if self.is_multiple_wavelength == 1:
             secondary_wavelengths = []
             secondary_wavelengths_weights = []

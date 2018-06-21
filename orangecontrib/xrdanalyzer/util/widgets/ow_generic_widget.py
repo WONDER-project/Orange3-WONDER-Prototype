@@ -152,6 +152,9 @@ class OWGenericWidget(widget.OWWidget):
                 box_function.setVisible(False)
                 box_function_value.setVisible(False)
             else:
+                setattr(widget, var + "_fixed", 0)
+                setattr(widget, var + "_function", 0)
+
                 box_min_max.setVisible(True)
                 box_fixed.setVisible(True)
                 le_var.setVisible(True)

@@ -237,6 +237,8 @@ class FitGlobalParameters(FitParametersList):
             self.free_output_parameters.set_functions_values(parameters_dictionary)
 
     def duplicate(self):
+        self.evaluate_functions()
+
         fit_initialization = None if self.fit_initialization is None else self.fit_initialization.duplicate()
 
         if self.background_parameters is None:
