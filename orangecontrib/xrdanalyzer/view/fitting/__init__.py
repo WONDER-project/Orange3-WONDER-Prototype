@@ -6,4 +6,4 @@ DESCRIPTION = "Whole POdwer PatterN MoDelling in ORange"
 ICON = "icons/fitting.png"
 PRIORITY = 5010
 
-BACKGROUND = "#b8bcdb"
+BACKGROUND = "#E59866"

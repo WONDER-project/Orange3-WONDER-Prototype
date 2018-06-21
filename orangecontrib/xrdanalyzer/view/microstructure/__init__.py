@@ -6,4 +6,4 @@ DESCRIPTION = "Whole POdwer PatterN MoDelling in ORange"
 ICON = "icons/microstructure.png"
 PRIORITY = 5004
 
-BACKGROUND = "#b8bcdb"
+BACKGROUND = "#E59866"
