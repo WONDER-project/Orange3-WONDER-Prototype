@@ -143,7 +143,7 @@ class OWCrystalStructure(OWGenericWidget):
     def __init__(self):
         super().__init__(show_automatic_box=True)
         
-        self.fix_input()
+        if self.IS_FIX: self.fix_input()
         
         crystal_box = gui.widgetBox(self.controlArea,
                                  "Crystal Structure", orientation="vertical",

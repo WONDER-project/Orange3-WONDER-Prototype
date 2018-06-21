@@ -366,7 +366,7 @@ class OWChebyshevBackground(OWGenericWidget):
     def __init__(self):
         super().__init__(show_automatic_box=True)
 
-        self.fix_input()
+        if self.IS_FIX: self.fix_input()
 
         main_box = gui.widgetBox(self.controlArea,
                                  "Chebyshev Parameters", orientation="vertical",

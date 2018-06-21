@@ -42,6 +42,7 @@ class OWGenericWidget(widget.OWWidget):
     parameter_functions = {}
 
     IS_DEVELOP = False if not "ORANGEDEVELOP" in os.environ.keys() else str(os.environ.get('ORANGEDEVELOP')) == "1"
+    IS_FIX = False if not "ORANGEFIX" in os.environ.keys() else str(os.environ.get('ORANGEFIX')) == "1"
 
     '''
     def _insert_control_area(self):
@@ -204,7 +205,7 @@ class OWGenericWidget(widget.OWWidget):
     
     @classmethod
     def populate_parameter_in_widget(cls, widget, parameter_name, parameter_prefix, parameter_suffix = ""):
-        if getattr(widget, parameter_name + "_function") == 1:
+        if hasattr(widget, parameter_name + "_function") and getattr(widget, parameter_name + "_function") == 1:
             return FitParameter(parameter_name=parameter_prefix + parameter_name + parameter_suffix, function=True, function_value=getattr(widget, parameter_name + "_function_value"))
         elif getattr(widget, parameter_name + "_fixed") == 1:
             return FitParameter(parameter_name=parameter_prefix + parameter_name + parameter_suffix, value=getattr(widget, parameter_name), fixed=True)

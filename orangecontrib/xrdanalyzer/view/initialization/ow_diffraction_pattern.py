@@ -435,7 +435,7 @@ class OWDiffractionPattern(OWGenericWidget):
     def __init__(self):
         super().__init__(show_automatic_box=False)
 
-        #self.fix_input(False)
+        if self.IS_FIX: self.fix_input(False)
 
         main_box = gui.widgetBox(self.controlArea,
                                  "Load Diffraction Pattern", orientation="vertical",
@@ -1752,8 +1752,6 @@ class DiffractionPatternBox(QtWidgets.QWidget, OWComponent):
                     secondary_index += 1
 
             self.diffraction_pattern.set_multiple_wavelengths(secondary_wavelengths, secondary_wavelengths_weights, recalculate=False)
-        else:
-            self.diffraction_pattern.set_single_wavelength(self.wavelength, recalculate=False)
 
 if __name__ == "__main__":
     a = QApplication(sys.argv)
