@@ -87,6 +87,24 @@ class OWFitter(OWGenericWidget):
     theta_ipf_deg = 0.5*twotheta_ipf
     theta_ipf_radians = numpy.radians(theta_ipf_deg)
 
+    fwhm_autoscale = Setting(1)
+    fwhm_xmin = Setting(0.0)
+    fwhm_xmax = Setting(150.0)
+    fwhm_ymin = Setting(0.0)
+    fwhm_ymax = Setting(1.0)
+
+    eta_autoscale = Setting(1)
+    eta_xmin = Setting(0.0)
+    eta_xmax = Setting(150.0)
+    eta_ymin = Setting(0.0)
+    eta_ymax = Setting(1.0)
+
+    lab6_autoscale = Setting(1)
+    lab6_xmin = Setting(0.0)
+    lab6_xmax = Setting(150.0)
+    lab6_ymin = Setting(-1.0)
+    lab6_ymax = Setting(1.0)
+
     def __init__(self):
         super().__init__(show_automatic_box=True)
 
@@ -241,13 +259,54 @@ class OWFitter(OWGenericWidget):
 
         self.tab_plot_strain.layout().addWidget(self.plot_strain)
 
+        box = gui.widgetBox(self.tab_plot_fwhm, "", orientation="horizontal")
+
+        boxl = gui.widgetBox(box, "", orientation="vertical")
+        boxr = gui.widgetBox(box, "", orientation="vertical", width=150)
+
+        def set_fwhm_autoscale():
+            self.le_fwhm_xmin.setEnabled(self.fwhm_autoscale==0)
+            self.le_fwhm_xmax.setEnabled(self.fwhm_autoscale==0)
+            self.le_fwhm_ymin.setEnabled(self.fwhm_autoscale==0)
+            self.le_fwhm_ymax.setEnabled(self.fwhm_autoscale==0)
+
+        orangegui.checkBox(boxr, self, "fwhm_autoscale", "Autoscale", callback=set_fwhm_autoscale)
+
+        self.le_fwhm_xmin = gui.lineEdit(boxr, self, "fwhm_xmin", "2\u03b8 min", labelWidth=50, valueType=float)
+        self.le_fwhm_xmax = gui.lineEdit(boxr, self, "fwhm_xmax", "2\u03b8 max", labelWidth=50, valueType=float)
+        self.le_fwhm_ymin = gui.lineEdit(boxr, self, "fwhm_ymin", "FWHM min", labelWidth=50, valueType=float)
+        self.le_fwhm_ymax = gui.lineEdit(boxr, self, "fwhm_ymax", "FWHM max", labelWidth=50, valueType=float)
+
+        set_fwhm_autoscale()
+
         self.plot_ipf_fwhm = PlotWindow()
         self.plot_ipf_fwhm.setDefaultPlotLines(True)
         self.plot_ipf_fwhm.setActiveCurveColor(color="#00008B")
         self.plot_ipf_fwhm.setGraphXLabel("2\u03b8 (deg)")
         self.plot_ipf_fwhm.setGraphYLabel("FWHM (deg)")
 
-        self.tab_plot_fwhm.layout().addWidget(self.plot_ipf_fwhm)
+        boxl.layout().addWidget(self.plot_ipf_fwhm)
+
+
+        box = gui.widgetBox(self.tab_plot_eta, "", orientation="horizontal")
+
+        boxl = gui.widgetBox(box, "", orientation="vertical")
+        boxr = gui.widgetBox(box, "", orientation="vertical", width=150)
+
+        def set_eta_autoscale():
+            self.le_eta_xmin.setEnabled(self.eta_autoscale==0)
+            self.le_eta_xmax.setEnabled(self.eta_autoscale==0)
+            self.le_eta_ymin.setEnabled(self.eta_autoscale==0)
+            self.le_eta_ymax.setEnabled(self.eta_autoscale==0)
+
+        orangegui.checkBox(boxr, self, "eta_autoscale", "Autoscale", callback=set_eta_autoscale)
+
+        self.le_eta_xmin = gui.lineEdit(boxr, self, "eta_xmin", "2\u03b8 min", labelWidth=50, valueType=float)
+        self.le_eta_xmax = gui.lineEdit(boxr, self, "eta_xmax", "2\u03b8 max", labelWidth=50, valueType=float)
+        self.le_eta_ymin = gui.lineEdit(boxr, self, "eta_ymin", "\u03b7 min", labelWidth=50, valueType=float)
+        self.le_eta_ymax = gui.lineEdit(boxr, self, "eta_ymax", "\u03b7 max", labelWidth=50, valueType=float)
+
+        set_eta_autoscale()
 
         self.plot_ipf_eta = PlotWindow()
         self.plot_ipf_eta.setDefaultPlotLines(True)
@@ -255,7 +314,27 @@ class OWFitter(OWGenericWidget):
         self.plot_ipf_eta.setGraphXLabel("2\u03b8 (deg)")
         self.plot_ipf_eta.setGraphYLabel("\u03b7")
 
-        self.tab_plot_eta.layout().addWidget(self.plot_ipf_eta)
+        boxl.layout().addWidget(self.plot_ipf_eta)
+
+        box = gui.widgetBox(self.tab_plot_lab6, "", orientation="horizontal")
+
+        boxl = gui.widgetBox(box, "", orientation="vertical")
+        boxr = gui.widgetBox(box, "", orientation="vertical", width=150)
+
+        def set_lab6_autoscale():
+            self.le_lab6_xmin.setEnabled(self.lab6_autoscale==0)
+            self.le_lab6_xmax.setEnabled(self.lab6_autoscale==0)
+            self.le_lab6_ymin.setEnabled(self.lab6_autoscale==0)
+            self.le_lab6_ymax.setEnabled(self.lab6_autoscale==0)
+
+        orangegui.checkBox(boxr, self, "lab6_autoscale", "Autoscale", callback=set_lab6_autoscale)
+
+        self.le_lab6_xmin = gui.lineEdit(boxr, self, "lab6_xmin", "2\u03b8 min", labelWidth=50, valueType=float)
+        self.le_lab6_xmax = gui.lineEdit(boxr, self, "lab6_xmax", "2\u03b8 max", labelWidth=50, valueType=float)
+        self.le_lab6_ymin = gui.lineEdit(boxr, self, "lab6_ymin", "\u0394(2\u03b8) min", labelWidth=50, valueType=float)
+        self.le_lab6_ymax = gui.lineEdit(boxr, self, "lab6_ymax", "\u0394(2\u03b8) max", labelWidth=50, valueType=float)
+
+        set_lab6_autoscale()
 
         self.plot_ipf_lab6 = PlotWindow()
         self.plot_ipf_lab6.setDefaultPlotLines(True)
@@ -263,7 +342,7 @@ class OWFitter(OWGenericWidget):
         self.plot_ipf_lab6.setGraphXLabel("2\u03b8 (deg)")
         self.plot_ipf_lab6.setGraphYLabel("\u0394(2\u03b8) (deg)")
 
-        self.tab_plot_lab6.layout().addWidget(self.plot_ipf_lab6)
+        boxl.layout().addWidget(self.plot_ipf_lab6)
 
         # -------------------
 
@@ -682,28 +761,52 @@ class OWFitter(OWGenericWidget):
 
 
         if not self.fitted_fit_global_parameters.instrumental_parameters is None and self.show_ipf==1:
+            if self.fwhm_autoscale == 1:
+                twotheta_fwhm = numpy.arange(0.0, 150.0, 0.5)
+            else:
+                twotheta_fwhm = numpy.arange(self.fwhm_xmin, self.fwhm_xmax, 0.5)
+            
+            if self.eta_autoscale == 1:
+                twotheta_eta = numpy.arange(0.0, 150.0, 0.5)
+            else:
+                twotheta_eta = numpy.arange(self.eta_xmin, self.eta_xmax, 0.5)
+
+            theta_fwhm_radians = numpy.radians(0.5*twotheta_fwhm)
+            theta_eta_radians = numpy.radians(0.5*twotheta_eta)
+            
             y = caglioti_eta(self.fitted_fit_global_parameters.instrumental_parameters[0].a.value,
                              self.fitted_fit_global_parameters.instrumental_parameters[0].b.value,
                              self.fitted_fit_global_parameters.instrumental_parameters[0].c.value,
-                             self.theta_ipf_deg)
-            self.plot_ipf_eta.addCurve(self.twotheta_ipf, y, legend="eta", color="blue")
+                             theta_eta_radians)
+            self.plot_ipf_eta.addCurve(twotheta_eta, y, legend="eta", color="blue")
+            if self.eta_autoscale == 0 and self.eta_ymin < self.eta_xmax: self.plot_ipf_eta.setGraphYLimits(ymin=self.eta_ymin, ymax=self.eta_ymax)
 
             y = caglioti_fwhm(self.fitted_fit_global_parameters.instrumental_parameters[0].U.value,
                               self.fitted_fit_global_parameters.instrumental_parameters[0].V.value,
                               self.fitted_fit_global_parameters.instrumental_parameters[0].W.value,
-                              self.theta_ipf_radians)
-            self.plot_ipf_fwhm.addCurve(self.twotheta_ipf, y, legend="fwhm", color="blue")
+                              theta_fwhm_radians)
+            self.plot_ipf_fwhm.addCurve(twotheta_fwhm, y, legend="fwhm", color="blue")
+            if self.fwhm_autoscale == 0 and self.fwhm_ymin < self.fwhm_xmax: self.plot_ipf_fwhm.setGraphYLimits(ymin=self.fwhm_ymin, ymax=self.fwhm_ymax)
 
         shift_parameters = self.fitted_fit_global_parameters.get_shift_parameters(Lab6TanCorrection.__name__)
 
         if not shift_parameters is None and self.show_shift==1:
+            
+            if self.lab6_autoscale == 1:
+                twotheta_lab6 = numpy.arange(0.0, 150.0, 0.5)
+            else:
+                twotheta_lab6 = numpy.arange(self.lab6_xmin, self.lab6_xmax, 0.5)
+
+            theta_lab6_radians = numpy.radians(0.5*twotheta_lab6)
+
             y = delta_two_theta_lab6(shift_parameters[0].ax.value,
                                      shift_parameters[0].bx.value,
                                      shift_parameters[0].cx.value,
                                      shift_parameters[0].dx.value,
                                      shift_parameters[0].ex.value,
-                                     self.theta_ipf_radians)
-            self.plot_ipf_lab6.addCurve(self.twotheta_ipf, y, legend="lab6", color="blue")
+                                     theta_lab6_radians)
+            self.plot_ipf_lab6.addCurve(twotheta_lab6, y, legend="lab6", color="blue")
+            if self.lab6_autoscale == 0 and self.lab6_ymin < self.lab6_xmax: self.plot_ipf_lab6.setGraphYLimits(ymin=self.lab6_ymin, ymax=self.lab6_ymax)
 
         if not hasattr(self, "D_max"): self.D_max = None
         if not hasattr(self, "D_min"): self.D_min = None

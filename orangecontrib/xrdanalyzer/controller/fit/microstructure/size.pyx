@@ -109,9 +109,8 @@ class SizeParameters(FitParametersList):
                 y = numpy.zeros(len(x))
 
             if auto:
-                bounds = x[numpy.where(y > 1e-5)]
-                D_min = bounds[0]
-                D_max = bounds[-1]
+                D_min = 0.0
+                D_max = x[numpy.where(y > 1e-5)][-1]
                 if D_min == D_max: D_min==x[0]
 
                 x, y, D_min, D_max = self.get_distribution(auto=False, D_min=D_min, D_max=D_max)

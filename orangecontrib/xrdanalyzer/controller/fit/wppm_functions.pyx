@@ -793,6 +793,7 @@ def delta_two_theta_lab6(ax, bx, cx, dx, ex, theta): # input: radians
 
     delta_twotheta = numpy.radians(ax*(1/tan_theta) + bx + cx*tan_theta + dx*tan_theta**2 + ex*tan_theta**3)
     delta_twotheta[numpy.where(numpy.isnan(delta_twotheta))] = 0.0
+    delta_twotheta[numpy.where(numpy.isinf(delta_twotheta))] = 0.0
 
     return delta_twotheta
 

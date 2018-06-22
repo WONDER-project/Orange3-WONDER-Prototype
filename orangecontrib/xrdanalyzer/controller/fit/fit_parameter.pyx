@@ -284,6 +284,8 @@ class FreeInputParameters(ParametersList):
         return parameters
 
     def parse_values(self, text):
+        self.parameters_dictionary.clear()
+
         is_empty = False
 
         try:
@@ -413,6 +415,8 @@ class FreeOutputParameters(ParametersList):
                 self.set_parameter(name, free_output_parameters.parameters_dictionary[name])
 
     def parse_formulas(self, text):
+        self.parameters_dictionary.clear()
+
         is_empty = False
 
         try:
