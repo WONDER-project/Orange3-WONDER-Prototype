@@ -276,6 +276,7 @@ class OWFitter(OWGenericWidget):
         self.le_fwhm_xmax = gui.lineEdit(boxr, self, "fwhm_xmax", "2\u03b8 max", labelWidth=70, valueType=float)
         self.le_fwhm_ymin = gui.lineEdit(boxr, self, "fwhm_ymin", "FWHM min", labelWidth=70, valueType=float)
         self.le_fwhm_ymax = gui.lineEdit(boxr, self, "fwhm_ymax", "FWHM max", labelWidth=70, valueType=float)
+        gui.button(boxr, self, "Refresh", height=40, callback=self.refresh_caglioti_fwhm)
 
         set_fwhm_autoscale()
 
@@ -305,6 +306,7 @@ class OWFitter(OWGenericWidget):
         self.le_eta_xmax = gui.lineEdit(boxr, self, "eta_xmax", "2\u03b8 max", labelWidth=70, valueType=float)
         self.le_eta_ymin = gui.lineEdit(boxr, self, "eta_ymin", "\u03b7 min", labelWidth=70, valueType=float)
         self.le_eta_ymax = gui.lineEdit(boxr, self, "eta_ymax", "\u03b7 max", labelWidth=70, valueType=float)
+        gui.button(boxr, self, "Refresh", height=40, callback=self.refresh_caglioti_eta)
 
         set_eta_autoscale()
 
@@ -333,6 +335,7 @@ class OWFitter(OWGenericWidget):
         self.le_lab6_xmax = gui.lineEdit(boxr, self, "lab6_xmax", "2\u03b8 max", labelWidth=70, valueType=float)
         self.le_lab6_ymin = gui.lineEdit(boxr, self, "lab6_ymin", "\u0394(2\u03b8) min", labelWidth=70, valueType=float)
         self.le_lab6_ymax = gui.lineEdit(boxr, self, "lab6_ymax", "\u0394(2\u03b8) max", labelWidth=70, valueType=float)
+        gui.button(boxr, self, "Refresh", height=40, callback=self.refresh_lab6)
 
         set_lab6_autoscale()
 
@@ -711,6 +714,61 @@ class OWFitter(OWGenericWidget):
 
             if self.IS_DEVELOP: raise e
 
+
+    def refresh_caglioti_fwhm(self):
+        if not self.fitted_fit_global_parameters.instrumental_parameters is None and self.show_ipf==1:
+            if self.fwhm_autoscale == 1:
+                twotheta_fwhm = numpy.arange(0.0, 150.0, 0.5)
+            else:
+                twotheta_fwhm = numpy.arange(self.fwhm_xmin, self.fwhm_xmax, 0.5)
+
+            theta_fwhm_radians = numpy.radians(0.5*twotheta_fwhm)
+
+            y = caglioti_fwhm(self.fitted_fit_global_parameters.instrumental_parameters[0].U.value,
+                              self.fitted_fit_global_parameters.instrumental_parameters[0].V.value,
+                              self.fitted_fit_global_parameters.instrumental_parameters[0].W.value,
+                              theta_fwhm_radians)
+            self.plot_ipf_fwhm.addCurve(twotheta_fwhm, y, legend="fwhm", color="blue")
+            if self.fwhm_autoscale == 0 and self.fwhm_ymin < self.fwhm_xmax: self.plot_ipf_fwhm.setGraphYLimits(ymin=self.fwhm_ymin, ymax=self.fwhm_ymax)
+
+    def refresh_caglioti_eta(self):
+        if not self.fitted_fit_global_parameters.instrumental_parameters is None and self.show_ipf==1:
+            if self.eta_autoscale == 1:
+                twotheta_eta = numpy.arange(0.0, 150.0, 0.5)
+            else:
+                twotheta_eta = numpy.arange(self.eta_xmin, self.eta_xmax, 0.5)
+
+            theta_eta_radians = numpy.radians(0.5*twotheta_eta)
+
+            y = caglioti_eta(self.fitted_fit_global_parameters.instrumental_parameters[0].a.value,
+                             self.fitted_fit_global_parameters.instrumental_parameters[0].b.value,
+                             self.fitted_fit_global_parameters.instrumental_parameters[0].c.value,
+                             theta_eta_radians)
+            self.plot_ipf_eta.addCurve(twotheta_eta, y, legend="eta", color="blue")
+            if self.eta_autoscale == 0 and self.eta_ymin < self.eta_xmax: self.plot_ipf_eta.setGraphYLimits(ymin=self.eta_ymin, ymax=self.eta_ymax)
+
+    def refresh_lab6(self):
+        shift_parameters = self.fitted_fit_global_parameters.get_shift_parameters(Lab6TanCorrection.__name__)
+
+        if not shift_parameters is None and self.show_shift==1:
+
+            if self.lab6_autoscale == 1:
+                twotheta_lab6 = numpy.arange(0.0, 150.0, 0.5)
+            else:
+                twotheta_lab6 = numpy.arange(self.lab6_xmin, self.lab6_xmax, 0.5)
+
+            theta_lab6_radians = numpy.radians(0.5*twotheta_lab6)
+
+            y = delta_two_theta_lab6(shift_parameters[0].ax.value,
+                                     shift_parameters[0].bx.value,
+                                     shift_parameters[0].cx.value,
+                                     shift_parameters[0].dx.value,
+                                     shift_parameters[0].ex.value,
+                                     theta_lab6_radians)
+            self.plot_ipf_lab6.addCurve(twotheta_lab6, y, legend="lab6", color="blue")
+            if self.lab6_autoscale == 0 and self.lab6_ymin < self.lab6_xmax: self.plot_ipf_lab6.setGraphYLimits(ymin=self.lab6_ymin, ymax=self.lab6_ymax)
+
+
     def show_data(self, is_init=False):
         diffraction_pattern_number = len(self.fitted_fit_global_parameters.fit_initialization.diffraction_patterns)
 
@@ -759,54 +817,9 @@ class OWFitter(OWGenericWidget):
             self.plot_fit_wss.addCurve(x, self.current_wss, legend="wss", symbol='o', color="blue")
             self.plot_fit_gof.addCurve(x, self.current_gof, legend="gof", symbol='o', color="red")
 
-
-        if not self.fitted_fit_global_parameters.instrumental_parameters is None and self.show_ipf==1:
-            if self.fwhm_autoscale == 1:
-                twotheta_fwhm = numpy.arange(0.0, 150.0, 0.5)
-            else:
-                twotheta_fwhm = numpy.arange(self.fwhm_xmin, self.fwhm_xmax, 0.5)
-            
-            if self.eta_autoscale == 1:
-                twotheta_eta = numpy.arange(0.0, 150.0, 0.5)
-            else:
-                twotheta_eta = numpy.arange(self.eta_xmin, self.eta_xmax, 0.5)
-
-            theta_fwhm_radians = numpy.radians(0.5*twotheta_fwhm)
-            theta_eta_radians = numpy.radians(0.5*twotheta_eta)
-            
-            y = caglioti_eta(self.fitted_fit_global_parameters.instrumental_parameters[0].a.value,
-                             self.fitted_fit_global_parameters.instrumental_parameters[0].b.value,
-                             self.fitted_fit_global_parameters.instrumental_parameters[0].c.value,
-                             theta_eta_radians)
-            self.plot_ipf_eta.addCurve(twotheta_eta, y, legend="eta", color="blue")
-            if self.eta_autoscale == 0 and self.eta_ymin < self.eta_xmax: self.plot_ipf_eta.setGraphYLimits(ymin=self.eta_ymin, ymax=self.eta_ymax)
-
-            y = caglioti_fwhm(self.fitted_fit_global_parameters.instrumental_parameters[0].U.value,
-                              self.fitted_fit_global_parameters.instrumental_parameters[0].V.value,
-                              self.fitted_fit_global_parameters.instrumental_parameters[0].W.value,
-                              theta_fwhm_radians)
-            self.plot_ipf_fwhm.addCurve(twotheta_fwhm, y, legend="fwhm", color="blue")
-            if self.fwhm_autoscale == 0 and self.fwhm_ymin < self.fwhm_xmax: self.plot_ipf_fwhm.setGraphYLimits(ymin=self.fwhm_ymin, ymax=self.fwhm_ymax)
-
-        shift_parameters = self.fitted_fit_global_parameters.get_shift_parameters(Lab6TanCorrection.__name__)
-
-        if not shift_parameters is None and self.show_shift==1:
-            
-            if self.lab6_autoscale == 1:
-                twotheta_lab6 = numpy.arange(0.0, 150.0, 0.5)
-            else:
-                twotheta_lab6 = numpy.arange(self.lab6_xmin, self.lab6_xmax, 0.5)
-
-            theta_lab6_radians = numpy.radians(0.5*twotheta_lab6)
-
-            y = delta_two_theta_lab6(shift_parameters[0].ax.value,
-                                     shift_parameters[0].bx.value,
-                                     shift_parameters[0].cx.value,
-                                     shift_parameters[0].dx.value,
-                                     shift_parameters[0].ex.value,
-                                     theta_lab6_radians)
-            self.plot_ipf_lab6.addCurve(twotheta_lab6, y, legend="lab6", color="blue")
-            if self.lab6_autoscale == 0 and self.lab6_ymin < self.lab6_xmax: self.plot_ipf_lab6.setGraphYLimits(ymin=self.lab6_ymin, ymax=self.lab6_ymax)
+        self.refresh_caglioti_fwhm()
+        self.refresh_caglioti_eta()
+        self.refresh_lab6()
 
         if not hasattr(self, "D_max"): self.D_max = None
         if not hasattr(self, "D_min"): self.D_min = None
