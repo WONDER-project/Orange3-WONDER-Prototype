@@ -12,7 +12,7 @@ NAME = 'Orange3-WONDER'
 
 MAJOR = 0
 MINOR = 1
-MICRO = 46
+MICRO = 47
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 AUTHOR = 'Luca Rebuffi, Paolo Scardi, Alberto Flor'
@@ -179,6 +179,8 @@ if __name__ == '__main__':
                 pip = PipInstaller()
                 pip.arguments.append("--no-warn-script-location")
                 pip.install(Package(package_url="Cython"))
+
+                print("Cython installed!")
             except:
                 pass
 
@@ -207,12 +209,14 @@ if __name__ == '__main__':
             cmdclass = {'build_ext': build_ext},
             ext_modules = ext_modules,
         )
-    except:
+    except Exception as e:
         #########################################################
         # in case of problems: restore full python installation
         # not cython files are replaced by recovery files generated
         # during sdist
         #########################################################
+
+        print("Problem while installing via Cython: " + str(e))
 
         setup(
             name=NAME,
