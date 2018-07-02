@@ -86,7 +86,7 @@ class FitInitialization(FitParametersList):
         if not self.fft_parameters is None:
             text += self.fft_parameters.to_text()
 
-        if not self.crystal_structure is None:
+        if not self.crystal_structures is None:
             for crystal_structure in self.crystal_structures:
                 text += crystal_structure.to_text()
 

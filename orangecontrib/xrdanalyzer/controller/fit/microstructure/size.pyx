@@ -71,8 +71,10 @@ class SizeParameters(FitParametersList):
 
         text += self.mu.to_text() + "\n"
         if not self.sigma is None: text += self.sigma.to_text() + "\n"
-        text += "Add SAXS: " + str(self.add_saxs)
-        text += "Normalize to: " + Normalization.tuple()[self.normalize_to]
+
+        if self.distribution == Distribution.DELTA:
+            text += "Add SAXS: " + str(self.add_saxs) + "\n"
+            text += "Normalize to: " + Normalization.tuple()[self.normalize_to] + "\n"
 
         text += "-----------------------------------\n"
 
