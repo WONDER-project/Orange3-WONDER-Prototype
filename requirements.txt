@@ -1,3 +1,5 @@
+Cython
+h5py
 Orange3>=3.13
 numpy
 scipy
